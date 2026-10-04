@@ -250,7 +250,7 @@ def test_sec30_erased_report_leaves_a_pseudonymised_tombstone_and_a_valid_chain(
     original_hash = r.entry.entry_hash
     before = h.backend.verify_log()
     assert before.ok
-    tomb = h.backend.erase(rid, ErasureReason.ERASURE_REQUEST)  # type: ignore[arg-type]
+    tomb = h.backend.erase(rid, ErasureReason.ERASURE_REQUEST, reviser=FakeReviser())  # type: ignore[arg-type]
     assert tomb.entry_hash == original_hash  # the tombstone carries the ORIGINAL entry hash
     assert tomb.report_id == rid and tomb.lsn == 2 and tomb.reason_class is ErasureReason.ERASURE_REQUEST
     blob = repr(tomb.to_dict()) + log_text(h)
@@ -274,7 +274,7 @@ def test_s13_salt_is_erased_with_the_content(h) -> None:  # type: ignore[no-unty
     r = sensitive(h)
     st = h.backend.storage
     assert st.log_by_lsn(2).salt is not None
-    h.backend.erase(r.entry.report.id, ErasureReason.OTHER)  # type: ignore[arg-type]
+    h.backend.erase(r.entry.report.id, ErasureReason.OTHER, reviser=FakeReviser())  # type: ignore[arg-type]
     row = st.log_by_lsn(2)
     assert row.salt is None and row.content is None and row.key is None
     assert row.commitment and row.entry_hash  # kept: they are what the chain links through
@@ -288,19 +288,19 @@ def test_s13_salt_is_erased_with_the_content(h) -> None:  # type: ignore[no-unty
 def test_s13_erase_flags_affected_versions_and_is_idempotent(h) -> None:  # type: ignore[no-untyped-def]
     r = sensitive(h)
     rid = r.entry.report.id
-    t1 = h.backend.erase(rid, ErasureReason.RETENTION_EXPIRY)  # type: ignore[arg-type]
+    t1 = h.backend.erase(rid, ErasureReason.RETENTION_EXPIRY, reviser=FakeReviser())  # type: ignore[arg-type]
     hk = Key(entity="alice", attr="health_condition")
     assert len(t1.affected_versions) == 1 and t1.affected_versions[0][1] == 1
     assert "health_condition" not in repr(t1.affected_versions)
     assert h.backend.storage.belief_row(hk, 1).reconstructable is False  # type: ignore[attr-defined]
-    assert h.backend.erase(rid, ErasureReason.OTHER) == t1  # type: ignore[arg-type]
+    assert h.backend.erase(rid, ErasureReason.OTHER, reviser=FakeReviser()) == t1  # type: ignore[arg-type]
     with pytest.raises(StoreError):
-        h.backend.erase("0" * 26, ErasureReason.OTHER)
+        h.backend.erase("0" * 26, ErasureReason.OTHER, reviser=FakeReviser())
 
 
 def test_s13_idempotent_replay_of_an_erased_append_returns_the_tombstone(h) -> None:  # type: ignore[no-untyped-def]
     r = sensitive(h)
-    h.backend.erase(r.entry.report.id, ErasureReason.ERASURE_REQUEST)  # type: ignore[arg-type]
+    h.backend.erase(r.entry.report.id, ErasureReason.ERASURE_REQUEST, reviser=FakeReviser())  # type: ignore[arg-type]
     again = h.backend.append(make_report("alice", "health_condition", "diabetes", source="clinic"), idempotency_key="k1", admitter=FakeAdmitter(), reviser=FakeReviser())
     assert again.replayed and again.entry is None and again.tombstone is not None
     assert h.backend.head().lsn == 3
@@ -311,13 +311,13 @@ def test_erase_needs_a_host_supplied_secret() -> None:
     r = b.append(make_report(), idempotency_key="k", admitter=FakeAdmitter(), reviser=FakeReviser())
     assert "erase" not in b.capabilities
     with pytest.raises(CapabilityError):
-        b.erase(r.entry.report.id, ErasureReason.OTHER)  # type: ignore[arg-type]
+        b.erase(r.entry.report.id, ErasureReason.OTHER, reviser=FakeReviser())  # type: ignore[arg-type]
 
 
 def test_chainless_backend_erases_without_an_entry_hash() -> None:
     b = InMemoryBackend(chain=False, store_secret=b"s")
     r = b.append(make_report("alice", "health_condition", "diabetes"), idempotency_key="k", admitter=FakeAdmitter(), reviser=FakeReviser())
-    t = b.erase(r.entry.report.id, ErasureReason.ERASURE_REQUEST)  # type: ignore[arg-type]
+    t = b.erase(r.entry.report.id, ErasureReason.ERASURE_REQUEST, reviser=FakeReviser())  # type: ignore[arg-type]
     assert t.entry_hash is None and b.recover().ok
 
 

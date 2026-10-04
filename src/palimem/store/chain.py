@@ -72,3 +72,9 @@ def to_us(t: datetime) -> int:
 
 def from_us(us: int) -> datetime:
     return _EPOCH + timedelta(microseconds=us)
+
+
+def idem_ref(secret: bytes, idem_key: str) -> str:
+    """What replaces a client idempotency key on an erased row (S-13): the key is client-chosen and may embed
+    anything, so it is not kept; an HMAC keeps retries of the erased append recognisable."""
+    return "erased:" + hmac.new(secret, b"palimem.idem\n" + idem_key.encode(), hashlib.sha256).hexdigest()
