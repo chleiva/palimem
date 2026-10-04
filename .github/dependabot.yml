@@ -1,0 +1,11 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    labels: [dependencies]
+  # The runtime has no dependencies; the pip ecosystem tracks dev tooling and the optional extras.
+  - package-ecosystem: pip
+    directory: /
+    schedule: { interval: weekly }
+    labels: [dependencies]

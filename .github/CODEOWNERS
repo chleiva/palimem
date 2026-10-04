@@ -1,0 +1,10 @@
+# Default owner for everything.
+*                         @chleiva
+# Contract surface: any change needs an RFC (docs/rfcs/) and the author's review.
+/src/palimem/types/       @chleiva
+/schemas/                 @chleiva
+/docs/decisions/          @chleiva
+/docs/CONTRACT_PENDING.md @chleiva
+/tests/conformance/       @chleiva
+/harness/                 @chleiva
+/.github/                 @chleiva

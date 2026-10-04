@@ -1,0 +1,36 @@
+name: Contract change proposal
+description: Changes a Report/Answer shape, a status or decision value, a default, a profile or a conformance expectation
+labels: [contract, rfc]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Contract changes go through an RFC (`docs/rfcs/0000-template.md`). Before G0 freezes they also need an explicit author line recorded in `docs/CONTRACT_PENDING.md`. This issue opens the discussion; the RFC is the decision record.
+  - type: textarea
+    id: change
+    attributes:
+      label: The change, as a before/after of the field, enum, default or fixture
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why the current contract is insufficient (evidence, failing case, or decision record)
+    validations:
+      required: true
+  - type: dropdown
+    id: breaking
+    attributes:
+      label: Breaking under docs/VERSIONING.md?
+      options:
+        - "Yes"
+        - "No (additive, optional)"
+        - "Not sure"
+    validations:
+      required: true
+  - type: textarea
+    id: effects
+    attributes:
+      label: Effect on the revise-stream-v1 compatibility profile, frozen benchmark numbers and conformance fixtures
+    validations:
+      required: true
