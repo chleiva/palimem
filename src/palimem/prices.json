@@ -1,0 +1,26 @@
+{
+  "_comment": "USD per million tokens. Edit this file, not the code. Unknown models are refused by palimem.costs.",
+  "_currency": "USD",
+  "_cap_note": "The $20 cap lives in palimem.costs.CAP_USD, not here, so a price edit cannot raise it.",
+  "models": {
+    "openai.gpt-oss-20b-1:0": {
+      "input_per_mtok": 0.07,
+      "output_per_mtok": 0.30,
+      "verified": true,
+      "source": "AWS Price List API, service AmazonBedrock, model 'gpt-oss-20b', us-west-2, standard tier ($0.00007 / $0.0003 per 1K tokens), queried 2026-10-04",
+      "note": "Reasoning tokens are billed as output tokens; budget max_output_tokens generously (a 20-token cap can be consumed entirely by reasoning). Flex/batch tiers are cheaper but not used here."
+    },
+    "mistral.ministral-3-8b-instruct": {
+      "input_per_mtok": 0.15,
+      "output_per_mtok": 0.15,
+      "verified": true,
+      "source": "AWS Price List API, service AmazonBedrock, model 'Ministral 8B 3.0', us-west-2, standard tier ($0.00015 per 1K tokens both ways), queried 2026-10-04"
+    },
+    "mistral.ministral-3-14b-instruct": {
+      "input_per_mtok": 0.20,
+      "output_per_mtok": 0.20,
+      "verified": true,
+      "source": "AWS Price List API, service AmazonBedrock, model 'Ministral 14B 3.0', us-west-2, standard tier ($0.0002 per 1K tokens both ways), queried 2026-10-04"
+    }
+  }
+}

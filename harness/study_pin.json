@@ -1,0 +1,5 @@
+{
+  "repo": "chleiva/palimpsest",
+  "commit": "244de16a45856717f06be7052b0341c2186ec3a8",
+  "note": "origin/main of the study repo on 2026-10-04. The harness warns when PALIMPSEST_STUDY_DIR is at a different commit; CI checks out exactly this commit."
+}

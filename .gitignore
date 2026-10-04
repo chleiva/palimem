@@ -17,3 +17,4 @@ ledger/*.jsonl
 .cache/
 .DS_Store
 .claude/
+ledger/*.lock
