@@ -1,0 +1,28 @@
+{
+  "authority": [
+    {
+      "may": [
+        "correct"
+      ],
+      "on": {
+        "attr": "employer*",
+        "entity": "*"
+      },
+      "over_origins": null,
+      "targets": "report",
+      "who": {
+        "kind": "principal",
+        "value": "user:alice"
+      }
+    }
+  ],
+  "class": "single_changeable",
+  "completeness": {
+    "mode": "open",
+    "scope": null
+  },
+  "inertia": true,
+  "name": "employer",
+  "rule": null,
+  "value_type": "entity"
+}

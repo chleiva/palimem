@@ -17,6 +17,8 @@ jobs:
         with: { python-version: "${{ matrix.python-version }}" }
       - run: pip install -e ".[dev]"
       - run: ruff check .
+      - run: mypy --strict src/palimem
+      - run: python -m palimem.schemas --check   # committed schemas/ must match the types
       - run: pytest -q          # harness tests skip here: no study checkout (see the harness job)
       - run: ./scripts/check_secrets.sh --all
 

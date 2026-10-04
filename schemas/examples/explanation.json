@@ -1,0 +1,23 @@
+{
+  "depth": null,
+  "environments": [
+    {
+      "environment": [
+        "01JA0000000000000000000001"
+      ],
+      "precision": "day",
+      "valid_from": null,
+      "valid_to": null
+    }
+  ],
+  "key": {
+    "attr": "employer",
+    "entity": "alice"
+  },
+  "mode": "all",
+  "segment": {
+    "valid_from": "2026-03-01T00:00:00Z",
+    "valid_to": null
+  },
+  "state": "complete"
+}

@@ -55,7 +55,10 @@
     },
     "authority": [
       {
-        "who": "agent:a1",
+        "who": {
+          "kind": "principal",
+          "value": "agent:a1"
+        },
         "may": [
           "dispute"
         ],

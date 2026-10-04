@@ -1,0 +1,10 @@
+{
+  "belief_as_of": 3,
+  "explanation_budget": 5,
+  "key": {
+    "attr": "employer",
+    "entity": "alice"
+  },
+  "profile": "open-world",
+  "valid_at": "2026-03-01T00:00:00Z"
+}

@@ -1,0 +1,179 @@
+{
+  "$defs": {
+    "Explanation": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "one"
+                ]
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "environments": {
+                "maxItems": 1
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "depth": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Nat1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "environments": {
+          "items": {
+            "$ref": "#/$defs/Support"
+          },
+          "type": "array"
+        },
+        "key": {
+          "$ref": "#/$defs/Key"
+        },
+        "mode": {
+          "enum": [
+            "all",
+            "one"
+          ],
+          "type": "string"
+        },
+        "segment": {
+          "$ref": "#/$defs/SegmentBounds"
+        },
+        "state": {
+          "enum": [
+            "complete",
+            "truncated"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "segment",
+        "mode"
+      ],
+      "type": "object"
+    },
+    "Key": {
+      "additionalProperties": false,
+      "properties": {
+        "attr": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "entity": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "entity",
+        "attr"
+      ],
+      "type": "object"
+    },
+    "Nat1": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "SegmentBounds": {
+      "additionalProperties": false,
+      "properties": {
+        "valid_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "Support": {
+      "additionalProperties": false,
+      "properties": {
+        "environment": {
+          "items": {
+            "$ref": "#/$defs/Ulid"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "precision": {
+          "enum": [
+            "day",
+            "month",
+            "year"
+          ],
+          "type": "string"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "environment"
+      ],
+      "type": "object"
+    },
+    "Timestamp": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?(Z|[+-]\\d{2}:\\d{2})$",
+      "type": "string"
+    },
+    "Ulid": {
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+      "type": "string"
+    }
+  },
+  "$id": "urn:palimem:schema:explanation:v2",
+  "$ref": "#/$defs/Explanation",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Explanation"
+}

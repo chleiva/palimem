@@ -1,0 +1,23 @@
+{
+  "actor": "connector:registry",
+  "cue": "withdraw",
+  "extractor": null,
+  "id": "01JA0000000000000000000003",
+  "key": {
+    "attr": "employer",
+    "entity": "alice"
+  },
+  "observed_at": null,
+  "origin": "external_observation",
+  "origin_group": "registry-group",
+  "precision": "day",
+  "proposition": null,
+  "raw_ref": null,
+  "source": {
+    "class": "trusted",
+    "id": "registry"
+  },
+  "target": "01JA0000000000000000000001",
+  "valid_from": null,
+  "valid_to": null
+}

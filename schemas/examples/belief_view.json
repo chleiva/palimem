@@ -1,0 +1,43 @@
+{
+  "completed_generation": 3,
+  "inference": {
+    "complete": true,
+    "reason": null
+  },
+  "key": {
+    "attr": "employer",
+    "entity": "alice"
+  },
+  "ref": "belief:alice/employer@2",
+  "required_generation": 3,
+  "segment": {
+    "alternatives": [],
+    "established": {
+      "form": {
+        "form": "value",
+        "v": "Acme"
+      },
+      "id": "a986b465686811260ff9f54bc96ebafd90bf61f8eee141dc2c58bae818b6b9c9",
+      "key": {
+        "attr": "employer",
+        "entity": "alice"
+      }
+    },
+    "kernel_status": "established",
+    "support": {
+      "a986b465686811260ff9f54bc96ebafd90bf61f8eee141dc2c58bae818b6b9c9": [
+        {
+          "environment": [
+            "01JA0000000000000000000001"
+          ],
+          "precision": "day",
+          "valid_from": "2026-03-01T00:00:00Z",
+          "valid_to": null
+        }
+      ]
+    },
+    "valid_from": "2026-03-01T00:00:00Z",
+    "valid_to": null
+  },
+  "version": 2
+}

@@ -1,0 +1,1085 @@
+{
+  "$defs": {
+    "Answer": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Resolved"
+        },
+        {
+          "$ref": "#/$defs/ResourceLimited"
+        }
+      ]
+    },
+    "BeliefAsOf": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "$ref": "#/$defs/Timestamp"
+        }
+      ],
+      "description": "An LSN (integer, S-05) or a timestamp the log maps to the last LSN at or before it."
+    },
+    "BeliefOfForm": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "belief_of"
+        },
+        "holder": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "proposition": {
+          "$ref": "#/$defs/PlainProposition"
+        }
+      },
+      "required": [
+        "form",
+        "holder",
+        "proposition"
+      ],
+      "type": "object"
+    },
+    "BeliefView": {
+      "additionalProperties": false,
+      "properties": {
+        "completed_generation": {
+          "$ref": "#/$defs/Nat0"
+        },
+        "inference": {
+          "$ref": "#/$defs/Inference"
+        },
+        "key": {
+          "$ref": "#/$defs/Key"
+        },
+        "ref": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "required_generation": {
+          "$ref": "#/$defs/Nat0"
+        },
+        "segment": {
+          "$ref": "#/$defs/Segment"
+        },
+        "version": {
+          "$ref": "#/$defs/Nat1"
+        }
+      },
+      "required": [
+        "key",
+        "version",
+        "required_generation",
+        "completed_generation",
+        "inference",
+        "segment",
+        "ref"
+      ],
+      "type": "object"
+    },
+    "Candidate": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "$ref": "#/$defs/CandidateForm"
+        },
+        "id": {
+          "$ref": "#/$defs/Hex64"
+        },
+        "key": {
+          "$ref": "#/$defs/Key"
+        }
+      },
+      "required": [
+        "key",
+        "form"
+      ],
+      "type": "object"
+    },
+    "CandidateForm": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ValueForm"
+        },
+        {
+          "$ref": "#/$defs/SetForm"
+        },
+        {
+          "$ref": "#/$defs/EmptyForm"
+        },
+        {
+          "$ref": "#/$defs/NotValueForm"
+        },
+        {
+          "$ref": "#/$defs/NotMemberForm"
+        },
+        {
+          "$ref": "#/$defs/BeliefOfForm"
+        }
+      ]
+    },
+    "EmptyForm": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "empty"
+        }
+      },
+      "required": [
+        "form"
+      ],
+      "type": "object"
+    },
+    "EnumerationProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "enumeration"
+        },
+        "values": {
+          "items": {
+            "$ref": "#/$defs/Value"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "form",
+        "values"
+      ],
+      "type": "object"
+    },
+    "Hex64": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "Inference": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "complete": {
+                "const": true
+              }
+            },
+            "required": [
+              "complete"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "complete": {
+                "const": false
+              }
+            },
+            "required": [
+              "complete"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "reason"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "complete": {
+          "type": "boolean"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "complete"
+      ],
+      "type": "object"
+    },
+    "Inquiry": {
+      "additionalProperties": false,
+      "properties": {
+        "competing": {
+          "items": {
+            "$ref": "#/$defs/Candidate"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "missing": {
+          "items": {
+            "$ref": "#/$defs/Key"
+          },
+          "type": "array"
+        },
+        "resolvers": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "competing"
+      ],
+      "type": "object"
+    },
+    "Key": {
+      "additionalProperties": false,
+      "properties": {
+        "attr": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "entity": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "entity",
+        "attr"
+      ],
+      "type": "object"
+    },
+    "LastComplete": {
+      "additionalProperties": false,
+      "properties": {
+        "belief_as_of": {
+          "$ref": "#/$defs/BeliefAsOf"
+        },
+        "view": {
+          "$ref": "#/$defs/BeliefView"
+        }
+      },
+      "required": [
+        "belief_as_of",
+        "view"
+      ],
+      "type": "object"
+    },
+    "MemberProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "member"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "Nat0": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "Nat1": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "NotMemberForm": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "not_member"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "NotMemberProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "not_member"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "NotValueForm": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "not_value"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "NotValueProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "not_value"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "PlainProposition": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ValueProp"
+        },
+        {
+          "$ref": "#/$defs/MemberProp"
+        },
+        {
+          "$ref": "#/$defs/NotMemberProp"
+        },
+        {
+          "$ref": "#/$defs/EnumerationProp"
+        },
+        {
+          "$ref": "#/$defs/NotValueProp"
+        }
+      ]
+    },
+    "PolicyInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "rule_fired": {
+          "enum": [
+            "none",
+            "prior",
+            "threshold",
+            "ask"
+          ],
+          "type": "string"
+        },
+        "version": {
+          "$ref": "#/$defs/Nat1"
+        }
+      },
+      "required": [
+        "version"
+      ],
+      "type": "object"
+    },
+    "Resolved": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "enum": [
+                  "commit"
+                ]
+              }
+            },
+            "required": [
+              "decision"
+            ]
+          },
+          "then": {
+            "properties": {
+              "assertion": {
+                "$ref": "#/$defs/Candidate"
+              }
+            },
+            "required": [
+              "assertion"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "enum": [
+                  "abstain",
+                  "ask"
+                ]
+              }
+            },
+            "required": [
+              "decision"
+            ]
+          },
+          "then": {
+            "properties": {
+              "assertion": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "enum": [
+                  "ask"
+                ]
+              }
+            },
+            "required": [
+              "decision"
+            ]
+          },
+          "then": {
+            "properties": {
+              "inquiry": {
+                "$ref": "#/$defs/Inquiry"
+              }
+            },
+            "required": [
+              "inquiry"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "enum": [
+                  "commit",
+                  "abstain"
+                ]
+              }
+            },
+            "required": [
+              "decision"
+            ]
+          },
+          "then": {
+            "properties": {
+              "inquiry": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "alternatives": {
+          "items": {
+            "$ref": "#/$defs/Candidate"
+          },
+          "type": "array"
+        },
+        "assertion": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Candidate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "decision": {
+          "enum": [
+            "commit",
+            "abstain",
+            "ask"
+          ],
+          "type": "string"
+        },
+        "explanation": {
+          "enum": [
+            "complete",
+            "truncated"
+          ],
+          "type": "string"
+        },
+        "inquiry": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Inquiry"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "justified": {
+          "$ref": "#/$defs/BeliefView"
+        },
+        "kernel_status": {
+          "enum": [
+            "established",
+            "unresolved",
+            "unknown",
+            "established_empty",
+            "established_false"
+          ],
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/PolicyInfo"
+        },
+        "provenance": {
+          "items": {
+            "$ref": "#/$defs/Support"
+          },
+          "type": "array"
+        },
+        "segment": {
+          "$ref": "#/$defs/SegmentBounds"
+        }
+      },
+      "required": [
+        "segment",
+        "kernel_status",
+        "decision",
+        "policy",
+        "justified"
+      ],
+      "type": "object"
+    },
+    "ResourceLimited": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "reason": {
+                "enum": [
+                  "stale_dependency",
+                  "environment_budget"
+                ]
+              }
+            },
+            "required": [
+              "reason"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reason_key": {
+                "$ref": "#/$defs/Key"
+              }
+            },
+            "required": [
+              "reason_key"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "reason": {
+                "enum": [
+                  "inference_incomplete",
+                  "store_dirty"
+                ]
+              }
+            },
+            "required": [
+              "reason"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reason_key": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "description": "Carries no segment and no kernel_status: neither could truthfully describe the snapshot.",
+      "properties": {
+        "completed_generation": {
+          "$ref": "#/$defs/Nat0"
+        },
+        "decision": {
+          "const": "resource_limited"
+        },
+        "last_complete": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LastComplete"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "enum": [
+            "inference_incomplete",
+            "stale_dependency",
+            "store_dirty",
+            "environment_budget"
+          ],
+          "type": "string"
+        },
+        "reason_key": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Key"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "required_generation": {
+          "$ref": "#/$defs/Nat0"
+        }
+      },
+      "required": [
+        "decision",
+        "reason",
+        "required_generation",
+        "completed_generation"
+      ],
+      "type": "object"
+    },
+    "Segment": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kernel_status": {
+                "enum": [
+                  "established"
+                ]
+              }
+            },
+            "required": [
+              "kernel_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "alternatives": {
+                "maxItems": 0
+              },
+              "established": {
+                "properties": {
+                  "form": {
+                    "properties": {
+                      "form": {
+                        "enum": [
+                          "value",
+                          "set",
+                          "belief_of"
+                        ]
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "required": [
+              "established"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kernel_status": {
+                "enum": [
+                  "established_empty"
+                ]
+              }
+            },
+            "required": [
+              "kernel_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "alternatives": {
+                "maxItems": 0
+              },
+              "established": {
+                "properties": {
+                  "form": {
+                    "properties": {
+                      "form": {
+                        "const": "empty"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "required": [
+              "established"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kernel_status": {
+                "enum": [
+                  "established_false"
+                ]
+              }
+            },
+            "required": [
+              "kernel_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "alternatives": {
+                "maxItems": 0
+              },
+              "established": {
+                "properties": {
+                  "form": {
+                    "properties": {
+                      "form": {
+                        "enum": [
+                          "not_value",
+                          "not_member"
+                        ]
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "required": [
+              "established"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kernel_status": {
+                "enum": [
+                  "unresolved"
+                ]
+              }
+            },
+            "required": [
+              "kernel_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "alternatives": {
+                "minItems": 2
+              },
+              "established": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "alternatives"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kernel_status": {
+                "enum": [
+                  "unknown"
+                ]
+              }
+            },
+            "required": [
+              "kernel_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "alternatives": {
+                "maxItems": 0
+              },
+              "established": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "alternatives": {
+          "items": {
+            "$ref": "#/$defs/Candidate"
+          },
+          "type": "array"
+        },
+        "established": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Candidate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kernel_status": {
+          "enum": [
+            "established",
+            "unresolved",
+            "unknown",
+            "established_empty",
+            "established_false"
+          ],
+          "type": "string"
+        },
+        "support": {
+          "additionalProperties": {
+            "items": {
+              "$ref": "#/$defs/Support"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "propertyNames": {
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "type": "object"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kernel_status"
+      ],
+      "type": "object"
+    },
+    "SegmentBounds": {
+      "additionalProperties": false,
+      "properties": {
+        "valid_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "SetForm": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "set"
+        },
+        "values": {
+          "items": {
+            "$ref": "#/$defs/Value"
+          },
+          "minItems": 1,
+          "type": "array"
+        }
+      },
+      "required": [
+        "form",
+        "values"
+      ],
+      "type": "object"
+    },
+    "Support": {
+      "additionalProperties": false,
+      "properties": {
+        "environment": {
+          "items": {
+            "$ref": "#/$defs/Ulid"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "precision": {
+          "enum": [
+            "day",
+            "month",
+            "year"
+          ],
+          "type": "string"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "environment"
+      ],
+      "type": "object"
+    },
+    "Timestamp": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?(Z|[+-]\\d{2}:\\d{2})$",
+      "type": "string"
+    },
+    "Ulid": {
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+      "type": "string"
+    },
+    "Value": {
+      "type": [
+        "string",
+        "integer",
+        "number",
+        "boolean"
+      ]
+    },
+    "ValueForm": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "value"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "ValueProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "value"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "urn:palimem:schema:answer:v2",
+  "$ref": "#/$defs/Answer",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Answer"
+}

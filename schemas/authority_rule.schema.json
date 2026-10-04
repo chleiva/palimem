@@ -1,0 +1,194 @@
+{
+  "$defs": {
+    "AuthorityRule": {
+      "additionalProperties": false,
+      "description": "S-07 invariant (enforced by the types and by admission, not expressible here): no rule grants an agent principal withdraw/correct over an external_observation.",
+      "properties": {
+        "may": {
+          "items": {
+            "enum": [
+              "correct",
+              "withdraw",
+              "dispute"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "on": {
+          "$ref": "#/$defs/KeyScope"
+        },
+        "over_origins": {
+          "anyOf": [
+            {
+              "items": {
+                "enum": [
+                  "external_observation",
+                  "attributed",
+                  "agent_hypothesis",
+                  "agent_statement",
+                  "plan",
+                  "simulation",
+                  "counterfactual"
+                ],
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "targets": {
+          "enum": [
+            "report",
+            "source",
+            "any"
+          ],
+          "type": "string"
+        },
+        "who": {
+          "$ref": "#/$defs/Who"
+        }
+      },
+      "required": [
+        "who",
+        "may"
+      ],
+      "type": "object"
+    },
+    "KeyScope": {
+      "additionalProperties": false,
+      "properties": {
+        "attr": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "entity": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "Principal": {
+      "pattern": "^(agent|user|connector|system):[A-Za-z0-9_.@/\\-]+$",
+      "type": "string"
+    },
+    "Who": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "principal"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "$ref": "#/$defs/Principal"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "origin_group"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "any",
+                  "target_source",
+                  "target_actor",
+                  "target_origin_group"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "principal",
+            "origin_group",
+            "any",
+            "target_source",
+            "target_actor",
+            "target_origin_group"
+          ],
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "urn:palimem:schema:authority_rule:v2",
+  "$ref": "#/$defs/AuthorityRule",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AuthorityRule"
+}

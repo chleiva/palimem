@@ -1,0 +1,11 @@
+{
+  "form": {
+    "form": "not_member",
+    "v": "mit"
+  },
+  "id": "0d52279135eea2f79fa836ec7fc5101f59ac25fd2746b91b30bd36981cf841a6",
+  "key": {
+    "attr": "affiliations",
+    "entity": "alice"
+  }
+}

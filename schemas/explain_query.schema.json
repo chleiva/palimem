@@ -1,0 +1,95 @@
+{
+  "$defs": {
+    "BeliefAsOf": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "$ref": "#/$defs/Timestamp"
+        }
+      ],
+      "description": "An LSN (integer, S-05) or a timestamp the log maps to the last LSN at or before it."
+    },
+    "ExplainQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "belief_as_of": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BeliefAsOf"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "depth": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Nat1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "key": {
+          "$ref": "#/$defs/Key"
+        },
+        "mode": {
+          "enum": [
+            "all",
+            "one"
+          ],
+          "type": "string"
+        },
+        "valid_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "key"
+      ],
+      "type": "object"
+    },
+    "Key": {
+      "additionalProperties": false,
+      "properties": {
+        "attr": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "entity": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "entity",
+        "attr"
+      ],
+      "type": "object"
+    },
+    "Nat1": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "Timestamp": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?(Z|[+-]\\d{2}:\\d{2})$",
+      "type": "string"
+    }
+  },
+  "$id": "urn:palimem:schema:explain_query:v2",
+  "$ref": "#/$defs/ExplainQuery",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExplainQuery"
+}

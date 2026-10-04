@@ -1,0 +1,11 @@
+{
+  "completed_generation": 3,
+  "decision": "resource_limited",
+  "last_complete": null,
+  "reason": "environment_budget",
+  "reason_key": {
+    "attr": "employer",
+    "entity": "alice"
+  },
+  "required_generation": 4
+}

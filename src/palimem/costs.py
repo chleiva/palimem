@@ -32,7 +32,8 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Self
+from types import TracebackType
+from typing import Any, Self
 
 try:  # POSIX file locking; absent on Windows, where the ledger is single-process only
     import fcntl
@@ -124,7 +125,9 @@ class Reservation:
     def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, exc_type, exc, tb) -> None:
+    def __exit__(
+        self, exc_type: type[BaseException] | None, exc: BaseException | None, tb: TracebackType | None
+    ) -> None:
         if not self.closed:
             # Unknown outcome: charge the worst case rather than silently freeing budget.
             self.closed = True
@@ -173,7 +176,7 @@ class CostLedger:
             raise UnknownModel(f"model {model!r} is not in the price table")
         return cost_usd(price, input_tokens, output_tokens)
 
-    def summary(self) -> dict:
+    def summary(self) -> dict[str, Any]:
         with self._locked():
             s = self._state()
         s["cap_usd"] = self.cap_usd
@@ -181,7 +184,7 @@ class CostLedger:
         return s
 
     def remaining_usd(self) -> float:
-        return self.summary()["remaining_usd"]
+        return float(self.summary()["remaining_usd"])
 
     # ---- internals ----
     def _commit(self, r: Reservation, input_tokens: int, output_tokens: int,
@@ -201,7 +204,7 @@ class CostLedger:
             raise BudgetExceeded(f"actual spend recorded; total ${total:.4f} now exceeds cap ${self.cap_usd:.2f}")
         return cost
 
-    def _state(self) -> dict:
+    def _state(self) -> dict[str, Any]:
         open_res: dict[str, float] = {}
         spent = 0.0
         n_calls = 0
@@ -227,7 +230,7 @@ class CostLedger:
         return {"spent_usd": spent, "reserved_usd": reserved, "exposure_usd": spent + reserved,
                 "n_calls": n_calls, "by_model_usd": by_model, "open_reservations": len(open_res)}
 
-    def _append(self, rec: dict, locked: bool = False) -> None:
+    def _append(self, rec: dict[str, Any], locked: bool = False) -> None:
         rec = {"ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), **rec}
         line = json.dumps(rec, sort_keys=True) + "\n"
         if locked:
