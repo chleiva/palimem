@@ -1,0 +1,365 @@
+{
+ "instances": 200,
+ "with_blocks_gt1": 194,
+ "tie_equal": 115,
+ "first_equal": 174,
+ "last_equal": 86,
+ "tie_equal_at_now": 194,
+ "first_equal_at_now": 193,
+ "last_equal_at_now": 194,
+ "tie_inadmissible": 0,
+ "examples": [
+  {
+   "policy": "P0c",
+   "reps": [
+    {
+     "id": 0,
+     "value": "v0",
+     "anchor": 1,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 1,
+     "value": "v0",
+     "anchor": 1,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 2,
+     "value": "v0",
+     "anchor": 2,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 3,
+     "value": "v0",
+     "anchor": 3,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 4,
+     "value": "v0",
+     "anchor": 3,
+     "origin": "crm",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 5,
+     "value": "v0",
+     "anchor": 4,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 6,
+     "value": "v2",
+     "anchor": 4,
+     "origin": "crm",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 7,
+     "value": "v0",
+     "anchor": 4,
+     "origin": "crm",
+     "cue": "change",
+     "op_from": "v2",
+     "op_of": null
+    },
+    {
+     "id": 8,
+     "value": "v0",
+     "anchor": 5,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 9,
+     "value": "v0",
+     "anchor": 7,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 10,
+     "value": "v0",
+     "anchor": 7,
+     "origin": "crm",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    }
+   ],
+   "differs_at_t": [
+    2,
+    3
+   ],
+   "oracle": [
+    [
+     [],
+     [
+      "v0"
+     ],
+     [
+      "v2"
+     ]
+    ]
+   ],
+   "tie": [
+    [
+     [],
+     [
+      "v0"
+     ]
+    ]
+   ]
+  },
+  {
+   "policy": "P0cSU",
+   "reps": [
+    {
+     "id": 0,
+     "value": "v1",
+     "anchor": 0,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 1,
+     "value": "v0",
+     "anchor": 0,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 2,
+     "value": "v0",
+     "anchor": 1,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 3,
+     "value": "v0",
+     "anchor": 1,
+     "origin": "crm",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 4,
+     "value": "v0",
+     "anchor": 1,
+     "origin": "crm",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 5,
+     "value": "v0",
+     "anchor": 2,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 6,
+     "value": "v0",
+     "anchor": 2,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 7,
+     "value": "v0",
+     "anchor": 3,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    }
+   ],
+   "differs_at_t": [
+    0
+   ],
+   "oracle": [
+    [
+     [
+      "v0"
+     ],
+     [
+      "v1"
+     ]
+    ]
+   ],
+   "tie": [
+    [
+     [
+      "v0"
+     ]
+    ]
+   ]
+  },
+  {
+   "policy": "P0c",
+   "reps": [
+    {
+     "id": 0,
+     "value": "v0",
+     "anchor": 0,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 1,
+     "value": "v0",
+     "anchor": 1,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 2,
+     "value": "v0",
+     "anchor": 1,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 3,
+     "value": "v0",
+     "anchor": 2,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 4,
+     "value": "v0",
+     "anchor": 3,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 5,
+     "value": "v1",
+     "anchor": 4,
+     "origin": "user",
+     "cue": "change",
+     "op_from": "v0",
+     "op_of": null
+    },
+    {
+     "id": 6,
+     "value": "v1",
+     "anchor": 4,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 7,
+     "value": "v1",
+     "anchor": 4,
+     "origin": "crm",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 8,
+     "value": "v1",
+     "anchor": 4,
+     "origin": "crm",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    },
+    {
+     "id": 9,
+     "value": "v2",
+     "anchor": 5,
+     "origin": "user",
+     "cue": "change",
+     "op_from": "v1",
+     "op_of": null
+    },
+    {
+     "id": 10,
+     "value": "v2",
+     "anchor": 5,
+     "origin": "user",
+     "cue": "none",
+     "op_from": null,
+     "op_of": null
+    }
+   ],
+   "differs_at_t": [
+    1,
+    2,
+    3
+   ],
+   "oracle": [
+    [
+     [],
+     [
+      "v0"
+     ],
+     [
+      "v1"
+     ]
+    ]
+   ],
+   "tie": [
+    [
+     [],
+     [
+      "v0"
+     ]
+    ]
+   ]
+  }
+ ]
+}

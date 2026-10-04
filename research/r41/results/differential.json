@@ -1,0 +1,25 @@
+{
+ "random_instances": 6000,
+ "random_mismatches": 0,
+ "random_max_n": 10,
+ "ladder_levels": {
+  "0": 5566,
+  "3": 428,
+  "1": 6
+ },
+ "study": {
+  "streams": 300,
+  "key_instances_compared": 28168,
+  "mismatches": 0,
+  "n_histogram": {
+   "1": 2703,
+   "2": 2411,
+   "3": 2780,
+   "4": 2141,
+   "5": 1796,
+   "6": 1526,
+   "7": 727
+  },
+  "examples": []
+ }
+}

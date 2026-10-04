@@ -1,0 +1,84 @@
+{
+ "measured_oracle_vs_fast": [
+  {
+   "n": 8,
+   "oracle_sec": 0.002800082991598174,
+   "oracle_interps": 162,
+   "fast_sec": 0.000632707990007475,
+   "fast_branches": 61
+  },
+  {
+   "n": 10,
+   "oracle_sec": 0.015481042006285861,
+   "oracle_interps": 584,
+   "fast_sec": 0.0009952920081559569,
+   "fast_branches": 86
+  },
+  {
+   "n": 12,
+   "oracle_sec": 0.06577470799675211,
+   "oracle_interps": 1280,
+   "fast_sec": 0.0015598330064676702,
+   "fast_branches": 115
+  },
+  {
+   "n": 14,
+   "oracle_sec": 0.3614747080137022,
+   "oracle_interps": 10403,
+   "fast_sec": 0.0022346250189002603,
+   "fast_branches": 148
+  },
+  {
+   "n": 16,
+   "oracle_sec": 1.9878234160132706,
+   "oracle_interps": 48802,
+   "fast_sec": 0.003412167017813772,
+   "fast_branches": 185
+  }
+ ],
+ "fast_at_scale": [
+  {
+   "n": 12,
+   "fast_sec_cand_median": 0.0013075830065645278,
+   "fast_sec_err_median": 0.0002705420192796737,
+   "branches_max": 115,
+   "oracle_projected_sec": 0.09346078283366903
+  },
+  {
+   "n": 16,
+   "fast_sec_cand_median": 0.002760499977739528,
+   "fast_sec_err_median": 0.0004987500142306089,
+   "branches_max": 185,
+   "oracle_projected_sec": 1.4953725253387045
+  },
+  {
+   "n": 24,
+   "fast_sec_cand_median": 0.009154125000350177,
+   "fast_sec_err_median": 0.0013308749767020345,
+   "branches_max": 373,
+   "oracle_projected_sec": 382.81536648670834
+  },
+  {
+   "n": 50,
+   "fast_sec_cand_median": 0.09421583299990743,
+   "fast_sec_err_median": 0.006892417004564777,
+   "branches_max": 1426,
+   "oracle_projected_sec": 25690304366.666668
+  },
+  {
+   "n": 100,
+   "fast_sec_cand_median": 0.9999703750072513,
+   "fast_sec_err_median": 0.04271441698074341,
+   "branches_max": 5351,
+   "oracle_projected_sec": 2.892471129318866e+25
+  },
+  {
+   "n": 200,
+   "fast_sec_cand_median": 11.96706558400183,
+   "fast_sec_err_median": 0.28998112498084083,
+   "branches_max": 20701,
+   "oracle_projected_sec": 3.666642763223885e+55
+  }
+ ],
+ "oracle_sec_per_2n": 2.2817573934001228e-05
+}
