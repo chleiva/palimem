@@ -1,5 +1,10 @@
 name: ci
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "17 3 * * *"   # nightly: full 500-stream differential run
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -12,5 +17,49 @@ jobs:
         with: { python-version: "${{ matrix.python-version }}" }
       - run: pip install -e ".[dev]"
       - run: ruff check .
-      - run: pytest -q
+      - run: pytest -q          # harness tests skip here: no study checkout (see the harness job)
       - run: ./scripts/check_secrets.sh --all
+
+  # Differential gate (T-E1) + frozen-set guard (T-E2): the incremental store must agree with symbolic
+  # replay and the frozen oracle gold on every query. Runtime on a laptop: ~27 s for all 500 streams
+  # (30,272 queries); the PR/push run uses every 5th stream.
+  harness:
+    runs-on: ubuntu-latest
+    env:
+      HARNESS_REQUIRED: "1"
+      PALIMPSEST_STUDY_DIR: ${{ github.workspace }}/study
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - id: pin
+        run: echo "commit=$(python3 -c "import json;print(json.load(open('harness/study_pin.json'))['commit'])")" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: chleiva/palimpsest
+          ref: ${{ steps.pin.outputs.commit }}
+          path: study
+      - uses: actions/cache@v4
+        with:
+          path: .cache/frozen
+          key: frozen-setting1-686cf0bbf43f   # first 12 hex of the pinned Zenodo zip SHA-256
+      - run: pip install -e ".[dev]"
+      - name: Fetch and verify the frozen set (all 1,501 files against the pinned manifest)
+        run: python -m harness.frozen verify --fetch
+      - name: Differential run, bounded (every 5th stream) on push/PR, full on the nightly schedule
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then ARGS=""; else ARGS="--stride 5"; fi
+          python -m harness.differential $ARGS --out differential-report.json
+      - name: Self-test, the gate must fail on injected bugs
+        run: |
+          for bug in drop-propagation mutate-answer; do
+            if python -m harness.differential --limit 25 --inject-bug "$bug"; then
+              echo "::error::harness did not detect injected bug '$bug'"; exit 1
+            fi
+          done
+      - run: pytest -q tests/test_frozen_guard.py tests/test_differential.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: differential-report
+          path: differential-report.json
