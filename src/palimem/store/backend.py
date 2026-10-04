@@ -1,0 +1,348 @@
+"""The backend interface (T-C1): what a storage backend must provide, and the two injected stages.
+
+A backend owns the *evidence log*, the *admission log*, *belief versions*, *versioned inputs* and the
+indexes. It does **not** decide admission and does **not** compute beliefs: both are injected for
+one append, so Lane B's kernel and Lane D's admission plug in without the store knowing them.
+
+Core operations (every conformant backend)::
+
+    append(report, idempotency_key, admitter, reviser) -> AppendResult   one atomic revision transaction
+    current_belief(key) / belief_at(key, as_of) / belief_version(key, v)  as_of = LSN or timestamp (S-05)
+    scan(from_lsn, to_lsn)                                                replay
+    key_dependents(key) / attr_dependents(attr)                           dependency lookup
+    put_schema / put_input / schema / input_at                            versioned inputs
+
+Optional capabilities (``capabilities``): ``verify_log`` and ``export_head`` (the salted hash chain,
+a storage-layer property; S-13). A backend without them is still contract-conformant.
+
+``belief_as_of`` resolves to the version of a key with the greatest ``Belief.lsn`` at or before the
+requested LSN; a timestamp maps to the last LSN whose ``recorded_at`` is at or before it. The log keeps
+``recorded_at`` non-decreasing along LSNs (it is clamped to the previous row on clock skew), so that
+mapping is well defined.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Callable, Iterator, Mapping, Sequence
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+from typing import Any, Protocol, Self, runtime_checkable
+
+from palimem.types import (
+    AdmissionRecord,
+    Belief,
+    BeliefAsOf,
+    Key,
+    LogEntry,
+    Report,
+    Schema,
+    ValidationError,
+    canonical_json,
+    parse_json,
+)
+
+# ----------------------------------------------------------------------------- errors
+
+
+class StoreError(Exception):
+    """Base class of store errors."""
+
+
+class IdempotencyConflict(StoreError):
+    """The idempotency key was already used for a *different* report."""
+
+
+class CapabilityError(StoreError):
+    """The backend does not implement an optional capability (e.g. the hash chain)."""
+
+
+class StoreBusy(StoreError):
+    """Another writer holds the write lock and the busy timeout elapsed."""
+
+
+class InvalidRevision(StoreError):
+    """The reviser or admitter returned something the store cannot commit (nothing is written)."""
+
+
+# ----------------------------------------------------------------------------- fault injection
+
+APPEND_STEPS: tuple[str, ...] = (
+    "begin",
+    "after_log_insert",
+    "after_admission",
+    "after_revision",
+    "after_beliefs",
+    "after_index",
+    "before_commit",
+    "after_commit",
+)
+"""Names passed to the ``fault`` hook, in order. Raising (or ``os._exit``-ing) at any step before
+``after_commit`` must leave no trace of the append; at ``after_commit`` the append is durable and a
+retry with the same idempotency key replays it."""
+
+FaultHook = Callable[[str], None]
+
+
+# ----------------------------------------------------------------------------- records
+
+
+class InputKind(str, Enum):
+    """Versioned inputs without which a belief cannot be reproduced (design v0.3 §Storage layout)."""
+
+    SCHEMA = "schema"
+    SEMANTIC = "semantic"
+    ADMISSION = "admission"  # includes the authority grant table (S-07): a grant change is an admission version
+    POLICY = "policy"
+
+
+class ErasureReason(str, Enum):
+    """Coarse reason class of an erasure: no free text (S-13)."""
+
+    ERASURE_REQUEST = "erasure_request"
+    LEGAL_HOLD_RELEASE = "legal_hold_release"
+    RETENTION_EXPIRY = "retention_expiry"
+    OTHER = "other"
+
+
+@dataclass(frozen=True, kw_only=True)
+class Tombstone:
+    """What remains of an erased report (S-13): no plain key, value or free text.
+
+    ``entry_hash`` is the ORIGINAL chain hash of the row (``None`` on a chainless backend), so the
+    next row's ``prev_hash`` still links across the tombstone.
+    """
+
+    report_id: str
+    lsn: int
+    entry_hash: str | None
+    key_ref: str  # HMAC(store_secret, key)
+    actor_ref: str  # HMAC(store_secret, actor)
+    reason_class: ErasureReason
+    erased_at: datetime
+    affected_versions: tuple[tuple[str, int], ...] = ()  # (key_ref, belief version): no longer reconstructable
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "report_id": self.report_id,
+            "lsn": self.lsn,
+            "entry_hash": self.entry_hash,
+            "key_ref": self.key_ref,
+            "actor_ref": self.actor_ref,
+            "reason_class": self.reason_class.value,
+            "erased_at_us": _us(self.erased_at),
+            "affected_versions": [[k, v] for k, v in self.affected_versions],
+        }
+
+    @classmethod
+    def from_dict(cls, d: Mapping[str, Any]) -> Self:
+        from palimem.store.chain import from_us
+
+        return cls(
+            report_id=str(d["report_id"]),
+            lsn=int(d["lsn"]),
+            entry_hash=d["entry_hash"],
+            key_ref=str(d["key_ref"]),
+            actor_ref=str(d["actor_ref"]),
+            reason_class=ErasureReason(d["reason_class"]),
+            erased_at=from_us(int(d["erased_at_us"])),
+            affected_versions=tuple((str(k), int(v)) for k, v in d["affected_versions"]),
+        )
+
+
+def _us(t: datetime) -> int:
+    from palimem.store.chain import to_us
+
+    return to_us(t)
+
+
+@dataclass(frozen=True, kw_only=True)
+class Head:
+    """The chain heads at one moment: export it somewhere an attacker cannot rewrite (T-24)."""
+
+    lsn: int
+    entry_hash: str | None
+    admission_seq: int
+    admission_hash: str | None
+    generation: int
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "lsn": self.lsn,
+            "entry_hash": self.entry_hash,
+            "admission_seq": self.admission_seq,
+            "admission_hash": self.admission_hash,
+            "generation": self.generation,
+        }
+
+    def to_json(self) -> str:
+        return canonical_json(self.to_dict())
+
+    @classmethod
+    def from_dict(cls, d: Mapping[str, Any]) -> Self:
+        return cls(
+            lsn=int(d["lsn"]),
+            entry_hash=d.get("entry_hash"),
+            admission_seq=int(d["admission_seq"]),
+            admission_hash=d.get("admission_hash"),
+            generation=int(d["generation"]),
+        )
+
+    @classmethod
+    def from_json(cls, text: str) -> Self:
+        obj = parse_json(text)
+        if not isinstance(obj, dict):
+            raise ValidationError("head: expected a JSON object")
+        return cls.from_dict(obj)
+
+
+@dataclass(frozen=True, kw_only=True)
+class VerifyProblem:
+    kind: str  # see docs/STORAGE.md §Verification for the vocabulary
+    detail: str
+    lsn: int | None = None
+    key: Key | None = None
+    version: int | None = None
+
+
+@dataclass(frozen=True, kw_only=True)
+class RowStatus:
+    """Per-row result of ``verify_log``. A tombstoned row is ``linked`` but not ``content_verified`` (S-13)."""
+
+    lsn: int
+    linked: bool
+    content_verified: bool
+    tombstoned: bool
+
+
+@dataclass(frozen=True, kw_only=True)
+class VerifyResult:
+    ok: bool
+    checked: int
+    problems: tuple[VerifyProblem, ...] = ()
+    rows: tuple[RowStatus, ...] = ()
+
+
+@dataclass(frozen=True, kw_only=True)
+class RecoveryReport:
+    ok: bool
+    head_lsn: int
+    generation: int
+    problems: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, kw_only=True)
+class AppendResult:
+    """Outcome of one append. On a replay (same idempotency key) ``replayed`` is True and the stored
+    result is returned; if the report has since been erased, ``entry`` is None and ``tombstone`` is set."""
+
+    entry: LogEntry | None
+    admissions: tuple[AdmissionRecord, ...]
+    beliefs: tuple[Belief, ...]
+    generation: int
+    replayed: bool = False
+    tombstone: Tombstone | None = None
+
+
+# ----------------------------------------------------------------------------- read view
+
+
+@runtime_checkable
+class StoreView(Protocol):
+    """Read-only access. Inside an append the view includes the not-yet-committed rows of that append."""
+
+    def head(self) -> Head: ...
+    def get_entry(self, report_id: str) -> LogEntry | Tombstone | None: ...
+    def scan(self, from_lsn: int = 1, to_lsn: int | None = None) -> Iterator[LogEntry | Tombstone]: ...
+    def entries_for_key(self, key: Key, to_lsn: int | None = None) -> tuple[LogEntry, ...]:
+        """Live (non-erased) entries on a key, in LSN order."""
+        ...
+
+    def admissions_for_report(self, report_id: str) -> tuple[AdmissionRecord, ...]: ...
+    def admissions_for_key(self, key: Key, to_lsn: int | None = None) -> tuple[AdmissionRecord, ...]:
+        """Every admission record of the (live) reports on a key, in decision order."""
+        ...
+
+    def current_belief(self, key: Key) -> Belief | None: ...
+    def belief_version(self, key: Key, version: int) -> Belief | None: ...
+    def belief_at(self, key: Key, as_of: BeliefAsOf) -> Belief | None: ...
+    def lsn_at(self, when: datetime) -> int:
+        """Greatest LSN recorded at or before ``when`` (0 if none)."""
+        ...
+
+    def key_dependents(self, key: Key) -> tuple[Key, ...]:
+        """Keys whose *current* belief depends on ``key``."""
+        ...
+
+    def attr_dependents(self, attr: str, as_of: BeliefAsOf | None = None) -> tuple[str, ...]:
+        """Derived attributes that read ``attr`` under the schema current at ``as_of`` (default: now)."""
+        ...
+
+    def schema(self, as_of: BeliefAsOf | None = None) -> Schema | None: ...
+    def input_at(self, kind: InputKind, as_of: BeliefAsOf | None = None) -> tuple[int, Mapping[str, Any]] | None:
+        """(version, payload) of the input current at ``as_of`` (default: now)."""
+        ...
+
+
+# ----------------------------------------------------------------------------- injected stages
+
+
+@dataclass(frozen=True, kw_only=True)
+class AdmissionContext:
+    entry: LogEntry
+    view: StoreView
+    new_id: Callable[[], str]  # mints ULIDs for AdmissionRecord.id
+
+
+class Admitter(Protocol):
+    """Decides admission (Lane D). Must return at least one record for ``ctx.entry.report.id``; it may
+    return more (e.g. a later report confirming an earlier quarantined one). The store only stores them."""
+
+    def admit(self, ctx: AdmissionContext) -> Sequence[AdmissionRecord]: ...
+
+
+@dataclass(frozen=True, kw_only=True)
+class RevisionContext:
+    entry: LogEntry
+    admissions: tuple[AdmissionRecord, ...]
+    generation: int  # the store generation this append establishes
+    view: StoreView
+
+
+class Reviser(Protocol):
+    """Computes belief versions (Lane B). ``revise`` returns the new versions for the touched key and
+    every derived key that reads it. Each returned Belief must carry ``lsn == ctx.entry.lsn`` and
+    ``version == previous + 1`` (1 for a new key), and appear once per key.
+
+    ``recompute`` rebuilds a key's belief from the log alone, as of the head, for ``verify_beliefs``;
+    its ``segments``, ``pinned``, ``depends_on`` and ``invalidated_by`` must equal the stored current
+    belief or the store reports ``belief_mismatch`` (SEC-25).
+    """
+
+    def revise(self, ctx: RevisionContext) -> Sequence[Belief]: ...
+    def recompute(self, key: Key, view: StoreView) -> Belief | None: ...
+
+
+# ----------------------------------------------------------------------------- the backend
+
+
+@runtime_checkable
+class Backend(StoreView, Protocol):
+    capabilities: frozenset[str]
+
+    def append(self, report: Report, *, idempotency_key: str, admitter: Admitter, reviser: Reviser) -> AppendResult: ...
+    def put_schema(self, schema: Schema) -> None: ...
+    def put_input(self, kind: InputKind, version: int, payload: Mapping[str, Any]) -> None: ...
+    def erase(self, report_id: str, reason: ErasureReason) -> Tombstone: ...
+    def recover(self) -> RecoveryReport: ...
+    def close(self) -> None: ...
+
+    # optional capabilities
+    def verify_log(self, from_lsn: int = 1, to_lsn: int | None = None, *, anchor: Head | None = None) -> VerifyResult: ...
+    def export_head(self) -> Head: ...
+    def verify_beliefs(self, reviser: Reviser, *, keys: Sequence[Key] | None = None) -> VerifyResult: ...
+
+
+CAP_VERIFY_LOG = "verify_log"
+CAP_EXPORT_HEAD = "export_head"
+CAP_ERASE = "erase"
