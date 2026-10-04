@@ -40,11 +40,11 @@ def load(explicit: str | os.PathLike[str] | None = None) -> SimpleNamespace:
     if str(d) not in sys.path:
         sys.path.insert(0, str(d))
     from baselines.structured import LogQueryTime
-    from eval.scorer import norm
+    from eval.scorer import norm, supporting_ids
     from palimpsest.core import BeliefStore
     from revise_stream.model import load_stream
 
     return SimpleNamespace(
         dir=d, commit=commit_of(d), BeliefStore=BeliefStore, LogQueryTime=LogQueryTime,
-        load_stream=load_stream, norm=norm,
+        load_stream=load_stream, norm=norm, supporting_ids=supporting_ids,
     )

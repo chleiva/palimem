@@ -69,6 +69,9 @@ jobs:
           python -m harness.kernel_diff $ARGS --out kernel-diff-report.json
           # the paper's exact source-level retraction: strict, 0 disagreements
           python -m harness.kernel_diff $ARGS --source-retract sidetable --strict
+      - name: Provenance parity (T-B4, S-12), strict - the kernel's profile provenance must equal the study's oracle set
+        run: |
+          python -m harness.kernel_diff $ARGS --source-retract sidetable --provenance strict --strict --out kernel-provenance-report.json
       - name: Kernel self-test, the gate must fail on injected bugs
         run: |
           for bug in self-update ignore-corrections mutate-answer; do
@@ -76,7 +79,10 @@ jobs:
               echo "::error::kernel_diff did not detect injected bug '$bug'"; exit 1
             fi
           done
-      - run: pytest -q tests/test_frozen_guard.py tests/test_differential.py tests/test_kernel_diff.py tests/test_kernel_oracle_property.py tests/test_convert.py tests/conformance/test_runner.py::test_compat_authority_check_runs_or_skips
+          if python -m harness.kernel_diff --limit 100 --source-retract sidetable --provenance strict --strict --inject-bug drop-provenance; then
+            echo "::error::kernel_diff --provenance strict did not detect injected bug 'drop-provenance'"; exit 1
+          fi
+      - run: pytest -q tests/test_frozen_guard.py tests/test_differential.py tests/test_kernel_diff.py tests/test_kernel_oracle_property.py tests/test_convert.py tests/test_provenance_oracle.py tests/conformance/test_runner.py::test_compat_authority_check_runs_or_skips
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -84,3 +90,4 @@ jobs:
           path: |
             differential-report.json
             kernel-diff-report.json
+            kernel-provenance-report.json
