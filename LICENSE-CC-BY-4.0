@@ -1,0 +1,10 @@
+Creative Commons Attribution 4.0 International (CC BY 4.0)
+https://creativecommons.org/licenses/by/4.0/legalcode
+
+Applies to: the paper (paper/), the documentation (docs/), the contract text (contract/), and the data
+produced by this project (frozen streams, gold, model outputs, result files), © 2026 Christian Leiva Beltran.
+Attribution: Leiva Beltran, C. (2026). PALIMPSEST: Evaluating Retraction and Uncertainty in LLM Memory.
+Zenodo. https://doi.org/10.5281/zenodo.23127764
+
+Third-party material: Wikidata revision contents (bridge/data/s3, via scripts/s3_fetch.py) are CC0.
+The LongMemEval dataset is not redistributed; see its source release for its terms.

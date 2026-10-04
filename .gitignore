@@ -1,0 +1,18 @@
+# secrets: never commit
+.secrets/
+.env
+.env.*
+*.key
+*.pem
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+*.egg-info/
+dist/
+build/
+# local data and ledgers
+ledger/*.jsonl
+.cache/
+.DS_Store
