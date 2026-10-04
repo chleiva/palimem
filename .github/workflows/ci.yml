@@ -61,9 +61,26 @@ jobs:
               echo "::error::harness did not detect injected bug '$bug'"; exit 1
             fi
           done
-      - run: pytest -q tests/test_frozen_guard.py tests/test_differential.py tests/conformance/test_runner.py::test_compat_authority_check_runs_or_skips
+      - name: Kernel differential (T-B1), bounded (every 5th stream) on push/PR, full on the nightly schedule
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then ARGS=""; else ARGS="--stride 5"; fi
+          # representation of source retraction that the contract can express (per-report withdraws):
+          # known gap only, 0 unexplained disagreements
+          python -m harness.kernel_diff $ARGS --out kernel-diff-report.json
+          # the paper's exact source-level retraction: strict, 0 disagreements
+          python -m harness.kernel_diff $ARGS --source-retract sidetable --strict
+      - name: Kernel self-test, the gate must fail on injected bugs
+        run: |
+          for bug in self-update ignore-corrections mutate-answer; do
+            if python -m harness.kernel_diff --limit 100 --inject-bug "$bug"; then
+              echo "::error::kernel_diff did not detect injected bug '$bug'"; exit 1
+            fi
+          done
+      - run: pytest -q tests/test_frozen_guard.py tests/test_differential.py tests/test_kernel_diff.py tests/test_kernel_oracle_property.py tests/test_convert.py tests/conformance/test_runner.py::test_compat_authority_check_runs_or_skips
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: differential-report
-          path: differential-report.json
+          path: |
+            differential-report.json
+            kernel-diff-report.json
