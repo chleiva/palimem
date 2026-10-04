@@ -267,6 +267,52 @@ def test_required_generation_column_matches_the_marking_history(h) -> None:  # t
     assert b.recover().ok
 
 
+def test_completion_and_delivery_run_safely_beside_concurrent_appends(h) -> None:  # type: ignore[no-untyped-def]
+    import threading
+
+    b = h.backend
+    b.put_schema(chain_schema())
+    for i in range(4):
+        b.subscribe(f"plan{i}", [Key(entity=f"e{i}", attr="tax_city")])
+    errors: list[BaseException] = []
+    stop = threading.Event()
+
+    def writer(i: int) -> None:
+        try:
+            for n in range(10):
+                skip = {"tax_city"} if n % 3 == 0 else set()
+                add(b, make_report(f"e{i}", "employer", f"v{n}", source=f"s{i}"), f"w{i}-{n}", ChainReviser(skip=skip))
+        except BaseException as e:  # noqa: BLE001
+            errors.append(e)
+
+    def worker() -> None:
+        try:
+            while not stop.is_set():
+                b.complete_pending(ChainReviser())
+                b.deliver(lambda _e: None)
+        except BaseException as e:  # noqa: BLE001
+            errors.append(e)
+
+    bg = threading.Thread(target=worker)
+    ws = [threading.Thread(target=writer, args=(i,)) for i in range(4)]
+    bg.start()
+    for t in ws:
+        t.start()
+    for t in ws:
+        t.join()
+    stop.set()
+    bg.join()
+    assert not errors, errors
+    b.complete_pending(ChainReviser())
+    assert b.head().lsn == 40 and b.storage.jobs("pending") == []
+    assert b.recover().ok and b.verify_log().ok
+    for i in range(4):
+        for attr in ("employer", "work_city", "tax_city"):
+            assert isinstance(b.read_belief(Key(entity=f"e{i}", attr=attr)), Belief)
+    b.deliver(lambda _e: None)
+    assert b.pending_events() == ()
+
+
 def test_the_barrier_survives_a_restart(h) -> None:  # type: ignore[no-untyped-def]
     if h.kind != "sqlite":
         pytest.skip("restart needs a file")
