@@ -90,6 +90,14 @@ APPEND_STEPS: tuple[str, ...] = (
 ``after_commit`` must leave no trace of the append; at ``after_commit`` the append is durable and a
 retry with the same idempotency key replays it."""
 
+COMPLETION_STEPS: tuple[str, ...] = ("completion_stamped", "completion_before_commit")
+"""Fault-hook names inside ``complete_pending`` (once per stamped key, then before the job is marked done). A fault
+rolls back the whole job: no partial versions, the job stays pending."""
+
+ERASE_STEPS: tuple[str, ...] = ("erase_after_redact", "erase_after_repair")
+"""Fault-hook names inside ``erase``. A fault rolls the whole erasure back: the report, its beliefs and its
+idempotency key are exactly as before."""
+
 FaultHook = Callable[[str], None]
 
 

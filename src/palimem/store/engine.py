@@ -732,6 +732,8 @@ class Engine:
             s.set_current(k, b.version)
             self._emit_events(b, prev)
             stamped += 1
+            self._fault("completion_stamped")
+        self._fault("completion_before_commit")
         remaining = [k for k in closure if s.required_generation(k) >= g and self._completed_of(k) < g]
         finished = not remaining
         if finished:
@@ -847,6 +849,7 @@ class Engine:
                 by_key.setdefault(k, []).append(v)
             for k, vs in by_key.items():
                 self._s.redact_outbox(k, tuple(vs))
+            self._fault("erase_after_redact")
             generation = self._generation() + 1
             self._s.set_meta(_GENERATION, str(generation))
             if pinned:
@@ -862,6 +865,7 @@ class Engine:
                     )
                 else:
                     self._repair(closure, reviser, generation, head)
+            self._fault("erase_after_repair")
             return tomb
 
     def _repair(self, keys: Sequence[Key], reviser: Reviser, generation: int, head: int) -> None:
@@ -1084,7 +1088,10 @@ class Engine:
             objs: list[dict[str, Any]] = []
             for text in lines:
                 if text.strip():
-                    d = parse_json(text)
+                    try:
+                        d = parse_json(text)
+                    except ValueError as e:
+                        raise StoreError(f"import: a line is not valid JSON: {e}") from e
                     if not isinstance(d, dict) or "type" not in d:
                         raise StoreError("import: every line must be a JSON object with a 'type'")
                     objs.append(d)
