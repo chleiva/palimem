@@ -1,0 +1,482 @@
+{
+  "$defs": {
+    "Attr": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "class": {
+                "enum": [
+                  "derived"
+                ]
+              }
+            },
+            "required": [
+              "class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "rule": {
+                "$ref": "#/$defs/Rule"
+              }
+            },
+            "required": [
+              "rule"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "class": {
+                "enum": [
+                  "single_stable",
+                  "single_changeable",
+                  "multi_set"
+                ]
+              }
+            },
+            "required": [
+              "class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "rule": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "authority": {
+          "items": {
+            "$ref": "#/$defs/AuthorityRule"
+          },
+          "type": "array"
+        },
+        "class": {
+          "enum": [
+            "single_stable",
+            "single_changeable",
+            "multi_set",
+            "derived"
+          ],
+          "type": "string"
+        },
+        "completeness": {
+          "$ref": "#/$defs/Completeness"
+        },
+        "inertia": {
+          "type": "boolean"
+        },
+        "name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "rule": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Rule"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "value_type": {
+          "enum": [
+            "entity",
+            "date",
+            "int",
+            "string",
+            "bool"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "class",
+        "value_type"
+      ],
+      "type": "object"
+    },
+    "AuthorityRule": {
+      "additionalProperties": false,
+      "description": "S-07 invariant (enforced by the types and by admission, not expressible here): no rule grants an agent principal withdraw/correct over an external_observation.",
+      "properties": {
+        "may": {
+          "items": {
+            "enum": [
+              "correct",
+              "withdraw",
+              "dispute"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "on": {
+          "$ref": "#/$defs/KeyScope"
+        },
+        "over_origins": {
+          "anyOf": [
+            {
+              "items": {
+                "enum": [
+                  "external_observation",
+                  "attributed",
+                  "agent_hypothesis",
+                  "agent_statement",
+                  "plan",
+                  "simulation",
+                  "counterfactual"
+                ],
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "targets": {
+          "enum": [
+            "report",
+            "source",
+            "any"
+          ],
+          "type": "string"
+        },
+        "who": {
+          "$ref": "#/$defs/Who"
+        }
+      },
+      "required": [
+        "who",
+        "may"
+      ],
+      "type": "object"
+    },
+    "Completeness": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "declared"
+                ]
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope": {
+                "$ref": "#/$defs/CompletenessScope"
+              }
+            },
+            "required": [
+              "scope"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "open",
+                  "by_enumeration"
+                ]
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scope": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "open",
+            "declared",
+            "by_enumeration"
+          ],
+          "type": "string"
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CompletenessScope"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "type": "object"
+    },
+    "CompletenessScope": {
+      "additionalProperties": false,
+      "properties": {
+        "interval": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Interval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_classes": {
+          "anyOf": [
+            {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "Interval": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "start": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "KeyScope": {
+      "additionalProperties": false,
+      "properties": {
+        "attr": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "entity": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "Nat1": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "Principal": {
+      "pattern": "^(agent|user|connector|system):[A-Za-z0-9_.@/\\-]+$",
+      "type": "string"
+    },
+    "Rule": {
+      "additionalProperties": false,
+      "properties": {
+        "fn": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "reads": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "reads",
+        "fn"
+      ],
+      "type": "object"
+    },
+    "Schema": {
+      "additionalProperties": false,
+      "properties": {
+        "attrs": {
+          "items": {
+            "$ref": "#/$defs/Attr"
+          },
+          "type": "array"
+        },
+        "version": {
+          "$ref": "#/$defs/Nat1"
+        }
+      },
+      "required": [
+        "version",
+        "attrs"
+      ],
+      "type": "object"
+    },
+    "Timestamp": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?(Z|[+-]\\d{2}:\\d{2})$",
+      "type": "string"
+    },
+    "Who": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "principal"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "$ref": "#/$defs/Principal"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "origin_group"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "any",
+                  "target_source",
+                  "target_actor",
+                  "target_origin_group"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "principal",
+            "origin_group",
+            "any",
+            "target_source",
+            "target_actor",
+            "target_origin_group"
+          ],
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "urn:palimem:schema:schema:v2",
+  "$ref": "#/$defs/Schema",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Schema"
+}

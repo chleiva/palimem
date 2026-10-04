@@ -1,0 +1,282 @@
+{
+  "$defs": {
+    "BeliefOfForm": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "belief_of"
+        },
+        "holder": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "proposition": {
+          "$ref": "#/$defs/PlainProposition"
+        }
+      },
+      "required": [
+        "form",
+        "holder",
+        "proposition"
+      ],
+      "type": "object"
+    },
+    "Candidate": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "$ref": "#/$defs/CandidateForm"
+        },
+        "id": {
+          "$ref": "#/$defs/Hex64"
+        },
+        "key": {
+          "$ref": "#/$defs/Key"
+        }
+      },
+      "required": [
+        "key",
+        "form"
+      ],
+      "type": "object"
+    },
+    "CandidateForm": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ValueForm"
+        },
+        {
+          "$ref": "#/$defs/SetForm"
+        },
+        {
+          "$ref": "#/$defs/EmptyForm"
+        },
+        {
+          "$ref": "#/$defs/NotValueForm"
+        },
+        {
+          "$ref": "#/$defs/NotMemberForm"
+        },
+        {
+          "$ref": "#/$defs/BeliefOfForm"
+        }
+      ]
+    },
+    "EmptyForm": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "empty"
+        }
+      },
+      "required": [
+        "form"
+      ],
+      "type": "object"
+    },
+    "EnumerationProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "enumeration"
+        },
+        "values": {
+          "items": {
+            "$ref": "#/$defs/Value"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "form",
+        "values"
+      ],
+      "type": "object"
+    },
+    "Hex64": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "Key": {
+      "additionalProperties": false,
+      "properties": {
+        "attr": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "entity": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "entity",
+        "attr"
+      ],
+      "type": "object"
+    },
+    "MemberProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "member"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "NotMemberForm": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "not_member"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "NotMemberProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "not_member"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "NotValueForm": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "not_value"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "NotValueProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "not_value"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "PlainProposition": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ValueProp"
+        },
+        {
+          "$ref": "#/$defs/MemberProp"
+        },
+        {
+          "$ref": "#/$defs/NotMemberProp"
+        },
+        {
+          "$ref": "#/$defs/EnumerationProp"
+        },
+        {
+          "$ref": "#/$defs/NotValueProp"
+        }
+      ]
+    },
+    "SetForm": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "set"
+        },
+        "values": {
+          "items": {
+            "$ref": "#/$defs/Value"
+          },
+          "minItems": 1,
+          "type": "array"
+        }
+      },
+      "required": [
+        "form",
+        "values"
+      ],
+      "type": "object"
+    },
+    "Value": {
+      "type": [
+        "string",
+        "integer",
+        "number",
+        "boolean"
+      ]
+    },
+    "ValueForm": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "value"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "ValueProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "value"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "urn:palimem:schema:candidate:v2",
+  "$ref": "#/$defs/Candidate",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Candidate"
+}

@@ -1,0 +1,508 @@
+{
+  "$defs": {
+    "BeliefOfProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "belief_of"
+        },
+        "holder": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "proposition": {
+          "$ref": "#/$defs/PlainProposition"
+        }
+      },
+      "required": [
+        "form",
+        "holder",
+        "proposition"
+      ],
+      "type": "object",
+      "x-palimem-reserved": {
+        "nested_belief_of": "reserved: depth > 1 is not part of contract v2; lifting the limit adds a BeliefOfProp alternative to the inner proposition and is non-breaking"
+      }
+    },
+    "EnumerationProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "enumeration"
+        },
+        "values": {
+          "items": {
+            "$ref": "#/$defs/Value"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "form",
+        "values"
+      ],
+      "type": "object"
+    },
+    "Extractor": {
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "prompt_hash": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "version": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "model",
+        "version",
+        "prompt_hash"
+      ],
+      "type": "object"
+    },
+    "Hex64": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "Key": {
+      "additionalProperties": false,
+      "properties": {
+        "attr": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "entity": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "entity",
+        "attr"
+      ],
+      "type": "object"
+    },
+    "LogEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "entry_hash": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Hex64"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lsn": {
+          "$ref": "#/$defs/Nat1"
+        },
+        "prev_hash": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Hex64"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "recorded_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "report": {
+          "$ref": "#/$defs/Report"
+        }
+      },
+      "required": [
+        "lsn",
+        "recorded_at",
+        "report"
+      ],
+      "type": "object"
+    },
+    "MemberProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "member"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "Nat1": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "NotMemberProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "not_member"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "NotValueProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "not_value"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "PlainProposition": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ValueProp"
+        },
+        {
+          "$ref": "#/$defs/MemberProp"
+        },
+        {
+          "$ref": "#/$defs/NotMemberProp"
+        },
+        {
+          "$ref": "#/$defs/EnumerationProp"
+        },
+        {
+          "$ref": "#/$defs/NotValueProp"
+        }
+      ]
+    },
+    "Principal": {
+      "pattern": "^(agent|user|connector|system):[A-Za-z0-9_.@/\\-]+$",
+      "type": "string"
+    },
+    "Proposition": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PlainProposition"
+        },
+        {
+          "$ref": "#/$defs/BeliefOfProp"
+        }
+      ]
+    },
+    "Report": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "cue": {
+                "enum": [
+                  "correct",
+                  "withdraw",
+                  "dispute",
+                  "allege"
+                ]
+              }
+            },
+            "required": [
+              "cue"
+            ]
+          },
+          "then": {
+            "properties": {
+              "target": {
+                "$ref": "#/$defs/Ulid"
+              }
+            },
+            "required": [
+              "target"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "cue": {
+                "enum": [
+                  "assert",
+                  "change"
+                ]
+              }
+            },
+            "required": [
+              "cue"
+            ]
+          },
+          "then": {
+            "properties": {
+              "target": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "cue": {
+                "enum": [
+                  "assert",
+                  "change",
+                  "correct"
+                ]
+              }
+            },
+            "required": [
+              "cue"
+            ]
+          },
+          "then": {
+            "properties": {
+              "proposition": {
+                "$ref": "#/$defs/Proposition"
+              }
+            },
+            "required": [
+              "proposition"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "cue": {
+                "enum": [
+                  "withdraw"
+                ]
+              }
+            },
+            "required": [
+              "cue"
+            ]
+          },
+          "then": {
+            "properties": {
+              "proposition": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "actor": {
+          "$ref": "#/$defs/Principal"
+        },
+        "cue": {
+          "enum": [
+            "assert",
+            "change",
+            "correct",
+            "withdraw",
+            "dispute",
+            "allege"
+          ],
+          "type": "string"
+        },
+        "extractor": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extractor"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ulid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "key": {
+          "$ref": "#/$defs/Key"
+        },
+        "observed_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "origin": {
+          "enum": [
+            "external_observation",
+            "attributed",
+            "agent_hypothesis",
+            "agent_statement",
+            "plan",
+            "simulation",
+            "counterfactual"
+          ],
+          "type": "string"
+        },
+        "origin_group": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "precision": {
+          "enum": [
+            "day",
+            "month",
+            "year"
+          ],
+          "type": "string"
+        },
+        "proposition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Proposition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "raw_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/Source"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ulid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "key",
+        "cue",
+        "source",
+        "origin",
+        "origin_group",
+        "actor"
+      ],
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "properties": {
+        "class": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "class"
+      ],
+      "type": "object"
+    },
+    "Timestamp": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?(Z|[+-]\\d{2}:\\d{2})$",
+      "type": "string"
+    },
+    "Ulid": {
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+      "type": "string"
+    },
+    "Value": {
+      "type": [
+        "string",
+        "integer",
+        "number",
+        "boolean"
+      ]
+    },
+    "ValueProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "value"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "urn:palimem:schema:log_entry:v2",
+  "$ref": "#/$defs/LogEntry",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LogEntry"
+}

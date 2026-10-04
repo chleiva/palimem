@@ -1,0 +1,152 @@
+{
+  "$defs": {
+    "BeliefOfProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "belief_of"
+        },
+        "holder": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "proposition": {
+          "$ref": "#/$defs/PlainProposition"
+        }
+      },
+      "required": [
+        "form",
+        "holder",
+        "proposition"
+      ],
+      "type": "object",
+      "x-palimem-reserved": {
+        "nested_belief_of": "reserved: depth > 1 is not part of contract v2; lifting the limit adds a BeliefOfProp alternative to the inner proposition and is non-breaking"
+      }
+    },
+    "EnumerationProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "enumeration"
+        },
+        "values": {
+          "items": {
+            "$ref": "#/$defs/Value"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "form",
+        "values"
+      ],
+      "type": "object"
+    },
+    "MemberProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "member"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "NotMemberProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "not_member"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "NotValueProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "not_value"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    },
+    "PlainProposition": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ValueProp"
+        },
+        {
+          "$ref": "#/$defs/MemberProp"
+        },
+        {
+          "$ref": "#/$defs/NotMemberProp"
+        },
+        {
+          "$ref": "#/$defs/EnumerationProp"
+        },
+        {
+          "$ref": "#/$defs/NotValueProp"
+        }
+      ]
+    },
+    "Proposition": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PlainProposition"
+        },
+        {
+          "$ref": "#/$defs/BeliefOfProp"
+        }
+      ]
+    },
+    "Value": {
+      "type": [
+        "string",
+        "integer",
+        "number",
+        "boolean"
+      ]
+    },
+    "ValueProp": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "const": "value"
+        },
+        "v": {
+          "$ref": "#/$defs/Value"
+        }
+      },
+      "required": [
+        "form",
+        "v"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "urn:palimem:schema:proposition:v2",
+  "$ref": "#/$defs/Proposition",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Proposition"
+}

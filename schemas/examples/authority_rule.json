@@ -1,0 +1,22 @@
+{
+  "may": [
+    "correct",
+    "withdraw"
+  ],
+  "on": {
+    "attr": "*",
+    "entity": "*"
+  },
+  "over_origins": [
+    "agent_hypothesis",
+    "agent_statement",
+    "counterfactual",
+    "plan",
+    "simulation"
+  ],
+  "targets": "report",
+  "who": {
+    "kind": "target_actor",
+    "value": null
+  }
+}

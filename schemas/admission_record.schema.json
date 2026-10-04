@@ -1,0 +1,190 @@
+{
+  "$defs": {
+    "AdmissionRecord": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "admissible"
+                ]
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "enum": [
+                  "admitted",
+                  "confirmed"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "quarantined"
+                ]
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "enum": [
+                  "source_quarantined"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "excluded"
+                ]
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "enum": [
+                  "origin_not_admissible",
+                  "source_blocked",
+                  "authority_failed",
+                  "target_missing"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "reason": {
+                "enum": [
+                  "confirmed"
+                ]
+              }
+            },
+            "required": [
+              "reason"
+            ]
+          },
+          "then": {
+            "properties": {
+              "confirmed_by": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "confirmed_by"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "reason": {
+                "enum": [
+                  "admitted",
+                  "source_quarantined",
+                  "origin_not_admissible",
+                  "source_blocked",
+                  "authority_failed",
+                  "target_missing"
+                ]
+              }
+            },
+            "required": [
+              "reason"
+            ]
+          },
+          "then": {
+            "properties": {
+              "confirmed_by": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "admission_version": {
+          "$ref": "#/$defs/Nat1"
+        },
+        "confirmed_by": {
+          "items": {
+            "$ref": "#/$defs/Ulid"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "outcome": {
+          "enum": [
+            "admissible",
+            "quarantined",
+            "excluded"
+          ],
+          "type": "string"
+        },
+        "reason": {
+          "enum": [
+            "admitted",
+            "confirmed",
+            "source_quarantined",
+            "origin_not_admissible",
+            "source_blocked",
+            "authority_failed",
+            "target_missing"
+          ],
+          "type": "string"
+        },
+        "report_id": {
+          "$ref": "#/$defs/Ulid"
+        }
+      },
+      "required": [
+        "id",
+        "report_id",
+        "outcome",
+        "reason",
+        "admission_version"
+      ],
+      "type": "object"
+    },
+    "Nat1": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "Ulid": {
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+      "type": "string"
+    }
+  },
+  "$id": "urn:palimem:schema:admission_record:v2",
+  "$ref": "#/$defs/AdmissionRecord",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AdmissionRecord"
+}

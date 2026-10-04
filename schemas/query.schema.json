@@ -1,0 +1,95 @@
+{
+  "$defs": {
+    "BeliefAsOf": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "$ref": "#/$defs/Timestamp"
+        }
+      ],
+      "description": "An LSN (integer, S-05) or a timestamp the log maps to the last LSN at or before it."
+    },
+    "Key": {
+      "additionalProperties": false,
+      "properties": {
+        "attr": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "entity": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "entity",
+        "attr"
+      ],
+      "type": "object"
+    },
+    "Nat0": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "Query": {
+      "additionalProperties": false,
+      "properties": {
+        "belief_as_of": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BeliefAsOf"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "explanation_budget": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Nat0"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "key": {
+          "$ref": "#/$defs/Key"
+        },
+        "profile": {
+          "enum": [
+            "open-world",
+            "revise-stream-v1"
+          ],
+          "type": "string"
+        },
+        "valid_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "key"
+      ],
+      "type": "object"
+    },
+    "Timestamp": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?(Z|[+-]\\d{2}:\\d{2})$",
+      "type": "string"
+    }
+  },
+  "$id": "urn:palimem:schema:query:v2",
+  "$ref": "#/$defs/Query",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Query"
+}

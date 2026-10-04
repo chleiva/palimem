@@ -1,0 +1,126 @@
+{
+  "completed_generation": 3,
+  "depends_on": [
+    {
+      "key": {
+        "attr": "hq_city",
+        "entity": "acme"
+      },
+      "version": 1
+    }
+  ],
+  "inference": {
+    "complete": true,
+    "reason": null
+  },
+  "invalidated_by": {
+    "id": "01JA0000000000000000000003",
+    "kind": "report"
+  },
+  "key": {
+    "attr": "employer",
+    "entity": "alice"
+  },
+  "lsn": 3,
+  "pinned": [
+    {
+      "admission_version": 1,
+      "report_id": "01JA0000000000000000000001"
+    },
+    {
+      "admission_version": 1,
+      "report_id": "01JA0000000000000000000002"
+    }
+  ],
+  "recorded_at": "2026-06-01T00:00:00Z",
+  "required_generation": 3,
+  "segments": [
+    {
+      "alternatives": [
+        {
+          "form": {
+            "form": "value",
+            "v": "Acme"
+          },
+          "id": "a986b465686811260ff9f54bc96ebafd90bf61f8eee141dc2c58bae818b6b9c9",
+          "key": {
+            "attr": "employer",
+            "entity": "alice"
+          }
+        },
+        {
+          "form": {
+            "form": "value",
+            "v": "Globex"
+          },
+          "id": "43fb06c323aad8e7e505565d420dfe0fa5b302b4abef111ea2a91d7c9318d202",
+          "key": {
+            "attr": "employer",
+            "entity": "alice"
+          }
+        }
+      ],
+      "established": null,
+      "kernel_status": "unresolved",
+      "support": {
+        "43fb06c323aad8e7e505565d420dfe0fa5b302b4abef111ea2a91d7c9318d202": [
+          {
+            "environment": [
+              "01JA0000000000000000000002"
+            ],
+            "precision": "day",
+            "valid_from": null,
+            "valid_to": null
+          }
+        ],
+        "a986b465686811260ff9f54bc96ebafd90bf61f8eee141dc2c58bae818b6b9c9": [
+          {
+            "environment": [
+              "01JA0000000000000000000001"
+            ],
+            "precision": "day",
+            "valid_from": null,
+            "valid_to": null
+          }
+        ]
+      },
+      "valid_from": null,
+      "valid_to": "2026-03-01T00:00:00Z"
+    },
+    {
+      "alternatives": [],
+      "established": {
+        "form": {
+          "form": "value",
+          "v": "Acme"
+        },
+        "id": "a986b465686811260ff9f54bc96ebafd90bf61f8eee141dc2c58bae818b6b9c9",
+        "key": {
+          "attr": "employer",
+          "entity": "alice"
+        }
+      },
+      "kernel_status": "established",
+      "support": {
+        "a986b465686811260ff9f54bc96ebafd90bf61f8eee141dc2c58bae818b6b9c9": [
+          {
+            "environment": [
+              "01JA0000000000000000000001"
+            ],
+            "precision": "day",
+            "valid_from": "2026-03-01T00:00:00Z",
+            "valid_to": null
+          }
+        ]
+      },
+      "valid_from": "2026-03-01T00:00:00Z",
+      "valid_to": null
+    }
+  ],
+  "version": 2,
+  "versions": {
+    "admission": 1,
+    "schema": 1,
+    "semantic": 1
+  }
+}

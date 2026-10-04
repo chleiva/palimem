@@ -1,0 +1,60 @@
+{
+  "$defs": {
+    "Support": {
+      "additionalProperties": false,
+      "properties": {
+        "environment": {
+          "items": {
+            "$ref": "#/$defs/Ulid"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "precision": {
+          "enum": [
+            "day",
+            "month",
+            "year"
+          ],
+          "type": "string"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "environment"
+      ],
+      "type": "object"
+    },
+    "Timestamp": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?(Z|[+-]\\d{2}:\\d{2})$",
+      "type": "string"
+    },
+    "Ulid": {
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+      "type": "string"
+    }
+  },
+  "$id": "urn:palimem:schema:support:v2",
+  "$ref": "#/$defs/Support",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Support"
+}

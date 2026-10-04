@@ -1,0 +1,14 @@
+{
+  "form": {
+    "form": "set",
+    "values": [
+      "acme",
+      "mit"
+    ]
+  },
+  "id": "ef48359aa04a5f9d40a976b7a75918ac9b818f6e1b2e6b4393bc16694d9bf894",
+  "key": {
+    "attr": "affiliations",
+    "entity": "alice"
+  }
+}

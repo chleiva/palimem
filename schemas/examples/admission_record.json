@@ -1,0 +1,10 @@
+{
+  "admission_version": 1,
+  "confirmed_by": [
+    "01JA0000000000000000000002"
+  ],
+  "id": "01JA00000000000000000000A1",
+  "outcome": "admissible",
+  "reason": "confirmed",
+  "report_id": "01JA0000000000000000000001"
+}

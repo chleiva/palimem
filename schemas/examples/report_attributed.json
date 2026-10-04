@@ -1,0 +1,30 @@
+{
+  "actor": "connector:chat",
+  "cue": "assert",
+  "extractor": null,
+  "id": null,
+  "key": {
+    "attr": "employer",
+    "entity": "alice"
+  },
+  "observed_at": null,
+  "origin": "attributed",
+  "origin_group": "chat",
+  "precision": "day",
+  "proposition": {
+    "form": "belief_of",
+    "holder": "bob",
+    "proposition": {
+      "form": "value",
+      "v": "Acme"
+    }
+  },
+  "raw_ref": null,
+  "source": {
+    "class": "standard",
+    "id": "chat"
+  },
+  "target": null,
+  "valid_from": null,
+  "valid_to": null
+}

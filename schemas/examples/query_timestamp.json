@@ -1,0 +1,10 @@
+{
+  "belief_as_of": "2026-06-01T00:00:00Z",
+  "explanation_budget": null,
+  "key": {
+    "attr": "employer",
+    "entity": "alice"
+  },
+  "profile": "revise-stream-v1",
+  "valid_at": null
+}

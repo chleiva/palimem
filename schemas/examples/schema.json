@@ -1,0 +1,66 @@
+{
+  "attrs": [
+    {
+      "authority": [
+        {
+          "may": [
+            "correct"
+          ],
+          "on": {
+            "attr": "employer*",
+            "entity": "*"
+          },
+          "over_origins": null,
+          "targets": "report",
+          "who": {
+            "kind": "principal",
+            "value": "user:alice"
+          }
+        }
+      ],
+      "class": "single_changeable",
+      "completeness": {
+        "mode": "open",
+        "scope": null
+      },
+      "inertia": true,
+      "name": "employer",
+      "rule": null,
+      "value_type": "entity"
+    },
+    {
+      "authority": [],
+      "class": "single_stable",
+      "completeness": {
+        "mode": "declared",
+        "scope": {
+          "interval": null,
+          "source_classes": null
+        }
+      },
+      "inertia": false,
+      "name": "hq_city",
+      "rule": null,
+      "value_type": "entity"
+    },
+    {
+      "authority": [],
+      "class": "derived",
+      "completeness": {
+        "mode": "open",
+        "scope": null
+      },
+      "inertia": false,
+      "name": "work_city",
+      "rule": {
+        "fn": "work_city(e,c) <- employer(e,x), hq_city(x,c)",
+        "reads": [
+          "employer",
+          "hq_city"
+        ]
+      },
+      "value_type": "entity"
+    }
+  ],
+  "version": 1
+}

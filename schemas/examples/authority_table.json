@@ -1,0 +1,44 @@
+{
+  "admission_version": 1,
+  "rules": [
+    {
+      "may": [
+        "correct",
+        "dispute",
+        "withdraw"
+      ],
+      "on": {
+        "attr": "*",
+        "entity": "*"
+      },
+      "over_origins": null,
+      "targets": "report",
+      "who": {
+        "kind": "target_source",
+        "value": null
+      }
+    },
+    {
+      "may": [
+        "correct",
+        "withdraw"
+      ],
+      "on": {
+        "attr": "*",
+        "entity": "*"
+      },
+      "over_origins": [
+        "agent_hypothesis",
+        "agent_statement",
+        "counterfactual",
+        "plan",
+        "simulation"
+      ],
+      "targets": "report",
+      "who": {
+        "kind": "target_actor",
+        "value": null
+      }
+    }
+  ]
+}

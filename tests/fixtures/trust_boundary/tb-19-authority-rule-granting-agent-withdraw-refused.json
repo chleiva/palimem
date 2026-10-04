@@ -75,7 +75,10 @@
       "args": {
         "rules": [
           {
-            "who": "agent:a1",
+            "who": {
+              "kind": "principal",
+              "value": "agent:a1"
+            },
             "may": [
               "withdraw"
             ],
@@ -93,7 +96,10 @@
       "args": {
         "rules": [
           {
-            "who": "agent:a1",
+            "who": {
+              "kind": "principal",
+              "value": "agent:a1"
+            },
             "may": [
               "correct"
             ],
@@ -111,7 +117,10 @@
       "args": {
         "rules": [
           {
-            "who": "user:alice",
+            "who": {
+              "kind": "principal",
+              "value": "user:alice"
+            },
             "may": [
               "withdraw"
             ],
