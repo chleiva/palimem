@@ -1,0 +1,135 @@
+{
+  "id": "RA-021",
+  "slug": "conflict-resolved-by-withdrawal",
+  "title": "A conflict is resolved by the withdrawal of one side, not by recency",
+  "category": "conflict",
+  "split": "dev",
+  "stakes": "medium",
+  "description": "As RA-019; the shop then withdraws its own report.",
+  "tags": [
+    "recency-trap"
+  ],
+  "depends_on_decision": [],
+  "attrs": {
+    "delivery_address": {
+      "class": "single_changeable"
+    }
+  },
+  "derivations": [],
+  "sources": {
+    "crm": {
+      "class": "standard",
+      "origin_group": "crm"
+    },
+    "shop": {
+      "class": "standard",
+      "origin_group": "shop"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 2,
+      "key": {
+        "entity": "cust23",
+        "attr": "delivery_address"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "4 oak rd"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "crm",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "crm",
+      "actor": "crm",
+      "text": "crm reports that cust23's delivery address is 4 oak rd."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 3,
+      "key": {
+        "entity": "cust23",
+        "attr": "delivery_address"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "9 pine st"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "shop",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "shop",
+      "actor": "shop",
+      "text": "shop reports that cust23's delivery address is 9 pine st."
+    },
+    {
+      "id": "r3",
+      "recorded_at": 6,
+      "key": {
+        "entity": "cust23",
+        "attr": "delivery_address"
+      },
+      "proposition": null,
+      "cue": "withdraw",
+      "source": {
+        "id": "shop",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "shop",
+      "actor": "shop",
+      "target": "r2",
+      "text": "shop withdraws its earlier report r2."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-021.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Dispatch cust23's parcel.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "cust23",
+          "attr": "delivery_address"
+        }
+      },
+      "resolvers": [
+        "customer"
+      ],
+      "gold": {
+        "action": "ask",
+        "rationale": "Unresolved while both stand."
+      }
+    },
+    {
+      "id": "RA-021.d2",
+      "after_report": "r3",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Dispatch cust23's parcel.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "cust23",
+          "attr": "delivery_address"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "The surviving report alone decides after the withdrawal.",
+        "value": "4 oak rd"
+      }
+    }
+  ]
+}

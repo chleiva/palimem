@@ -1,0 +1,230 @@
+{
+  "id": "RA-030",
+  "slug": "derived-chain-midchain-withdrawal",
+  "title": "Withdrawal in the middle of a derivation chain falls back to the older supported link",
+  "category": "derived",
+  "split": "dev",
+  "stakes": "medium",
+  "description": "Alice's project has a lead (two reports over time); the escalation e-mail is derived through the lead. The newer lead report is withdrawn.",
+  "tags": [
+    "derived",
+    "depth-3"
+  ],
+  "depends_on_decision": [],
+  "attrs": {
+    "project": {
+      "class": "single_changeable"
+    },
+    "lead": {
+      "class": "single_changeable"
+    },
+    "email": {
+      "class": "single_stable"
+    },
+    "project_lead": {
+      "class": "derived"
+    },
+    "escalation_email": {
+      "class": "derived"
+    }
+  },
+  "derivations": [
+    {
+      "head": "project_lead",
+      "kind": "lookup",
+      "via": "project",
+      "lookup": "lead"
+    },
+    {
+      "head": "escalation_email",
+      "kind": "lookup",
+      "via": "project_lead",
+      "lookup": "email"
+    }
+  ],
+  "sources": {
+    "hr": {
+      "class": "standard",
+      "origin_group": "hr"
+    },
+    "registry": {
+      "class": "trusted",
+      "origin_group": "registry"
+    },
+    "dir": {
+      "class": "standard",
+      "origin_group": "dir"
+    },
+    "hr_b": {
+      "class": "standard",
+      "origin_group": "hr_b"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 1,
+      "key": {
+        "entity": "alice",
+        "attr": "project"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "orion"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "hr",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "hr",
+      "actor": "hr",
+      "text": "hr reports that alice's project is orion."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 2,
+      "key": {
+        "entity": "orion",
+        "attr": "lead"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "dana"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "registry",
+        "class": "trusted"
+      },
+      "origin": "external_observation",
+      "origin_group": "registry",
+      "actor": "registry",
+      "text": "registry reports that orion's lead is dana."
+    },
+    {
+      "id": "r3",
+      "recorded_at": 3,
+      "key": {
+        "entity": "dana",
+        "attr": "email"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "dana@x.org"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "dir",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "dir",
+      "actor": "dir",
+      "text": "dir reports that dana's email is dana@x.org."
+    },
+    {
+      "id": "r4",
+      "recorded_at": 4,
+      "key": {
+        "entity": "erin",
+        "attr": "email"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "erin@x.org"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "dir",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "dir",
+      "actor": "dir",
+      "text": "dir reports that erin's email is erin@x.org."
+    },
+    {
+      "id": "r5",
+      "recorded_at": 6,
+      "key": {
+        "entity": "orion",
+        "attr": "lead"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "erin"
+      },
+      "cue": "change",
+      "source": {
+        "id": "hr_b",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "hr_b",
+      "actor": "hr_b",
+      "text": "hr_b reports that orion's lead has changed to erin."
+    },
+    {
+      "id": "r6",
+      "recorded_at": 9,
+      "key": {
+        "entity": "orion",
+        "attr": "lead"
+      },
+      "proposition": null,
+      "cue": "withdraw",
+      "source": {
+        "id": "hr_b",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "hr_b",
+      "actor": "hr_b",
+      "target": "r5",
+      "text": "hr_b withdraws its earlier report r5."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-030.d1",
+      "after_report": "r5",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Send the incident escalation for Alice's project.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "alice",
+          "attr": "escalation_email"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "Change cue explains the earlier lead.",
+        "value": "erin@x.org"
+      }
+    },
+    {
+      "id": "RA-030.d2",
+      "after_report": "r6",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Send the incident escalation for Alice's project.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "alice",
+          "attr": "escalation_email"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "The change report is withdrawn; the earlier lead persists and the derived address follows.",
+        "value": "dana@x.org"
+      }
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "id": "RA-028",
+  "slug": "plan-stale-revalidate",
+  "title": "A plan formed on an address is executed after a legitimate change",
+  "category": "plan-dependency",
+  "split": "dev",
+  "stakes": "high",
+  "description": "The agent planned a shipment on the address as of r1; the portal then reports a change.",
+  "tags": [
+    "subscribe"
+  ],
+  "depends_on_decision": [],
+  "attrs": {
+    "ship_to_address": {
+      "class": "single_changeable"
+    }
+  },
+  "derivations": [],
+  "sources": {
+    "portal": {
+      "class": "standard",
+      "origin_group": "portal"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 2,
+      "key": {
+        "entity": "order56",
+        "attr": "ship_to_address"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "7 high st"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "portal",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "portal",
+      "actor": "portal",
+      "text": "portal reports that order56's ship to address is 7 high st."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 6,
+      "key": {
+        "entity": "order56",
+        "attr": "ship_to_address"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "22 mill ln"
+      },
+      "cue": "change",
+      "source": {
+        "id": "portal",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "portal",
+      "actor": "portal",
+      "text": "portal reports that order56's ship to address has changed to 22 mill ln."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-028.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Execute the planned shipment of order56.",
+      "tool": {
+        "name": "ship_order",
+        "use_key": {
+          "entity": "order56",
+          "attr": "ship_to_address"
+        }
+      },
+      "plan_formed_after": "r1",
+      "gold": {
+        "action": "revalidate",
+        "rationale": "A subscribed belief changed version between planning and execution: re-read before the consequential action. Acting directly with the current value is equivalent; acting on the plan-time value is harmful.",
+        "value": "22 mill ln"
+      }
+    }
+  ]
+}

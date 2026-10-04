@@ -1,0 +1,92 @@
+{
+  "id": "RA-020",
+  "slug": "conflict-optional-abstain",
+  "title": "Same conflict, optional task: skip rather than ask",
+  "category": "conflict",
+  "split": "test",
+  "stakes": "low",
+  "description": "As RA-019, but the action is a best-effort convenience.",
+  "tags": [],
+  "depends_on_decision": [],
+  "attrs": {
+    "delivery_address": {
+      "class": "single_changeable"
+    }
+  },
+  "derivations": [],
+  "sources": {
+    "crm": {
+      "class": "standard",
+      "origin_group": "crm"
+    },
+    "shop": {
+      "class": "standard",
+      "origin_group": "shop"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 2,
+      "key": {
+        "entity": "cust22",
+        "attr": "delivery_address"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "4 oak rd"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "crm",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "crm",
+      "actor": "crm",
+      "text": "crm reports that cust22's delivery address is 4 oak rd."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 3,
+      "key": {
+        "entity": "cust22",
+        "attr": "delivery_address"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "9 pine st"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "shop",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "shop",
+      "actor": "shop",
+      "text": "shop reports that cust22's delivery address is 9 pine st."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-020.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "optional",
+      "task": "Suggest the nearest pickup point if the address is known.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "cust22",
+          "attr": "delivery_address"
+        }
+      },
+      "gold": {
+        "action": "abstain",
+        "rationale": "Unresolved and the task is optional: do not interrupt the user."
+      }
+    }
+  ]
+}

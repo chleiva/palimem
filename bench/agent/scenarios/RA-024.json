@@ -1,0 +1,192 @@
+{
+  "id": "RA-024",
+  "slug": "repeated-reassertion",
+  "title": "The same fact repeated five times is one piece of evidence; a later change still wins",
+  "category": "recency",
+  "split": "dev",
+  "stakes": "low",
+  "description": "One origin repeats Acme as employer five times, later reports Globex.",
+  "tags": [],
+  "depends_on_decision": [],
+  "attrs": {
+    "employer": {
+      "class": "single_changeable"
+    }
+  },
+  "derivations": [],
+  "sources": {
+    "profile_app": {
+      "class": "standard",
+      "origin_group": "profile_app"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 1,
+      "key": {
+        "entity": "jo",
+        "attr": "employer"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "acme"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "profile_app",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "profile_app",
+      "actor": "profile_app",
+      "text": "profile_app reports that jo's employer is acme."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 2,
+      "key": {
+        "entity": "jo",
+        "attr": "employer"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "acme"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "profile_app",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "profile_app",
+      "actor": "profile_app",
+      "text": "profile_app reports that jo's employer is acme."
+    },
+    {
+      "id": "r3",
+      "recorded_at": 3,
+      "key": {
+        "entity": "jo",
+        "attr": "employer"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "acme"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "profile_app",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "profile_app",
+      "actor": "profile_app",
+      "text": "profile_app reports that jo's employer is acme."
+    },
+    {
+      "id": "r4",
+      "recorded_at": 4,
+      "key": {
+        "entity": "jo",
+        "attr": "employer"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "acme"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "profile_app",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "profile_app",
+      "actor": "profile_app",
+      "text": "profile_app reports that jo's employer is acme."
+    },
+    {
+      "id": "r5",
+      "recorded_at": 5,
+      "key": {
+        "entity": "jo",
+        "attr": "employer"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "acme"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "profile_app",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "profile_app",
+      "actor": "profile_app",
+      "text": "profile_app reports that jo's employer is acme."
+    },
+    {
+      "id": "r6",
+      "recorded_at": 9,
+      "key": {
+        "entity": "jo",
+        "attr": "employer"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "globex"
+      },
+      "cue": "change",
+      "source": {
+        "id": "profile_app",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "profile_app",
+      "actor": "profile_app",
+      "text": "profile_app reports that jo's employer has changed to globex."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-024.d1",
+      "after_report": "r5",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Address Jo's welcome pack to her employer.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "jo",
+          "attr": "employer"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "Duplicates collapse; established.",
+        "value": "acme"
+      }
+    },
+    {
+      "id": "RA-024.d2",
+      "after_report": "r6",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Address Jo's welcome pack to her employer.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "jo",
+          "attr": "employer"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "Explicit change from the same origin.",
+        "value": "globex"
+      }
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "id": "RA-025",
+  "slug": "low-then-trusted-change",
+  "title": "A later trusted change report supersedes an older low-reliability one",
+  "category": "recency",
+  "split": "test",
+  "stakes": "low",
+  "description": "A blog names Acme's CEO; the registry later reports a change.",
+  "tags": [],
+  "depends_on_decision": [],
+  "attrs": {
+    "ceo": {
+      "class": "single_changeable"
+    }
+  },
+  "derivations": [],
+  "sources": {
+    "blog": {
+      "class": "low",
+      "origin_group": "blog"
+    },
+    "registry": {
+      "class": "trusted",
+      "origin_group": "registry"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 1,
+      "key": {
+        "entity": "acme",
+        "attr": "ceo"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "ann"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "blog",
+        "class": "low"
+      },
+      "origin": "external_observation",
+      "origin_group": "blog",
+      "actor": "blog",
+      "text": "blog reports that acme's ceo is ann."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 6,
+      "key": {
+        "entity": "acme",
+        "attr": "ceo"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "ben"
+      },
+      "cue": "change",
+      "source": {
+        "id": "registry",
+        "class": "trusted"
+      },
+      "origin": "external_observation",
+      "origin_group": "registry",
+      "actor": "registry",
+      "text": "registry reports that acme's ceo has changed to ben."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-025.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Address the press release to Acme's CEO.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "acme",
+          "attr": "ceo"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "Change cue explains the earlier value.",
+        "value": "ben"
+      }
+    }
+  ]
+}

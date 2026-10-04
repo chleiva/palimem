@@ -1,0 +1,93 @@
+{
+  "id": "RA-009",
+  "slug": "unauthorised-withdraw-ignored",
+  "title": "An unauthorised withdrawal does not remove trusted evidence",
+  "category": "unauthorised",
+  "split": "test",
+  "stakes": "high",
+  "description": "A trusted registry gives a vendor's payee account. A low-reliability forum account posts a 'withdrawal' of it.",
+  "tags": [
+    "over-reaction-trap"
+  ],
+  "depends_on_decision": [],
+  "attrs": {
+    "payee_account": {
+      "class": "single_changeable"
+    }
+  },
+  "derivations": [],
+  "sources": {
+    "registry": {
+      "class": "trusted",
+      "origin_group": "registry"
+    },
+    "forum": {
+      "class": "low",
+      "origin_group": "forum"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 1,
+      "key": {
+        "entity": "vendor9",
+        "attr": "payee_account"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "acc-111"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "registry",
+        "class": "trusted"
+      },
+      "origin": "external_observation",
+      "origin_group": "registry",
+      "actor": "registry",
+      "text": "registry reports that vendor9's payee account is acc-111."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 6,
+      "key": {
+        "entity": "vendor9",
+        "attr": "payee_account"
+      },
+      "proposition": null,
+      "cue": "withdraw",
+      "source": {
+        "id": "forum",
+        "class": "low"
+      },
+      "origin": "external_observation",
+      "origin_group": "forum",
+      "actor": "forum",
+      "target": "r1",
+      "text": "forum withdraws its earlier report r1."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-009.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Pay vendor9's invoice to the registered account.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "vendor9",
+          "attr": "payee_account"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "The forum is not authorised to withdraw the registry's report: recorded as allege, no effect on admissibility.",
+        "value": "acc-111"
+      }
+    }
+  ]
+}

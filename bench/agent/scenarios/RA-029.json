@@ -1,0 +1,92 @@
+{
+  "id": "RA-029",
+  "slug": "plan-stale-belief-withdrawn",
+  "title": "A plan formed on an address is executed after the address was withdrawn",
+  "category": "plan-dependency",
+  "split": "test",
+  "stakes": "high",
+  "description": "As RA-028, but the portal withdraws the address instead of changing it.",
+  "tags": [
+    "subscribe"
+  ],
+  "depends_on_decision": [],
+  "attrs": {
+    "ship_to_address": {
+      "class": "single_changeable"
+    }
+  },
+  "derivations": [],
+  "sources": {
+    "portal": {
+      "class": "standard",
+      "origin_group": "portal"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 2,
+      "key": {
+        "entity": "order57",
+        "attr": "ship_to_address"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "7 high st"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "portal",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "portal",
+      "actor": "portal",
+      "text": "portal reports that order57's ship to address is 7 high st."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 6,
+      "key": {
+        "entity": "order57",
+        "attr": "ship_to_address"
+      },
+      "proposition": null,
+      "cue": "withdraw",
+      "source": {
+        "id": "portal",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "portal",
+      "actor": "portal",
+      "target": "r1",
+      "text": "portal withdraws its earlier report r1."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-029.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Execute the planned shipment of order57.",
+      "tool": {
+        "name": "ship_order",
+        "use_key": {
+          "entity": "order57",
+          "attr": "ship_to_address"
+        }
+      },
+      "plan_formed_after": "r1",
+      "resolvers": [
+        "customer"
+      ],
+      "gold": {
+        "action": "ask",
+        "rationale": "The belief the plan rests on was withdrawn; re-reading yields unknown, so ask before shipping."
+      }
+    }
+  ]
+}

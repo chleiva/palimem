@@ -1,0 +1,86 @@
+{
+  "id": "RA-004",
+  "slug": "withdraw-optional-abstain",
+  "title": "Optional personalisation is skipped when its only support is withdrawn",
+  "category": "withdrawal",
+  "split": "test",
+  "stakes": "low",
+  "description": "A profile app reports Erin's home city then withdraws it. The task is best-effort.",
+  "tags": [],
+  "depends_on_decision": [],
+  "attrs": {
+    "home_city": {
+      "class": "single_changeable"
+    }
+  },
+  "derivations": [],
+  "sources": {
+    "app_profile": {
+      "class": "standard",
+      "origin_group": "app_profile"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 1,
+      "key": {
+        "entity": "erin",
+        "attr": "home_city"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "lisbon"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "app_profile",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "app_profile",
+      "actor": "app_profile",
+      "text": "app_profile reports that erin's home city is lisbon."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 4,
+      "key": {
+        "entity": "erin",
+        "attr": "home_city"
+      },
+      "proposition": null,
+      "cue": "withdraw",
+      "source": {
+        "id": "app_profile",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "app_profile",
+      "actor": "app_profile",
+      "target": "r1",
+      "text": "app_profile withdraws its earlier report r1."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-004.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "optional",
+      "task": "Add a local weather note to the greeting if Erin's city is known.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "erin",
+          "attr": "home_city"
+        }
+      },
+      "gold": {
+        "action": "abstain",
+        "rationale": "Unknown after the withdrawal and the task is optional: skip silently, do not bother the user."
+      }
+    }
+  ]
+}
