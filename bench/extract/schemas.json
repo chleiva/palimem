@@ -1,0 +1,19 @@
+{
+  "_comment": "Declared schemas the extractor evaluation items refer to. Same shape as palimem.types.Schema (attr class, value type, inertia).",
+  "people_v1": {
+    "version": 1,
+    "attrs": [
+      {"name": "employer",   "class": "single_changeable", "value_type": "entity", "inertia": true},
+      {"name": "city",       "class": "single_changeable", "value_type": "string", "inertia": true},
+      {"name": "birth_date", "class": "single_stable",     "value_type": "date",   "inertia": false},
+      {"name": "title",      "class": "single_changeable", "value_type": "string", "inertia": true},
+      {"name": "email",      "class": "single_changeable", "value_type": "string", "inertia": true},
+      {"name": "manager",    "class": "single_changeable", "value_type": "entity", "inertia": true},
+      {"name": "team",       "class": "single_changeable", "value_type": "string", "inertia": true},
+      {"name": "phone",      "class": "single_changeable", "value_type": "string", "inertia": true},
+      {"name": "languages",  "class": "multi_set",         "value_type": "string", "inertia": false},
+      {"name": "allergies",  "class": "multi_set",         "value_type": "string", "inertia": false},
+      {"name": "pets",       "class": "multi_set",         "value_type": "string", "inertia": false}
+    ]
+  }
+}
