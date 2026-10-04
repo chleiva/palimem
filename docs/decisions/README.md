@@ -1,6 +1,6 @@
 # Decision records (T-A1)
 
-One record per spec ambiguity from `docs/PROPOSAL.md` §3 H2. Status legend: `accepted` = decided by the author; `amended` = decided with changes (see the record's Decision block); `accepted*` would mean accepted by blanket rule but still awaiting an explicit line on a contract change; none remain (all six were decided 2026-10-04, see `../CONTRACT_PENDING.md`).
+One record per spec ambiguity from `the project review` §3 H2. Status legend: `accepted` = decided by the author; `amended` = decided with changes (see the record's Decision block); `accepted*` would mean accepted by blanket rule but still awaiting an explicit line on a contract change; none remain (all six were decided 2026-10-04, see `../CONTRACT_PENDING.md`).
 
 Records are grounded in the deposited study code (`~/palimpsest`, v1.0): `revise_stream/{model,timeline,gold,oracle_v1,generator}.py`, `palimpsest/core.py`, `docs/SEMANTICS.md` v0.3.
 

@@ -6,7 +6,7 @@ may change the contract; such changes are marked **BREAKING** with a migration n
 
 ## [Unreleased]
 
-Work in progress on the way to 0.1 (see `docs/TASKS.md`); nothing here is released.
+Work in progress on the way to 0.1 ; nothing here is released.
 
 ### Added
 - Contract types and generated JSON Schemas (`palimem.types`, `schemas/`).

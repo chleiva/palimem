@@ -14,7 +14,7 @@ The PALIMPSEST study measured **answers** to queries on synthetic streams. Its h
 
 It does **not** claim to measure truth (gold is what the evidence justifies, as in the study), conversational recall (that is LongMemEval's job), or general agent competence. It is deliberately small, symbolic and cheap, so that every reference result is reproducible with no LLM.
 
-Design principles, each answering a threat found in the PROPOSAL review (C5):
+Design principles, each answering a threat found in the project review (C5):
 
 1. **Score actions, not answers.** Each decision point has one gold action and a harm cost for the wrong one.
 2. **Judge the memory, hold the agent fixed.** One agent prompt, one model; systems differ only at the memory interface (§6).
@@ -59,7 +59,7 @@ Gold is assigned by one rule, written before the scenarios:
 3. A plan was formed on an earlier belief version and a subscribed belief changed since → **revalidate** (value = the current justified value).
 4. `post_hoc_review`: an executed action rests on a belief now withdrawn or revised → **ask** (surface the gap). Correcting a belief does not undo an action; the service must make the gap visible.
 
-Two scenarios carry alternative gold under a named profile, because their answer depends on a spec decision that is still open (PROPOSAL H2): `RA-007` (authority = origin group, the paper's A-SELF, versus source: `authority_source`) and `RA-023` (`self_update` on versus `self_update_off`). The default profile is `P0cSU` semantics with origin-group authority; changing the default is a pre-registered amendment, not a post-hoc option.
+Two scenarios carry alternative gold under a named profile, because their answer depends on a spec decision that is still open (review concern H2): `RA-007` (authority = origin group, the paper's A-SELF, versus source: `authority_source`) and `RA-023` (`self_update` on versus `self_update_off`). The default profile is `P0cSU` semantics with origin-group authority; changing the default is a pre-registered amendment, not a post-hoc option.
 
 ## 4. Metrics, costs and endpoints
 

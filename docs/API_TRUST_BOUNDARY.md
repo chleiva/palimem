@@ -1,6 +1,6 @@
 # API trust boundary: host API versus agent tool API (T-A2)
 
-Status: **draft for G0** (amended 2026-10-04 for the author's decisions on agent authority and log integrity) · Lane A · Resolves PROPOSAL.md concern C2 · Depends on `docs/decisions/S-01, S-02, S-03, S-07, S-13`
+Status: **draft for G0** (amended 2026-10-04 for the author's decisions on agent authority and log integrity) · Lane A · Resolves the project review concern C2 · Depends on `docs/decisions/S-01, S-02, S-03, S-07, S-13`
 
 ## 1. Why this exists
 

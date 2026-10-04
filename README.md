@@ -4,7 +4,7 @@
 
 > **Status: pre-alpha (0.0.x). The memory API does not exist yet.** The package on PyPI is a name reservation. This repository holds the contracts, the evidence log and storage layer, admission and policy code, and the evaluation harness; the kernel is still being ported. Contracts may break at any 0.x release, and 1.0 means the gate-G2 acceptance suite passes. Nothing below is a claim about a released system.
 
-palimem is the SDK built on the revision kernel validated in the PALIMPSEST study ([DOI 10.5281/zenodo.23127764](https://doi.org/10.5281/zenodo.23127764), code at [`chleiva/palimpsest`](https://github.com/chleiva/palimpsest)). The full design is in [`docs/DESIGN_v0.3.md`](docs/DESIGN_v0.3.md).
+palimem is the SDK built on the revision kernel validated in the PALIMPSEST study ([DOI 10.5281/zenodo.23127764](https://doi.org/10.5281/zenodo.23127764), code at [`chleiva/palimpsest`](https://github.com/chleiva/palimpsest)).
 
 ## 1. What it is for
 
@@ -61,7 +61,7 @@ a = m.ask("employer", "alice", valid_at=..., belief_as_of=...) # Answer: kernel_
 m.withdraw(report_id, actor=...)                               # authority-checked; cascades through justifications
 ```
 
-The acceptance tests are the study's frozen evaluation sets plus the independent conformance fixtures (in progress; see [`docs/TASKS.md`](docs/TASKS.md)). The frozen sets are fetched and checksum-verified by the harness.
+The acceptance tests are the study's frozen evaluation sets plus the independent conformance fixtures (in progress). The frozen sets are fetched and checksum-verified by the harness.
 
 ## Status of this repository
 
@@ -73,13 +73,13 @@ The acceptance tests are the study's frozen evaluation sets plus the independent
 | Storage (in-memory and SQLite backends, salted hash-chained log, `verify_log`, crash tests) | Built; generation barrier, outbox, merges and erasure repair not yet | [`docs/STORAGE.md`](docs/STORAGE.md) |
 | Differential harness, frozen-set guard, cost ledger | Built; Setting 1 only | [`docs/HARNESS.md`](docs/HARNESS.md) |
 | Kernel (enumeration, with a faster candidate kernel researched) | In progress | [`docs/research/R41_MEMO.md`](docs/research/R41_MEMO.md) |
-| Conformance fixtures | In progress | [`docs/TASKS.md`](docs/TASKS.md) |
-| Extractor interface and extraction-quality evaluation | In progress | [`docs/TASKS.md`](docs/TASKS.md) |
+| Conformance fixtures | In progress | `tests/conformance/` |
+| Extractor interface and extraction-quality evaluation | In progress | `tests/conformance/` |
 | Agent-level benchmark (RETRACT-ACT) | Designed, not run | [`docs/eval/AGENT_BENCHMARK.md`](docs/eval/AGENT_BENCHMARK.md) |
-| `Memory` facade, agent tool API, MCP server, CLI | Not started | [`docs/PROPOSAL.md`](docs/PROPOSAL.md) |
+| `Memory` facade, agent tool API, MCP server, CLI | Not started | |
 | Threat model and security policy | Written | [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md), [`SECURITY.md`](SECURITY.md) |
 
-Plan and review: [`docs/PROPOSAL.md`](docs/PROPOSAL.md). Task tracker: [`docs/TASKS.md`](docs/TASKS.md). Versioning: [`docs/VERSIONING.md`](docs/VERSIONING.md). Releasing: [`docs/RELEASING.md`](docs/RELEASING.md).
+Versioning: [`docs/VERSIONING.md`](docs/VERSIONING.md). Releasing: [`docs/RELEASING.md`](docs/RELEASING.md).
 
 ## Contributing and licence
 

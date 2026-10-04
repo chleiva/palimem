@@ -1,6 +1,6 @@
 # Contributing to palimem
 
-palimem is pre-alpha (0.0.x) and is built in the open. Read `docs/DESIGN_v0.3.md` (what is being built), `docs/PROPOSAL.md` (the review and plan) and `docs/TASKS.md` (the tracked work) first. Contributions that follow the tracker are the easiest to merge.
+palimem is pre-alpha (0.0.x) and is built in the open. Read the decision records in `docs/decisions/` and `docs/TYPES.md` (the tracked work) first. Contributions that follow the tracker are the easiest to merge.
 
 ## Development setup
 
@@ -57,7 +57,7 @@ Before G0 freezes, any contract change also needs an explicit author line in `do
 
 ## Pull requests
 
-- One task id from `docs/TASKS.md` per PR where possible. Say which gates you ran.
+- One task or issue per PR where possible. Say which gates you ran.
 - Keep PRs small and tests alongside the change. A skipped test needs a reason in the PR.
 - No paid LLM calls outside `palimem.costs` (the ledger enforces a hard cap). Do not add API keys or recorded model outputs that contain personal data.
 - Security issues: do not open an issue or PR. Follow `SECURITY.md`.

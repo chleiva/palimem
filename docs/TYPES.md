@@ -1,6 +1,6 @@
 # Contract types (T-A3) and JSON Schemas (T-A4)
 
-`palimem.types` is the executable form of the data contract of `docs/DESIGN_v0.3.md` §Data and API, with
+`palimem.types` is the executable form of the data contract of the design document (v0.3) §Data and API, with
 the author's decisions applied. Standard library only. Every record is a frozen, keyword-only dataclass
 that validates in `__post_init__`, has `to_dict` / `to_json` (canonical) / `from_dict` / `from_json`, and
 decodes strictly (unknown fields are rejected; nullable fields may be omitted).

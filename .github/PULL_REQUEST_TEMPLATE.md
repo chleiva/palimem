@@ -1,6 +1,6 @@
 ## What and why
 
-<!-- One paragraph. Link the task id from docs/TASKS.md and any decision record or RFC. -->
+<!-- One paragraph. Link the issue, and any decision record or RFC. -->
 
 ## Gate checklist
 

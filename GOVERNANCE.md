@@ -26,7 +26,7 @@ The differential gate (store versus symbolic replay versus frozen gold) and the 
 
 ## Scope
 
-The non-goals in `docs/DESIGN_v0.3.md` hold: no weight updates, no episodic or procedural memory, no multi-tenant or distributed deployment in v1, no claim of truth. Proposals outside them are welcome as RFCs but are not accepted by default.
+The project non-goals hold: no weight updates, no episodic or procedural memory, no multi-tenant or distributed deployment in v1, no claim of truth. Proposals outside them are welcome as RFCs but are not accepted by default.
 
 ## Disagreement
 

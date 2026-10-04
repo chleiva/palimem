@@ -47,7 +47,7 @@ Rule: *anything a stored belief depends on is stored with it*, so a historical `
 
 - `0.MINOR` may break the contract; `0.MINOR.PATCH` may not.
 - Every breaking change in 0.x is marked `BREAKING` in `CHANGELOG.md` with a migration note.
-- The 0.x release train (PROPOSAL §4.4) is explicit: 0.1 kernel + SQLite + facade, 0.2 admission + two-axis query, 0.3 barrier/outbox, 0.4 extractor + agent tooling, 1.0 = gate G2 passed.
+- The 0.x release train (the release train) is explicit: 0.1 kernel + SQLite + facade, 0.2 admission + two-axis query, 0.3 barrier/outbox, 0.4 extractor + agent tooling, 1.0 = gate G2 passed.
 - The conformance suite is versioned independently so a 0.x release can say which suite it passes.
 - Stored data written by `0.N` must be readable (by migration) by `0.N+1`, even when the contract moved. The store format is the one thing 0.x tries not to break.
 

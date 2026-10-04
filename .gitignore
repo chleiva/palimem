@@ -18,3 +18,4 @@ ledger/*.jsonl
 .DS_Store
 .claude/
 ledger/*.lock
+.private/

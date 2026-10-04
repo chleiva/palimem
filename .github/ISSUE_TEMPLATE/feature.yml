@@ -19,7 +19,7 @@ body:
     attributes:
       label: Scope check
       options:
-        - label: I read the non-goals in docs/DESIGN_v0.3.md (no weight updates, no episodic or procedural memory, no multi-tenant in v1)
+        - label: I read the non-goals in GOVERNANCE.md (no weight updates, no episodic or procedural memory, no multi-tenant in v1)
           required: true
         - label: This does not change the `Report` or `Answer` contract (otherwise use the contract-change template)
           required: false

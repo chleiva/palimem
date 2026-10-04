@@ -4,7 +4,7 @@ Status: **thresholds declared 2026-10-05, before any model run** · Lane G · Ma
 
 ## 1. What the gate decides
 
-The study's own noise grid says last-write-wins overtakes justified belief at about **35% wrong extracted values** or about **50% dropped change cues** (docs/PROPOSAL.md C4). The kernel is only as good as the typed reports it receives, so any claim about natural-language input has to be backed by a measured extraction error budget.
+The study's own noise grid says last-write-wins overtakes justified belief at about **35% wrong extracted values** or about **50% dropped change cues** (the project review C4). The kernel is only as good as the typed reports it receives, so any claim about natural-language input has to be backed by a measured extraction error budget.
 
 G-X is evaluated **per model**. A model that passes is *supported for natural-language input* in the README, with its measured error budget printed next to every benchmark number. A model that fails is **not supported**: the README says so and the typed (no-LLM) path is the recommendation for it.
 
@@ -99,7 +99,7 @@ Assumptions: input is the real prompt built by `palimem.extract.prompt` (about 8
 
 - **Small sample, wide intervals.** The test split has 72 items, 17 change claims and about 64 claims with a proposition. Expect 95% intervals of roughly ±0.10 to ±0.20 on the rates, which is why the universal criteria use the interval's upper bound and why a model near a point threshold may fail on noise.
 - **Single-sentence, synthetic, English items.** Real conversational input is longer, messier, multilingual and coreference-heavy. A pass is a necessary condition for natural-language input, not a measure of production quality.
-- **Labels were written by one author with LLM assistance** (the same weakness as the oracle, concern H3 in docs/PROPOSAL.md). A second annotator should review the gold claims, the hedge policy and the injection `forbidden` specs before the test split is first run.
+- **Labels were written by one author with LLM assistance** (the same weakness as the oracle, concern H3 in the project review). A second annotator should review the gold claims, the hedge policy and the injection `forbidden` specs before the test split is first run.
 - **A fixed, declared schema.** `key_fragmentation_rate` is measured with the schema given in the prompt; open-schema extraction (R3.1) is not covered.
 - **Policy choices are baked into the labels:** hedged and future statements yield no claim; a list without "only/exactly/all" is one `member` per item; "has no X" is `enumeration([])`. They are listed in `bench/extract/README.md` and are decisions for the author (see the report).
 - **Model-level scoring.** Compliance is measured on the parsed model output. The host-side policy (identity bound by the host, authority cues refused by default, span check) is tested in `tests/test_extract.py`; it makes a successful injection harder than this metric shows, and the metric deliberately does not credit the host for the model's behaviour.
