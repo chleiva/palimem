@@ -1,0 +1,81 @@
+{
+ "single_valued": [
+  {
+   "n": 2,
+   "interpretations": 3,
+   "expected_2n_minus_1": 3,
+   "candidates_at_now": 2,
+   "fast_matches": true
+  },
+  {
+   "n": 3,
+   "interpretations": 7,
+   "expected_2n_minus_1": 7,
+   "candidates_at_now": 3,
+   "fast_matches": true
+  },
+  {
+   "n": 4,
+   "interpretations": 15,
+   "expected_2n_minus_1": 15,
+   "candidates_at_now": 4,
+   "fast_matches": true
+  },
+  {
+   "n": 5,
+   "interpretations": 31,
+   "expected_2n_minus_1": 31,
+   "candidates_at_now": 5,
+   "fast_matches": true
+  },
+  {
+   "n": 6,
+   "interpretations": 63,
+   "expected_2n_minus_1": 63,
+   "candidates_at_now": 6,
+   "fast_matches": true
+  },
+  {
+   "n": 7,
+   "interpretations": 127,
+   "expected_2n_minus_1": 127,
+   "candidates_at_now": 7,
+   "fast_matches": true
+  },
+  {
+   "n": 8,
+   "interpretations": 255,
+   "expected_2n_minus_1": 255,
+   "candidates_at_now": 8,
+   "fast_matches": true
+  },
+  {
+   "n": 9,
+   "interpretations": 511,
+   "expected_2n_minus_1": 511,
+   "candidates_at_now": 9,
+   "fast_matches": true
+  },
+  {
+   "n": 10,
+   "interpretations": 1023,
+   "expected_2n_minus_1": 1023,
+   "candidates_at_now": 10,
+   "fast_matches": true
+  },
+  {
+   "n": 11,
+   "interpretations": 2047,
+   "expected_2n_minus_1": 2047,
+   "candidates_at_now": 11,
+   "fast_matches": true
+  },
+  {
+   "n": 12,
+   "interpretations": 4095,
+   "expected_2n_minus_1": 4095,
+   "candidates_at_now": 12,
+   "fast_matches": true
+  }
+ ]
+}
