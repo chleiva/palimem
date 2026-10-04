@@ -7,6 +7,7 @@
 palimem is the SDK built on the revision kernel validated in the PALIMPSEST study
 ([DOI 10.5281/zenodo.23127764](https://doi.org/10.5281/zenodo.23127764), code at `chleiva/palimpsest`).
 
+- Design: [`docs/DESIGN_v0.3.md`](docs/DESIGN_v0.3.md)
 - Plan and review: [`docs/PROPOSAL.md`](docs/PROPOSAL.md)
 - Task tracker: [`docs/TASKS.md`](docs/TASKS.md)
 
