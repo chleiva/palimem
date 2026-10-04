@@ -12,17 +12,17 @@
     "schema": {
       "employer": {
         "class": "single_changeable",
-        "inertia": "forever",
+        "inertia": true,
         "completeness": "open"
       },
       "hq_city": {
         "class": "single_changeable",
-        "inertia": "forever",
+        "inertia": true,
         "completeness": "open"
       },
       "salary": {
         "class": "single_changeable",
-        "inertia": "forever",
+        "inertia": true,
         "completeness": "open"
       }
     },

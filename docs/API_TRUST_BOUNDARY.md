@@ -34,7 +34,7 @@ class HostMemory:                                   # full power; never exposed 
     def ingest_event(self, event: ConnectorEvent, *, extractor: Extractor | None = None,
                      idempotency_key: str | None = None) -> list[ReportId]
     def register_connector(self, c: ConnectorSpec) -> None          # source_id, source_class, origin_group
-    def set_authority(self, rules: list[AuthorityRule]) -> AdmissionVersion
+    def set_authority(self, rules: list[AuthorityRule]) -> AdmissionVersion      # flat typed grants, see §9b
     def set_source_class(self, source_id: str, cls: SourceClass, *, reason: str) -> AdmissionVersion
     def bind_session(self, ctx: SessionContext) -> "AgentTools"      # the only way to get the tool tier
     # read side (also available to the host without session scoping)
@@ -99,7 +99,7 @@ Tool JSON Schemas generated from these signatures set `additionalProperties: fal
 | `origin` | caller (T0) | **connector kind**: `external_observation` for user/tool/doc/feed events | **forced** to `agent_statement` (`note`) or `agent_hypothesis` | the only exception is §5 R5 (`cite_event`) |
 | `origin_group` | caller | connector registry | forced: the agent principal id itself, e.g. `agent:planner` (stable across sessions) | the same agent repeating itself, in any session, counts once |
 | `actor` | caller | `event.principal` or the connector's principal | **forced** to `SessionContext.agent_principal` | identity is bound by the host, never an argument |
-| `cue` | any | extractor *request*, authority-checked | **forced** to `assert` for `remember`; `withdraw`/`correct`/`dispute` only via `retract`/`correct`/`dispute`, each authority-checked (R6) | an agent cannot emit `change` or `confirm` |
+| `cue` | any | extractor *request*, authority-checked | **forced** to `assert` for `remember`; `withdraw`/`correct`/`dispute` only via `retract`/`correct`/`dispute`, each authority-checked (R6) | an agent cannot emit `change` (there is no `confirm` cue, S-01) |
 | `target` | any | extractor-supplied, validated | only for `retract` | |
 | `key`, `proposition` | caller | extractor output, schema-validated | extractor output from the LLM's text, schema-validated | LLM may give an `about` hint; never authoritative |
 | `valid_from/to`, `precision` | caller | extractor output | extractor output | |
@@ -202,3 +202,9 @@ Format and matcher semantics: `tests/fixtures/trust_boundary/README.md`. Fixture
 | tb-18 | R6 | Agent disputes with a granted rule ⇒ recorded as `dispute`; belief becomes `unresolved` (assumes S-02's open point on dispute semantics); source not quarantined |
 | tb-19 | R6 | Authority-rule validation rejects granting an agent principal `withdraw` on `external_observation` |
 | tb-20 | R1, 9a | Caller-supplied `prev_hash`/`entry_hash` are ignored; the chain is computed by the log |
+
+## 9b. Authority as implemented (T-A3 types, T-D2 evaluation)
+
+`AuthorityRule` is the flat typed grant of `palimem.types.authority`: `who` (a typed principal id, an origin group, `any`, or one of the `target_*` kinds), `may` (correct, withdraw, dispute), `on` (a key scope of attribute and entity globs), `targets` (report, source, any) and `over_origins`. Principal ids are `<kind>:<name>` with kind `agent | user | connector | system`, fixed by the host. `Attr.authority` rules are matched first, then the global table of the admission config; the first match wins; the grant table is a versioned admission input, so `set_authority` returns a new admission version.
+
+R6 is enforced in two places because wildcard `who` kinds cannot be checked against principal kinds at load time: explicit grants to an agent over external evidence are refused when the rule is built, and `palimem.admission.Authorizer` refuses at evaluation time any agent withdraw or correct whose target origin is not agent-class, any agent source- or table-wide extent, and any agent `dispute` not granted by a rule naming that principal. A failed withdraw or dispute is recorded as an `allege` (`excluded / authority_failed`). A failed `correct` is *not* an allege (S-02): its proposition remains an ordinary admissible assert and simply does not withdraw its target. The `retract`, `correct` and `dispute` tools above map to these cues unchanged.
