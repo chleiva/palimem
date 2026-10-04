@@ -217,7 +217,7 @@ Confirmatory analysis uses the **test split only**; the dev split may be used to
 
 **Money is not the binding constraint; statistical power and engineering time are.** The scenarios are tiny, so the estimates below (reproduce with `python bench/agent/estimate_cost.py`, no API call is made) put the whole pre-registered design far under the slice.
 
-Assumptions (all in the script, all overridable): prompt overhead 650 tokens; chars/4 token heuristic inflated by 1.25; 15% retry factor; gpt-oss-20b emits about 500 output tokens per decision (reasoning), ministral-8b about 90; **prices are planning figures I have not verified against the AWS price list** (gpt-oss-20b $0.07 in / $0.30 out per 1M tokens; ministral-8b $0.15 / $0.15); the budget arithmetic uses a pessimistic **ceiling of $0.20 in / $0.60 out per 1M** and multiplies third-party internals by 3 because their prompt sizes and call counts are unverified.
+Assumptions (all in the script, all overridable): prompt overhead 650 tokens; chars/4 token heuristic inflated by 1.25; 15% retry factor; gpt-oss-20b emits about 500 output tokens per decision (reasoning), ministral-8b about 90; **prices are the planning figures, since verified against the AWS Price List API (us-west-2) by T-E6 and recorded in `src/palimem/prices.json`; they match** (gpt-oss-20b $0.07 in / $0.30 out per 1M tokens; ministral-8b $0.15 / $0.15); the budget arithmetic uses a pessimistic **ceiling of $0.20 in / $0.60 out per 1M** and multiplies third-party internals by 3 because their prompt sizes and call counts are unverified.
 
 Per scenario, one seed, test split (mean over 20 scenarios):
 
@@ -279,5 +279,5 @@ Operational rules: every call goes through the ledger with the hard cap (T-E6); 
 4. **Scale versus variants.** Write more hand-made scenarios (needed for power; author time) or accept the 20-scenario test split plus G6 variants.
 5. **Gold-class balance.** Add abstain and revalidate scenarios (currently 2 and 1) or fold `revalidate` into `act`.
 6. **Third-party scope.** Confirm Mem0 + Graphiti, drop Letta; and whether to contact maintainers before publishing results.
-7. **Verify prices.** Check the Bedrock on-demand prices for gpt-oss-20b and ministral-8b and rerun the estimator (`--prices`); I did not.
+7. **Verify prices.** Done by T-E6 (2026-10-04): gpt-oss-20b $0.07/$0.30, ministral-8b $0.15/$0.15, ministral-14b $0.20/$0.20 per 1M tokens in/out. Re-check before any paid run.
 8. **Primary model.** gpt-oss-20b (reasoning model, about 5× the output tokens) versus ministral-8b as primary; the pre-registration assumes gpt-oss-20b.
