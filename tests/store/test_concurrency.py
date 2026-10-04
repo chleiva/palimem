@@ -101,9 +101,9 @@ def test_wal_mode_and_format_version(tmp_path) -> None:  # type: ignore[no-untyp
     SQLiteBackend(db).close()
     con = sqlite3.connect(db)
     assert con.execute("PRAGMA journal_mode").fetchone()[0] == "wal"
-    assert con.execute("PRAGMA user_version").fetchone()[0] == 1
+    assert con.execute("PRAGMA user_version").fetchone()[0] == 2
     tables = {r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-    assert {"log", "admissions", "beliefs", "current_belief", "inputs", "attr_dependents", "completion_jobs", "outbox", "subscriptions", "belief_pins", "belief_deps", "meta"} <= tables
+    assert {"log", "admissions", "beliefs", "current_belief", "inputs", "attr_dependents", "completion_jobs", "outbox", "subscriptions", "marks", "dirty_components", "belief_pins", "belief_deps", "meta"} <= tables
     con.execute("PRAGMA user_version = 99")
     con.close()
     from palimem.store import StoreError

@@ -15,6 +15,10 @@ Core operations (every conformant backend)::
 Optional capabilities (``capabilities``): ``verify_log`` and ``export_head`` (the salted hash chain,
 a storage-layer property; S-13). A backend without them is still contract-conformant.
 
+Wave 2 adds the generation barrier (``read_belief``, ``complete_pending``; T-C4), the notification outbox
+(``subscribe``, ``pending_events``, ``deliver``; T-C5), ``historical_inputs`` (T-C6), erasure with dependency
+repair (``erase(..., reviser=)``; T-C8) and JSONL ``export_jsonl`` / ``import_jsonl`` (T-C9).
+
 ``belief_as_of`` resolves to the version of a key with the greatest ``Belief.lsn`` at or before the
 requested LSN; a timestamp maps to the last LSN whose ``recorded_at`` is at or before it. The log keeps
 ``recorded_at`` non-decreasing along LSNs (it is clamped to the previous row on clock skew), so that
@@ -23,8 +27,8 @@ mapping is well defined.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator, Mapping, Sequence
-from dataclasses import dataclass
+from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any, Protocol, Self, runtime_checkable
@@ -33,9 +37,13 @@ from palimem.types import (
     AdmissionRecord,
     Belief,
     BeliefAsOf,
+    BeliefView,
     Key,
+    LastComplete,
     LogEntry,
     Report,
+    ResourceLimited,
+    ResourceLimitedReason,
     Schema,
     ValidationError,
     canonical_json,
@@ -74,12 +82,21 @@ APPEND_STEPS: tuple[str, ...] = (
     "after_revision",
     "after_beliefs",
     "after_index",
+    "after_barrier",
     "before_commit",
     "after_commit",
 )
 """Names passed to the ``fault`` hook, in order. Raising (or ``os._exit``-ing) at any step before
 ``after_commit`` must leave no trace of the append; at ``after_commit`` the append is durable and a
 retry with the same idempotency key replays it."""
+
+COMPLETION_STEPS: tuple[str, ...] = ("completion_stamped", "completion_before_commit")
+"""Fault-hook names inside ``complete_pending`` (once per stamped key, then before the job is marked done). A fault
+rolls back the whole job: no partial versions, the job stays pending."""
+
+ERASE_STEPS: tuple[str, ...] = ("erase_after_redact", "erase_after_repair")
+"""Fault-hook names inside ``erase``. A fault rolls the whole erasure back: the report, its beliefs and its
+idempotency key are exactly as before."""
 
 FaultHook = Callable[[str], None]
 
@@ -244,6 +261,109 @@ class AppendResult:
     tombstone: Tombstone | None = None
 
 
+@dataclass(frozen=True, kw_only=True)
+class LimitedRead:
+    """A read that has no valid result for the requested snapshot (T-C4): the generation barrier.
+
+    Carries no belief as current. ``last_complete`` is an OLDER version, complete when it was written, to be
+    labelled with its own ``lsn`` (``belief_as_of``) and never presented as current."""
+
+    reason: ResourceLimitedReason
+    required_generation: int
+    completed_generation: int
+    reason_key: Key | None = None
+    last_complete: Belief | None = None
+
+    def to_answer(self, valid_at: datetime | None = None) -> ResourceLimited:
+        """The contract ``ResourceLimited`` (no segment, no kernel_status), with ``last_complete`` labelled by
+        the ``belief_as_of`` (LSN) of the older version and cut to the segment at ``valid_at``."""
+        from palimem.store.views import belief_view
+
+        last: LastComplete | None = None
+        if self.last_complete is not None:
+            view = belief_view(self.last_complete, valid_at)
+            if view is not None:
+                last = LastComplete(belief_as_of=self.last_complete.lsn, view=view)
+        return ResourceLimited(
+            reason=self.reason,
+            required_generation=self.required_generation,
+            completed_generation=self.completed_generation,
+            reason_key=self.reason_key,
+            last_complete=last,
+        )
+
+
+@dataclass(frozen=True, kw_only=True)
+class NotReconstructable:
+    """The version in force at this snapshot was redacted by an erasure (T-C8, S-13): the historical answer
+    can no longer be reconstructed. The current belief of the key, if any, was repaired and is readable."""
+
+    key: Key
+    version: int
+    lsn: int
+
+
+BeliefRead = Belief | LimitedRead | NotReconstructable | None
+
+
+@dataclass(frozen=True, kw_only=True)
+class InputsAt:
+    """The versioned inputs in force at a log position (T-C6). Historical queries are evaluated under these."""
+
+    schema: Schema | None
+    semantic: tuple[int, Mapping[str, Any]] | None
+    admission: tuple[int, Mapping[str, Any]] | None
+    policy: tuple[int, Mapping[str, Any]] | None
+    lsn: int = 0
+
+    def versions(self) -> dict[str, int]:
+        out: dict[str, int] = {}
+        if self.schema is not None:
+            out[InputKind.SCHEMA.value] = self.schema.version
+        for kind, v in ((InputKind.SEMANTIC, self.semantic), (InputKind.ADMISSION, self.admission), (InputKind.POLICY, self.policy)):
+            if v is not None:
+                out[kind.value] = v[0]
+        return out
+
+
+@dataclass(frozen=True, kw_only=True)
+class OutboxEvent:
+    """A durable notification (T-C5). ``event_id = hash(key, old version, new version)`` is stable across
+    redelivery; delivery is at-least-once, so subscribers must process idempotently on it. The views are
+    ``None`` when an erasure redacted the versions the event mentions."""
+
+    event_id: str
+    plan_id: str
+    key: Key
+    old_version: int | None
+    new_version: int
+    lsn: int
+    old_view: BeliefView | None
+    new_view: BeliefView | None
+    created_at: datetime
+    redacted: bool = False
+
+
+@dataclass(frozen=True, kw_only=True)
+class CompletionReport:
+    """Outcome of ``complete_pending``: jobs finished, versions stamped, jobs still pending."""
+
+    jobs_done: int
+    keys_stamped: int
+    jobs_pending: int
+    skipped_newer: int = 0  # keys left alone because a newer generation had already completed them
+
+
+@dataclass(frozen=True, kw_only=True)
+class ImportReport:
+    log_rows: int
+    admissions: int
+    inputs: int
+    beliefs: int
+    generation: int
+    head: Head
+
+
 # ----------------------------------------------------------------------------- read view
 
 
@@ -307,6 +427,7 @@ class RevisionContext:
     admissions: tuple[AdmissionRecord, ...]
     generation: int  # the store generation this append establishes
     view: StoreView
+    inputs: Mapping[str, int] = field(default_factory=dict)  # versions of the schema/semantic/admission/policy inputs in force (T-C6)
 
 
 class Reviser(Protocol):
@@ -316,7 +437,11 @@ class Reviser(Protocol):
 
     ``recompute`` rebuilds a key's belief from the log alone, as of the head, for ``verify_beliefs``;
     its ``segments``, ``pinned``, ``depends_on`` and ``invalidated_by`` must equal the stored current
-    belief or the store reports ``belief_mismatch`` (SEC-25).
+    belief or the store reports ``belief_mismatch`` (SEC-25). It is also what the store calls to *finish*
+    keys left incomplete (``complete_pending``, T-C4) and to *repair* beliefs after an erasure (T-C8): the
+    store stamps ``version``, ``lsn`` and the generations itself, so only the content matters. It must work
+    for a key that has no stored belief yet, and read the base keys' CURRENT beliefs from ``view``
+    (dependencies are recomputed first).
     """
 
     def revise(self, ctx: RevisionContext) -> Sequence[Belief]: ...
@@ -333,9 +458,26 @@ class Backend(StoreView, Protocol):
     def append(self, report: Report, *, idempotency_key: str, admitter: Admitter, reviser: Reviser) -> AppendResult: ...
     def put_schema(self, schema: Schema) -> None: ...
     def put_input(self, kind: InputKind, version: int, payload: Mapping[str, Any]) -> None: ...
-    def erase(self, report_id: str, reason: ErasureReason) -> Tombstone: ...
+    def erase(self, report_id: str, reason: ErasureReason, *, reviser: Reviser | None = None) -> Tombstone: ...
     def recover(self) -> RecoveryReport: ...
     def close(self) -> None: ...
+
+    # generation barrier (T-C4)
+    def read_belief(self, key: Key, as_of: BeliefAsOf | None = None) -> BeliefRead: ...
+    def complete_pending(self, reviser: Reviser, *, limit: int | None = None) -> CompletionReport: ...
+
+    # notifications (T-C5)
+    def subscribe(self, plan_id: str, keys: Sequence[Key]) -> None: ...
+    def unsubscribe(self, plan_id: str) -> None: ...
+    def subscriptions(self, plan_id: str) -> tuple[Key, ...]: ...
+    def pending_events(self, limit: int = 100) -> tuple[OutboxEvent, ...]: ...
+    def ack_event(self, event_id: str, plan_id: str) -> None: ...
+    def deliver(self, handler: Callable[[OutboxEvent], None], *, limit: int = 100) -> int: ...
+
+    # versioned inputs, export and import (T-C6, T-C9)
+    def historical_inputs(self, as_of: BeliefAsOf | None = None) -> InputsAt: ...
+    def export_jsonl(self) -> Iterator[str]: ...
+    def import_jsonl(self, lines: Iterable[str], *, reviser: Reviser) -> ImportReport: ...
 
     # optional capabilities
     def verify_log(self, from_lsn: int = 1, to_lsn: int | None = None, *, anchor: Head | None = None) -> VerifyResult: ...

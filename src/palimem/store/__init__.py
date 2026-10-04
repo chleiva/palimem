@@ -1,5 +1,6 @@
-"""palimem storage (T-C1/T-C2/T-C3/T-C10): the backend interface, the in-memory reference backend,
-and the SQLite default with a salted hash chain over the evidence and admission logs.
+"""palimem storage (T-C1/T-C2/T-C3/T-C10, wave 2: T-C4/T-C5/T-C6/T-C8/T-C9): the backend interface, the
+in-memory reference backend, and the SQLite default with a salted hash chain over the evidence and admission
+logs, the generation barrier, the notification outbox, erasure with repair, and JSONL export / import.
 
 See docs/STORAGE.md.
 """
@@ -9,17 +10,26 @@ from palimem.store.backend import (
     CAP_ERASE,
     CAP_EXPORT_HEAD,
     CAP_VERIFY_LOG,
+    COMPLETION_STEPS,
+    ERASE_STEPS,
     AdmissionContext,
     Admitter,
     AppendResult,
     Backend,
+    BeliefRead,
     CapabilityError,
+    CompletionReport,
     ErasureReason,
     FaultHook,
     Head,
     IdempotencyConflict,
+    ImportReport,
     InputKind,
+    InputsAt,
     InvalidRevision,
+    LimitedRead,
+    NotReconstructable,
+    OutboxEvent,
     RecoveryReport,
     Reviser,
     RevisionContext,
@@ -31,28 +41,40 @@ from palimem.store.backend import (
     VerifyProblem,
     VerifyResult,
 )
+from palimem.store.barrier import DEFAULT_TRAVERSAL_BUDGET
 from palimem.store.ids import UlidFactory
 from palimem.store.memory import InMemoryBackend
-from palimem.store.sqlite import STORE_FORMAT_VERSION, SQLiteBackend
+from palimem.store.sqlite import MIGRATIONS, STORE_FORMAT_VERSION, SQLiteBackend
 
 __all__ = [
     "APPEND_STEPS",
     "CAP_ERASE",
     "CAP_EXPORT_HEAD",
     "CAP_VERIFY_LOG",
+    "COMPLETION_STEPS",
+    "DEFAULT_TRAVERSAL_BUDGET",
+    "ERASE_STEPS",
+    "MIGRATIONS",
     "STORE_FORMAT_VERSION",
     "AdmissionContext",
     "Admitter",
     "AppendResult",
     "Backend",
+    "BeliefRead",
     "CapabilityError",
+    "CompletionReport",
     "ErasureReason",
     "FaultHook",
     "Head",
     "IdempotencyConflict",
+    "ImportReport",
     "InMemoryBackend",
     "InputKind",
+    "InputsAt",
     "InvalidRevision",
+    "LimitedRead",
+    "NotReconstructable",
+    "OutboxEvent",
     "RecoveryReport",
     "Reviser",
     "RevisionContext",

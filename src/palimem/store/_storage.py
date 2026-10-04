@@ -27,7 +27,7 @@ class LogRow:
     commitment: str | None
     prev_hash: str | None
     entry_hash: str | None
-    idem_key: str
+    idem_key: str  # client key; after an erasure it is replaced by an HMAC reference (S-13)
     tomb: str | None = None  # canonical Tombstone JSON once erased
 
 
@@ -54,6 +54,7 @@ class BeliefRow:
     pins: tuple[str, ...]  # report ids pinned by this version
     deps: tuple[tuple[Key, int], ...]  # (key, version) it depends on
     reconstructable: bool = True
+    origin: str = "append"  # append | completion | repair: why this version exists (T-C4, T-C8)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -63,6 +64,50 @@ class InputRow:
     effective_lsn: int  # applies to appends with lsn >= effective_lsn
     recorded_us: int
     payload: str  # canonical JSON
+
+
+@dataclass(frozen=True, kw_only=True)
+class MarkRow:
+    """A generation named a key (T-C4): the append-only history behind ``required_generation``."""
+
+    key: Key
+    generation: int
+    lsn: int
+
+
+@dataclass(frozen=True, kw_only=True)
+class JobRow:
+    """A durable completion job, keyed by generation (T-C4)."""
+
+    generation: int
+    state: str  # pending | done
+    payload: str  # canonical JSON: {kind, lsn, seeds, keys}; keys are cleared when the job is done
+    created_us: int
+    updated_us: int
+
+
+@dataclass(frozen=True, kw_only=True)
+class DirtyRow:
+    """A dirty marker (T-C4): reads of the listed attributes answer ``store_dirty`` between ``set_lsn``
+    and ``cleared_lsn``. ``attrs`` is canonical JSON: a list of attribute names, or ``["*"]`` (store-wide)."""
+
+    generation: int
+    attrs: str
+    set_lsn: int
+    cleared_lsn: int | None = None
+
+
+@dataclass(frozen=True, kw_only=True)
+class OutboxRow:
+    event_id: str
+    plan_id: str
+    key: Key
+    old_version: int | None
+    new_version: int
+    lsn: int
+    payload: str | None  # canonical JSON {old, new} belief views; None once redacted by an erasure
+    created_us: int
+    delivered_us: int | None = None
 
 
 class Storage(Protocol):
@@ -109,12 +154,55 @@ class Storage(Protocol):
     def key_dependents(self, key: Key) -> list[Key]: ...
     def versions_pinning(self, report_id: str) -> list[tuple[Key, int]]: ...
     def mark_unreconstructable(self, key: Key, version: int) -> None: ...
+    def redact_belief(self, key: Key, version: int, redacted: str) -> None:
+        """Replace a version's JSON by a redacted record and flag it not reconstructable (erasure only)."""
+        ...
+
     def max_belief_lsn(self) -> int: ...
+    def belief_rows_for_key(self, key: Key, max_lsn: int | None) -> list[BeliefRow]:
+        """Versions of a key with ``lsn <= max_lsn``, newest first."""
+        ...
+
+    # generation barrier (T-C4)
+    def required_generation(self, key: Key) -> int:
+        """Newest generation that names the key (0 if none): a column on the current-version index."""
+        ...
+
+    def set_required(self, key: Key, generation: int) -> None:
+        """Raise the key's required generation (creates a version-0 placeholder if the key has no belief yet)."""
+        ...
+
+    def put_mark(self, row: MarkRow) -> None: ...
+    def required_at(self, key: Key, lsn: int) -> int:
+        """Greatest generation that named the key at a log position ``<= lsn`` (0 if none)."""
+        ...
+
+    def marked_keys(self) -> list[Key]: ...
+    def put_job(self, row: JobRow) -> None: ...
+    def replace_job(self, row: JobRow) -> None: ...
+    def jobs(self, state: str | None = None) -> list[JobRow]: ...
+    def put_dirty(self, row: DirtyRow) -> None: ...
+    def dirty_rows(self) -> list[DirtyRow]: ...
+    def clear_dirty(self, generation: int, cleared_lsn: int) -> None: ...
+
+    # subscriptions and outbox (T-C5)
+    def put_subscription(self, plan_id: str, key: Key) -> None: ...
+    def delete_subscriptions(self, plan_id: str) -> None: ...
+    def subscriptions_for_plan(self, plan_id: str) -> list[Key]: ...
+    def plans_for_key(self, key: Key) -> list[str]: ...
+    def put_outbox(self, row: OutboxRow) -> None: ...
+    def outbox_pending(self, limit: int) -> list[OutboxRow]: ...
+    def outbox_all(self) -> list[OutboxRow]: ...
+    def ack_outbox(self, event_id: str, plan_id: str, delivered_us: int) -> None: ...
+    def redact_outbox(self, key: Key, versions: tuple[int, ...]) -> None:
+        """Drop the embedded views of events that mention these (key, version) pairs (erasure)."""
+        ...
 
     # versioned inputs
     def put_input(self, row: InputRow) -> None: ...
     def input_row(self, kind: str, version: int) -> InputRow | None: ...
     def input_row_at(self, kind: str, lsn: int) -> InputRow | None: ...
     def latest_input_version(self, kind: str) -> int | None: ...
+    def inputs_all(self) -> list[InputRow]: ...
     def put_attr_dependents(self, schema_version: int, mapping: dict[str, tuple[str, ...]]) -> None: ...
     def attr_dependents(self, schema_version: int, attr: str) -> tuple[str, ...]: ...
