@@ -1,0 +1,48 @@
+name: Bug report
+description: Something behaves differently from the documented contract
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Security problems: do **not** file a public issue. Follow `SECURITY.md` (GitHub private vulnerability reporting).
+  - type: input
+    id: version
+    attributes:
+      label: palimem version and Python version
+      placeholder: "palimem 0.0.1, Python 3.12"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - types/schemas
+        - admission/authority
+        - kernel
+        - store/SQLite
+        - policy
+        - extractor
+        - harness/benchmark
+        - docs
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What the documentation or contract says should happen
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happens instead, with a minimal reproduction
+      description: A conformance-style fixture or a short script is ideal.
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else (profile, budget, backend, whether the differential harness is affected)

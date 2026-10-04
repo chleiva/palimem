@@ -1,0 +1,39 @@
+# Security checks (T-H3): dependency audit, secret scan, CodeQL. Policy: SECURITY.md; threat model: docs/THREAT_MODEL.md.
+name: security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "41 4 * * 1"   # weekly
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e ".[dev]" pip-audit
+      - name: Audit the installed environment (the runtime has no dependencies; this covers dev tooling and extras)
+        run: pip-audit --progress-spinner off --skip-editable
+      - name: Secret scan over tracked files
+        run: ./scripts/check_secrets.sh --all
+
+  codeql:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: python
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:python"
