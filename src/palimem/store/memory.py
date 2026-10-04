@@ -14,9 +14,18 @@ from dataclasses import replace
 from datetime import datetime
 from typing import Any
 
-from palimem.store._storage import AdmRow, BeliefRow, InputRow, LogRow
+from palimem.store._storage import (
+    AdmRow,
+    BeliefRow,
+    DirtyRow,
+    InputRow,
+    JobRow,
+    LogRow,
+    MarkRow,
+    OutboxRow,
+)
 from palimem.store.backend import FaultHook
-from palimem.store.engine import Engine
+from palimem.store.engine import DEFAULT_TRAVERSAL_BUDGET, Engine
 from palimem.store.ids import UlidFactory
 from palimem.types import Key
 
@@ -30,15 +39,28 @@ class MemoryStorage:
         self.current: dict[Key, int] = {}
         self.inputs: dict[tuple[str, int], InputRow] = {}
         self.attr_deps: dict[tuple[int, str], tuple[str, ...]] = {}
+        self.required: dict[Key, int] = {}
+        self.marks: list[MarkRow] = []
+        self.job_rows: dict[int, JobRow] = {}
+        self.dirty: list[DirtyRow] = []
+        self.subs: set[tuple[str, Key]] = set()
+        self.outbox: dict[tuple[str, str], OutboxRow] = {}
         self._in_txn = False
         self._write_lock = threading.RLock()
 
     # -- transactions
     def _snapshot(self) -> tuple[Any, ...]:
-        return (dict(self.meta), dict(self.log), dict(self.adm), dict(self.beliefs), dict(self.current), dict(self.inputs), dict(self.attr_deps))
+        return (
+            dict(self.meta), dict(self.log), dict(self.adm), dict(self.beliefs), dict(self.current), dict(self.inputs),
+            dict(self.attr_deps), dict(self.required), list(self.marks), dict(self.job_rows), list(self.dirty),
+            set(self.subs), dict(self.outbox),
+        )
 
     def _restore(self, snap: tuple[Any, ...]) -> None:
-        self.meta, self.log, self.adm, self.beliefs, self.current, self.inputs, self.attr_deps = snap
+        (
+            self.meta, self.log, self.adm, self.beliefs, self.current, self.inputs, self.attr_deps, self.required,
+            self.marks, self.job_rows, self.dirty, self.subs, self.outbox,
+        ) = snap
 
     @contextmanager
     def transaction(self) -> Iterator[None]:
@@ -120,7 +142,8 @@ class MemoryStorage:
 
     # -- beliefs
     def current_version(self, key: Key) -> int | None:
-        return self.current.get(key)
+        v = self.current.get(key)
+        return v if v else None  # version 0 is a placeholder created by set_required
 
     def put_belief(self, row: BeliefRow) -> None:
         k = (row.key.entity, row.key.attr, row.version)
@@ -142,11 +165,13 @@ class MemoryStorage:
         return sorted((r for r in self.beliefs.values() if r.lsn == lsn), key=lambda r: (r.key.entity, r.key.attr))
 
     def current_keys(self) -> list[Key]:
-        return sorted(self.current, key=lambda k: (k.entity, k.attr))
+        return sorted((k for k, v in self.current.items() if v), key=lambda k: (k.entity, k.attr))
 
     def key_dependents(self, key: Key) -> list[Key]:
         out = []
         for k, v in self.current.items():
+            if not v:
+                continue
             row = self.beliefs.get((k.entity, k.attr, v))
             if row is not None and any(dep_key == key for dep_key, _ in row.deps):
                 out.append(k)
@@ -160,8 +185,86 @@ class MemoryStorage:
         if k in self.beliefs:
             self.beliefs[k] = replace(self.beliefs[k], reconstructable=False)
 
+    def redact_belief(self, key: Key, version: int, redacted: str) -> None:
+        k = (key.entity, key.attr, version)
+        if k in self.beliefs:
+            self.beliefs[k] = replace(self.beliefs[k], belief=redacted, reconstructable=False)
+
     def max_belief_lsn(self) -> int:
         return max((r.lsn for r in self.beliefs.values()), default=0)
+
+    def belief_rows_for_key(self, key: Key, max_lsn: int | None) -> list[BeliefRow]:
+        rows = [r for r in self.beliefs.values() if r.key == key and (max_lsn is None or r.lsn <= max_lsn)]
+        return sorted(rows, key=lambda r: -r.version)
+
+    # -- generation barrier (T-C4)
+    def required_generation(self, key: Key) -> int:
+        return self.required.get(key, 0)
+
+    def set_required(self, key: Key, generation: int) -> None:
+        self.required[key] = max(self.required.get(key, 0), generation)
+        self.current.setdefault(key, 0)
+
+    def put_mark(self, row: MarkRow) -> None:
+        self.marks.append(row)
+
+    def required_at(self, key: Key, lsn: int) -> int:
+        return max((m.generation for m in self.marks if m.key == key and m.lsn <= lsn), default=0)
+
+    def marked_keys(self) -> list[Key]:
+        return sorted(self.required, key=lambda k: (k.entity, k.attr))
+
+    def put_job(self, row: JobRow) -> None:
+        if row.generation in self.job_rows:
+            raise ValueError("duplicate completion job")
+        self.job_rows[row.generation] = row
+
+    def replace_job(self, row: JobRow) -> None:
+        self.job_rows[row.generation] = row
+
+    def jobs(self, state: str | None = None) -> list[JobRow]:
+        return [r for _, r in sorted(self.job_rows.items()) if state is None or r.state == state]
+
+    def put_dirty(self, row: DirtyRow) -> None:
+        self.dirty.append(row)
+
+    def dirty_rows(self) -> list[DirtyRow]:
+        return list(self.dirty)
+
+    def clear_dirty(self, generation: int, cleared_lsn: int) -> None:
+        self.dirty = [replace(d, cleared_lsn=cleared_lsn) if d.generation == generation and d.cleared_lsn is None else d for d in self.dirty]
+
+    # -- subscriptions and outbox (T-C5)
+    def put_subscription(self, plan_id: str, key: Key) -> None:
+        self.subs.add((plan_id, key))
+
+    def delete_subscriptions(self, plan_id: str) -> None:
+        self.subs = {s for s in self.subs if s[0] != plan_id}
+
+    def subscriptions_for_plan(self, plan_id: str) -> list[Key]:
+        return sorted((k for p, k in self.subs if p == plan_id), key=lambda k: (k.entity, k.attr))
+
+    def plans_for_key(self, key: Key) -> list[str]:
+        return sorted(p for p, k in self.subs if k == key)
+
+    def put_outbox(self, row: OutboxRow) -> None:
+        self.outbox.setdefault((row.event_id, row.plan_id), row)
+
+    def outbox_pending(self, limit: int) -> list[OutboxRow]:
+        return [r for r in self.outbox.values() if r.delivered_us is None][:limit]
+
+    def outbox_all(self) -> list[OutboxRow]:
+        return list(self.outbox.values())
+
+    def ack_outbox(self, event_id: str, plan_id: str, delivered_us: int) -> None:
+        k = (event_id, plan_id)
+        if k in self.outbox:
+            self.outbox[k] = replace(self.outbox[k], delivered_us=delivered_us)
+
+    def redact_outbox(self, key: Key, versions: tuple[int, ...]) -> None:
+        for k, r in list(self.outbox.items()):
+            if r.key == key and (r.new_version in versions or (r.old_version is not None and r.old_version in versions)):
+                self.outbox[k] = replace(r, payload=None)
 
     # -- inputs
     def put_input(self, row: InputRow) -> None:
@@ -173,6 +276,9 @@ class MemoryStorage:
     def input_row_at(self, kind: str, lsn: int) -> InputRow | None:
         rows = [r for r in self.inputs.values() if r.kind == kind and r.effective_lsn <= lsn]
         return max(rows, key=lambda r: r.version) if rows else None
+
+    def inputs_all(self) -> list[InputRow]:
+        return [self.inputs[k] for k in sorted(self.inputs)]
 
     def latest_input_version(self, kind: str) -> int | None:
         vs = [r.version for r in self.inputs.values() if r.kind == kind]
@@ -198,7 +304,11 @@ class InMemoryBackend(Engine):
         clock: Callable[[], datetime] | None = None,
         fault: FaultHook | None = None,
         ids: UlidFactory | None = None,
+        traversal_budget: int = DEFAULT_TRAVERSAL_BUDGET,
     ) -> None:
         self.storage = MemoryStorage()
-        super().__init__(self.storage, chain_enabled=chain, store_secret=store_secret, clock=clock, fault=fault, ids=ids)
+        super().__init__(
+            self.storage, chain_enabled=chain, store_secret=store_secret, clock=clock, fault=fault, ids=ids,
+            traversal_budget=traversal_budget,
+        )
 
