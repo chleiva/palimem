@@ -112,9 +112,9 @@ The study's own attack evidence is thin and should not be over-read. Its attacke
 
 | ID | Threat | Component | L / I | Mitigation | Test |
 |---|---|---|---|---|---|
-| T-15 | **Injection at rate.** Study (measured): when the latest report is an injection, P0c commits to it on 0.78 of 78 queries; recency 1.00; argmax 0.82. "Better, not safe" | Whole pipeline | H / H | `[design]` quarantine class whose reports are logged but not admitted until confirmed (designed, **not measured**); `[proposed]` gate on a poisoning re-run (T-H2) with a declared limit, reported separately for a low-trust channel and a compromised trusted channel | G-S, T-H2 |
+| T-15 | **Injection at rate.** Study (measured): when the latest report is an injection, P0c commits to it on 0.78 of 78 queries; recency 1.00; argmax 0.82. "Better, not safe" | Whole pipeline | H / H | `[design]` quarantine class whose reports are logged but not admitted until confirmed (designed, **not measured**); **Decided 2026-10-04:** two thresholds, both relative to the measured baseline (see §8 criterion 4). Untrusted injected source: injected-commit rate no higher than the measured **0.78** on the frozen stratum, lowered as quarantine and confirmation land, **target under 0.10 once an admission policy exists**. Compromised trusted source: a *behaviour* gate, not a rate (§8). The rate is measured and reported for both, gated only for the first | G-S, T-H2 |
 | T-16 | **Slow-drip poisoning.** Consistent low-volume reports over weeks, each below any rate limit, to build corroboration or to wait out anomaly windows. Not measured by the study | Admission, policy | M / H | `[proposed]` per-source disagreement-rate monitoring; priors changed only through a harness-evaluated policy version; incident response is `withdraw source` plus recompute, which the design's cascade makes cheap; `[accepted]` detection of a patient attacker inside a trusted channel | SEC-20 (scenario), T-H2 |
-| T-17 | **Compromised trusted channel.** Quarantine does not help when the poisoned source is already trusted | Source registry | M / H | `[accepted]` for v1 (the kernel reports what the evidence justifies); `[proposed]` source-class review workflow and audit of beliefs that rest on a single trusted source | doc only |
+| T-17 | **Compromised trusted channel.** Quarantine does not help when the poisoned source is already trusted | Source registry | M / H | `[accepted, declared residual risk]` (decided 2026-10-04) with three required mitigations: (1) every answer resting on one origin group is **marked single-origin** (support with one environment); (2) only confirmation by a **second origin group** raises it above that; (3) a withdrawal by the source or a later dispute **repairs everything downstream**. No gate pretends to cover this risk | SEC-39 to SEC-41 |
 | T-18 | **Poisoned learning (phase 3).** Attacker-shaped streams bias a learned policy or induced schema | Learning loop | L / H | `[design]` no weight updates; policies are versioned and judged on a sealed held-out stratum; `[proposed]` exclude quarantined and unconfirmed reports from training data | future gate G3 |
 
 ### 4.5 Resource exhaustion
@@ -158,7 +158,7 @@ The study's own attack evidence is thin and should not be over-read. Its attacke
 |---|---|---|---|---|---|
 | T-34 | **Unauthenticated local tools.** Any local process or other MCP client able to reach the server can call write and retract tools | MCP server | M / H | `[proposed]` stdio transport by default (trust inherited from the launching client); no network listener unless explicitly enabled; read tools and write tools registered separately; destructive operations (source-wide withdrawal, delete, merge) not exposed to the agent tool API | SEC-35 |
 | T-35 | **DNS rebinding and browser-origin attacks on an HTTP transport.** A web page in the user's browser reaches `localhost` | MCP server | M / H | `[proposed]` bind to 127.0.0.1, validate `Host` and `Origin`, require a bearer token, no wildcard CORS, following the MCP guidance for local HTTP servers | SEC-36 |
-| T-36 | **Tool poisoning and confused deputy.** Another MCP server's tool description, or ingested content, instructs the agent to call `retract` to erase evidence or `remember` attacker content | MCP server, agent | M / H | `[proposed]` `retract` by the agent only for reports whose actor is the same session principal; session-scoped principals; consider a human confirmation hook for retractions over a size threshold | SEC-37 |
+| T-36 | **Tool poisoning and confused deputy.** Another MCP server's tool description, or ingested content, instructs the agent to call `retract` to erase evidence or `remember` attacker content | MCP server, agent | M / H | **Decided 2026-10-04:** the agent may withdraw or correct **only reports whose actor is that agent and whose origin is agent-class** (`agent_hypothesis`, `agent_statement`, `plan`), **only through the host API** that binds actor identity (not limited to the current session: a long-lived agent may correct what it said last week). It **may never withdraw an `external_observation`**; against those it can only `dispute`, and only if the host grants that authority for the key scope, otherwise the write lands as `allege`. Open, default *no*: whether an agent's dispute may trigger quarantine of the disputed source | SEC-37, SEC-42 to SEC-44 |
 | T-37 | **Principal confusion across sessions.** One server serving several clients mixes their actors and scopes | MCP server | M / H | `[proposed]` principal bound per connection; no shared mutable session state; fixtures with two interleaved clients | SEC-38 |
 
 ### 4.10 Supply chain and release
@@ -171,7 +171,7 @@ The study's own attack evidence is thin and should not be over-read. Its attacke
 
 ---
 
-## 5. Evidence-log integrity: hash-chaining (evaluation and recommendation)
+## 5. Evidence-log integrity: hash-chaining (evaluation; **DECIDED 2026-10-04: adopt, as a storage-layer property**)
 
 **Question.** Should the append-only evidence log be hash-chained?
 
@@ -185,21 +185,29 @@ The study's own attack evidence is thin and should not be over-read. Its attacke
 | Hash chain over reports and admission decisions, with `verify()` | Edits, deletions and reordering of logs; belief tampering when `verify()` recomputes beliefs | One `hashlib` call per append (stdlib, negligible next to revision), a small column, one more field in the contract | **Recommended** |
 | Merkle or transparency log with signed checkpoints | The above plus efficient inclusion proofs and third-party audit | Key management, more code | Defer; possible later as an optional layer on the same chain |
 
-**Design points that must be decided before the G0 freeze, because they change the `Report` contract.**
+**Decision (author, 2026-10-04): adopt, but as a property of the log's storage layer, not a `Report` field.** The chain is tamper-evidence for the log; it is not part of what a report *means*. Consequences, which supersede points 2 and the schedule note below where they differ:
+
+- `prev_hash` and `entry_hash` live on the **log row**, set by the backend. The `Report` type, the JSON Schemas and the G0 conformance fixtures **do not change**. A backend without the chain is still contract-conformant; the SQLite default implements it.
+- `verify_log(from, to)` is an operation of the **backend interface** (an optional capability, so adding it is not a contract break) and the SQLite default ships it.
+- Hashes are **salted** (the commitment form in point 1) so report contents cannot be confirmed by guessing.
+- **Deletion** (GDPR) is a tombstone that preserves the chain: the tombstone row carries the **original entry hash** (and the salted commitment), so the chain still verifies after the content and the salt are erased. To be confirmed in the S-13 decision record and fixture SEC-30.
+- The admission log gets its own chain (`prev_hash`, `report_entry_hash`) under the same rule: storage layer, not contract.
+
+**Design points (original text; where it says the contract changes, see the decision above).**
 
 1. **Erasure compatibility.** Chaining raw content would make GDPR-style deletion break the chain. Chain a *salted commitment* to the content instead: `commitment = SHA-256(salt ‖ content_bytes)` with the salt stored beside the content. Erasing the content and the salt leaves the chain intact and the commitment unlinkable to a guessable value (an unsalted hash of "Paris" is brute-forceable).
-2. **Fields.** `Report` gains `prev_hash` and `commitment` (log-set, immutable); the admission record gains its own `prev_hash` and `report_hash`.
+2. **Fields.** ~~`Report` gains `prev_hash` and `commitment`~~ **Superseded:** the chain fields are log-row columns, not `Report` fields (see decision). The admission record chain is likewise a storage-layer column set.
 3. **Canonical bytes.** A canonical JSON form for hashed metadata must be part of the versioned contract, or ports in other languages will not agree.
 4. **`verify()`.** A command that checks the chain and recomputes a sample (or all) belief versions with the kernel and compares. Full recomputation is only practical under the environment cap, so the sampled mode is the default.
 5. **External anchoring.** `export_head()` and a documented recipe to store the head hash outside the database file (commit to a repo, or write to an append-only location). Without this, tamper-*evidence* applies only against attackers who cannot rewrite the whole file.
 
-**Recommendation.** Adopt the salted-commitment hash chain on the evidence and admission logs, ship `verify()`, make anchoring documented but optional. Schedule: contract fields frozen at G0; implementation with the versioned-inputs work (release 0.3). Key signing is out of scope for v1.
+**Recommendation.** Adopt the salted-commitment hash chain on the evidence and admission logs, ship `verify()`, make anchoring documented but optional. Schedule: nothing in the G0 contract changes; the backend-interface addition `verify_log(from, to)` is specified at G0, implemented with the SQLite backend (task T-C2/T-C10), and the tombstone-preserves-chain fixture is part of the deletion work. Key signing is out of scope for v1.
 
 ---
 
 ## 6. Accepted risks and non-goals (v1)
 
-- **A compromised trusted source can poison.** The system reports what evidence justifies; it does not detect a lying trusted channel (T-15 residual, T-17).
+- **A lying trusted source (declared residual risk, accepted 2026-10-04).** No belief system can distinguish a trusted source that lies consistently from one that tells the truth; the study's regime analysis already says justified belief helps where the latest report is wrong *and other evidence exists*. What is accepted: a single-origin, uncorroborated belief can be wrong. What is required in exchange: (1) it is always marked single-origin in the answer; (2) confirmation from a second origin group is the only way to raise it above that; (3) a withdrawal by the source or a later dispute repairs everything downstream. No gate claims to cover it (T-15 residual, T-17).
 - **Code execution inside the palimem process** or the host application is out of scope. If the agent runtime is compromised, so is the memory.
 - **Targeted denial of a single key** through the environment cap or authorised disputes remains possible (T-13, T-19); mitigated by quotas, not eliminated.
 - **No multi-tenant isolation**, no network-facing service, no authentication beyond MCP connection binding and the bearer token on the optional HTTP transport (the design's v1 non-goal).
@@ -253,6 +261,12 @@ These extend the 23 independent tests in design v0.3. IDs match the Test column 
 | SEC-35 | MCP session lists tools | Destructive operations absent from the agent tool set |
 | SEC-36 | HTTP transport request with a foreign `Origin` or missing token | Rejected |
 | SEC-37 | Agent asks to retract a report authored by another principal | Rejected; recorded as `allege` |
+| SEC-39 | Answer rests on one trusted origin group, no corroboration | Answer marks the commit as single-origin (support has exactly one environment) |
+| SEC-40 | Injected value from a trusted source while an admissible report from another origin group contradicts it | Value is never `established`; answer is `unresolved` with both candidates |
+| SEC-41 | Trusted source withdraws its own earlier report, or a later dispute arrives | Everything downstream is repaired; no stale single-origin belief remains |
+| SEC-42 | Agent withdraws its own `agent_statement` made a week earlier (earlier session) | Accepted, through the host API |
+| SEC-43 | Agent withdraws an `external_observation` | Rejected; recorded as `allege` |
+| SEC-44 | Agent disputes an `external_observation` without granted authority / with granted authority | `allege` / authorised `dispute`; no quarantine of the source either way |
 | SEC-38 | Two clients interleaving writes on one server | Each report carries its own session principal; no cross-attribution |
 
 ---
@@ -264,8 +278,10 @@ G-S passes when all of the following hold:
 1. This threat model is published and every threat has a mitigation, a test or an explicit `[accepted]` note.
 2. SEC-01 to SEC-38 pass in the conformance suite (SEC-20 is reported, not pass/fail, until a limit is declared).
 3. The agent tool API cannot set `origin`, `source`, `actor`, `origin_group` or `authority` (SEC-01 to SEC-04).
-4. A poisoning re-run (T-H2, extending the study's `poison_streams`) reports the injected-commit rate with quarantine and confirmation on, separately for the low-trust and the compromised-trusted channel, against a limit declared **before** the run. The study's 0.78 is the number to beat.
-5. The hash chain and `verify()` exist and SEC-25, SEC-26 and SEC-30 pass.
+4. **Poisoning, two thresholds (decided 2026-10-04), both declared before the re-run (T-H2, extending the study's `poison_streams`).**
+   - **Untrusted injected source** (the injection is an untrusted source's latest report): injected-commit rate **no higher than the measured 0.78** on the frozen stratum, to be lowered as quarantine and confirmation land, with a **target under 0.10 once an admission policy exists**. A target chosen without a mechanism is a wish, so 0.10 is not a pass criterion before that policy exists.
+   - **Compromised trusted source:** a *behavioural* gate, not a rate. With one trusted source and no independent corroboration the kernel commits by design. The injected value must **never become `established` while any admissible report from another origin group contradicts it**, and **every commit resting on a single origin group must be visible as such in the answer** (support with one environment). The rate is measured and reported but **not gated** until a corroboration policy exists to gate it.
+5. The hash chain (a storage-layer property of the SQLite backend) and `verify_log(from, to)` exist and SEC-25, SEC-26 and SEC-30 pass; SEC-30 includes the tombstone carrying the original entry hash with the chain still verifying.
 6. SECURITY.md is in force and release publishing uses trusted publishing with 2FA.
 
-Open decisions for the author are collected in the Lane H report.
+The Lane H open decisions were answered by the author on 2026-10-04 and are recorded above (hash chain, poisoning thresholds, agent retraction, lying trusted source).
