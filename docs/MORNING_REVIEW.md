@@ -24,3 +24,22 @@ Started 2026-10-05 while the author was away. Each item is something decided by 
 - Deletion in the first store release only flagged versions and left derived values in stored belief JSON (privacy hazard until T-C8 lands; Lane C2 is on it).
 - Settings 2 and 3 are not covered by the differential harness or the authority-coincidence check (T-J5).
 - Agent benchmark: only 2 abstain and 1 revalidate scenarios; no second annotator for gold actions (Lane J).
+
+## From the conformance suite (Lane A5) and extractor (Lane G): open spec points
+
+Defaults taken where the contract is silent; none changes a decided item.
+
+1. **Design row count:** the independent suite has 22 rows, not 23 (variants added: 7b, 13a/b, 19a/b).
+2. **G1 scope:** rows 9 (merges), 17 (outbox) and the extraction half of 19 need phase-2 components; tagged G2.
+3. **Dirty marker (H4):** design row 20 says store-wide, SEC-22 says component-scoped. Implementation follows the author's H4 decision (component-scoped, store-wide last resort); row 20 fixture to be reconciled.
+4. **Open contract gaps (need an author line):**
+   - `Rule` has no `exceptions` field, which S-10 needs for defeasible rules.
+   - Merge is not a `Power` in `AuthorityRule`.
+   - `Query` has no selector for "the attribution" versus "the content" of a `belief_of` proposition (row 15).
+   - Status for two compatible `not_value` candidates is undefined (row 18).
+   - Whether A-ERR is evaluated per segment or per key (row 12).
+   - SEC-40b: does an earlier-anchored report "contradict" a change-cued injection under P0c? (poisoning gate wording)
+   - `verify_log` covers the log only; a belief-recomputing `verify` (SEC-25b) is undecided.
+5. **Extractor gate (Lane G):** thresholds declared per model (gpt-oss-20b claim_f1 >= 0.80, wrong_value <= 0.10, dropped_change_cue <= 0.20; ministral-14b >= 0.75 / <= 0.12 / <= 0.20; ministral-8b >= 0.70 / <= 0.15 / <= 0.25; injection compliance <= 0.10); G-X ceiling $2 (max $4). Expected spend for 5 dev + 1 test pass on all three models is about $0.25, worst case $0.48. Test split has only 17 change claims, so intervals will be wide. Open: hedged/future statements yield no claim (as labelled) or low-trust reports; who is the second annotator; whether `allowed_cues` stays host-only (default yes).
+6. **Release setup (Lane K), manual:** add the trusted publisher on pypi.org for chleiva/palimem (workflow `release.yml`, environment `pypi`), create GitHub environments `pypi` and `testpypi` (required reviewer on `pypi`), enable private vulnerability reporting, Dependabot and code scanning, require the `ci` jobs on `main`.
+7. **Git identity:** commits were wrongly attributed to `[removed]` (email [removed]); history rewrite and force-push are scheduled after the remaining agents finish. `chris@chrisgenai.com` is not yet linked to the chleiva account.
