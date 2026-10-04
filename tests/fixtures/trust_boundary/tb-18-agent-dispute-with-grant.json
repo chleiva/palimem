@@ -1,0 +1,154 @@
+{
+  "id": "tb-18-agent-dispute-with-grant",
+  "title": "A granted dispute is recorded as a dispute; the source is not quarantined",
+  "covers": [
+    "R6"
+  ],
+  "spec_dependencies": [
+    "S-02: kernel semantics of an authorised dispute is not defined in design v0.3; expectation assumes the dispute plays the A-ERR competitor role (alternatives: London, empty)"
+  ],
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "inertia": "forever",
+        "completeness": "open"
+      },
+      "hq_city": {
+        "class": "single_changeable",
+        "inertia": "forever",
+        "completeness": "open"
+      },
+      "salary": {
+        "class": "single_changeable",
+        "inertia": "forever",
+        "completeness": "open"
+      }
+    },
+    "connectors": {
+      "conn:user": {
+        "source_id": "src:user",
+        "source_class": "trusted",
+        "origin_group": "g_user",
+        "kind": "user_message",
+        "principal": "user:alice"
+      },
+      "conn:web": {
+        "source_id": "src:web",
+        "source_class": "low",
+        "origin_group": "g_web",
+        "kind": "tool_result"
+      },
+      "conn:registry": {
+        "source_id": "src:registry",
+        "source_class": "trusted",
+        "origin_group": "g_registry",
+        "kind": "feed"
+      },
+      "conn:quarantined": {
+        "source_id": "src:q1",
+        "source_class": "quarantined",
+        "origin_group": "g_q",
+        "kind": "feed"
+      }
+    },
+    "authority": [
+      {
+        "who": "agent:a1",
+        "may": [
+          "dispute"
+        ],
+        "on": {
+          "attr": "hq_city"
+        },
+        "targets": "report"
+      }
+    ],
+    "session": {
+      "session_id": "s2",
+      "agent_principal": "agent:a1",
+      "end_user_principal": "user:alice",
+      "allowed_attrs": [
+        "employer",
+        "hq_city"
+      ],
+      "policy_version": "p-default",
+      "max_explanation_budget": 50
+    },
+    "events": [],
+    "log": [
+      {
+        "ref": "r1",
+        "key": [
+          "acme",
+          "hq_city"
+        ],
+        "proposition": {
+          "form": "value",
+          "v": "London"
+        },
+        "cue": "assert",
+        "origin": "external_observation",
+        "source": {
+          "id": "src:registry",
+          "class": "trusted"
+        },
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "recorded_at": "2026-09-01T10:00:00Z"
+      }
+    ],
+    "now": "2026-10-02T09:00:00Z"
+  },
+  "steps": [
+    {
+      "tier": "agent",
+      "call": "dispute",
+      "args": {
+        "report_id": "$r1",
+        "reason": "registry feed lagging"
+      }
+    }
+  ],
+  "expect": {
+    "steps": [
+      {
+        "result": {
+          "effect": "applied"
+        }
+      }
+    ],
+    "log_delta": [
+      {
+        "cue": "dispute",
+        "target": "$r1",
+        "actor": "agent:a1"
+      }
+    ],
+    "answers": [
+      {
+        "query": {
+          "kind": "belief",
+          "key": [
+            "acme",
+            "hq_city"
+          ]
+        },
+        "match": {
+          "kernel_status": "unresolved"
+        }
+      },
+      {
+        "query": {
+          "kind": "source_class",
+          "source_id": "src:registry"
+        },
+        "match": {
+          "class": "trusted",
+          "quarantined": false
+        }
+      }
+    ]
+  }
+}

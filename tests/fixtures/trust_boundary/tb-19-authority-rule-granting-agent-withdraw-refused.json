@@ -1,0 +1,154 @@
+{
+  "id": "tb-19-authority-rule-granting-agent-withdraw-refused",
+  "title": "Rule validation refuses to grant an agent withdraw or correct on external evidence",
+  "covers": [
+    "R6",
+    "S-07"
+  ],
+  "notes": "Only the third call (a user principal) is accepted; admission version changes once.",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "inertia": "forever",
+        "completeness": "open"
+      },
+      "hq_city": {
+        "class": "single_changeable",
+        "inertia": "forever",
+        "completeness": "open"
+      },
+      "salary": {
+        "class": "single_changeable",
+        "inertia": "forever",
+        "completeness": "open"
+      }
+    },
+    "connectors": {
+      "conn:user": {
+        "source_id": "src:user",
+        "source_class": "trusted",
+        "origin_group": "g_user",
+        "kind": "user_message",
+        "principal": "user:alice"
+      },
+      "conn:web": {
+        "source_id": "src:web",
+        "source_class": "low",
+        "origin_group": "g_web",
+        "kind": "tool_result"
+      },
+      "conn:registry": {
+        "source_id": "src:registry",
+        "source_class": "trusted",
+        "origin_group": "g_registry",
+        "kind": "feed"
+      },
+      "conn:quarantined": {
+        "source_id": "src:q1",
+        "source_class": "quarantined",
+        "origin_group": "g_q",
+        "kind": "feed"
+      }
+    },
+    "authority": [],
+    "session": {
+      "session_id": "s2",
+      "agent_principal": "agent:a1",
+      "end_user_principal": "user:alice",
+      "allowed_attrs": [
+        "employer",
+        "hq_city"
+      ],
+      "policy_version": "p-default",
+      "max_explanation_budget": 50
+    },
+    "events": [],
+    "log": [],
+    "now": "2026-10-02T09:00:00Z"
+  },
+  "steps": [
+    {
+      "tier": "host",
+      "call": "set_authority",
+      "args": {
+        "rules": [
+          {
+            "who": "agent:a1",
+            "may": [
+              "withdraw"
+            ],
+            "on": {
+              "attr": "*"
+            },
+            "targets": "report"
+          }
+        ]
+      }
+    },
+    {
+      "tier": "host",
+      "call": "set_authority",
+      "args": {
+        "rules": [
+          {
+            "who": "agent:a1",
+            "may": [
+              "correct"
+            ],
+            "on": {
+              "attr": "hq_city"
+            },
+            "targets": "any"
+          }
+        ]
+      }
+    },
+    {
+      "tier": "host",
+      "call": "set_authority",
+      "args": {
+        "rules": [
+          {
+            "who": "user:alice",
+            "may": [
+              "withdraw"
+            ],
+            "on": {
+              "attr": "employer"
+            },
+            "targets": "report"
+          }
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "steps": [
+      {
+        "error": {
+          "code": "invalid_authority_rule"
+        }
+      },
+      {
+        "error": {
+          "code": "invalid_authority_rule"
+        }
+      },
+      {
+        "result": {
+          "admission_version": "$any"
+        }
+      }
+    ],
+    "audit_delta": [
+      {
+        "event": "authority_rule_refused"
+      },
+      {
+        "event": "authority_rule_refused"
+      }
+    ]
+  }
+}
