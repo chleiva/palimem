@@ -51,3 +51,9 @@ Defaults taken where the contract is silent; none changes a decided item.
 - **Gap 2:** the contract cannot express multi-valued *changeable* keys (500 in Setting 1), the cardinality of derived attributes, or explicit `error_allowed` / `competing_values`.
 - **Gap 3:** `inertia=False` has no specified semantics (kernel refuses it); the compat profile's inertia-on-everything follows the paper's code and conflicts with the S-08 decision text ("stable keys and sets don't hold"). Needs an author line on which wins for the compat profile.
 - **Source retraction late-assert:** G1 under the contract-expressible form is therefore 85 short; G1 under the compat profile uses the side table. Decide whether a source-scope withdraw belongs in the product contract.
+
+## From store wave 2 (Lane C2)
+
+- **Decisions taken:** `required_generation` is a column on `current_belief` backed by a `marks` history table (a named key with no belief yet gets a `version = 0` placeholder); completion/repair versions take the log head as their `lsn`; default traversal budget is 1000 keys (change if you prefer).
+- **Bug caught by tests and fixed:** on SQLite, erasing a report left the client idempotency key in the clear (now an HMAC).
+- **Open:** (1) the key text of an erased report stays in belief index columns while the key still exists; pseudonymise orphaned keys? (2) `NotReconstructable` (a redacted historical version) has no `Answer` variant: a contract change that needs your explicit line.
