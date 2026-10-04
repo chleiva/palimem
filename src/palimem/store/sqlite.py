@@ -322,8 +322,8 @@ class SqliteStorage:
 
     def replace_log(self, row: LogRow) -> None:
         self._x(
-            "UPDATE log SET key_entity = ?, key_attr = ?, content = ?, salt = ?, tomb = ? WHERE lsn = ?",
-            (None if row.key is None else row.key.entity, None if row.key is None else row.key.attr, row.content, row.salt, row.tomb, row.lsn),
+            "UPDATE log SET key_entity = ?, key_attr = ?, content = ?, salt = ?, tomb = ?, idem_key = ? WHERE lsn = ?",
+            (None if row.key is None else row.key.entity, None if row.key is None else row.key.attr, row.content, row.salt, row.tomb, row.idem_key, row.lsn),
         )
 
     def _one(self, where: str, arg: Any) -> LogRow | None:
