@@ -1,0 +1,214 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "ind-16-quarantined-agree-third-confirms",
+  "title": "Two quarantined sources agree: neither is admitted; an admissible third origin group confirms both",
+  "gate": "G1",
+  "area": "admission",
+  "status": "active",
+  "covers": [
+    "design-row-16",
+    "S-01"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "q1 and q2 are quarantined sources in different origin groups and both report employer=acme. Confirmation requires evidence the system already trusts, so they cannot confirm each other: both stay quarantined and the key is unknown. The registry (trusted, third origin group) then reports the same value: that report is admissible and confirms both, so both become admissible (reason confirmed, confirmed_by r3). Because their admission depends on r3, the only subset-minimal environment for acme is {r3}.",
+  "source": "design-v0.3 §Independent acceptance tests, row 16",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "q1": {
+        "class": "quarantined",
+        "origin_group": "g_q1"
+      },
+      "q2": {
+        "class": "quarantined",
+        "origin_group": "g_q2"
+      },
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "q1",
+          "class": "quarantined"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_q1",
+        "actor": "connector:q1",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      },
+      "expect": {
+        "admission": {
+          "outcome": "quarantined"
+        }
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "q2",
+          "class": "quarantined"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_q2",
+        "actor": "connector:q2",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      },
+      "expect": {
+        "admission": {
+          "outcome": "quarantined"
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_none",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "unknown",
+        "_candidates": {
+          "$len": 0
+        }
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r3",
+      "at": "2026-02-03T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "reports",
+      "name": "rep_conf",
+      "filter": {
+        "id": "$r1"
+      },
+      "expect": {
+        "rows": [
+          {
+            "admission": {
+              "outcome": "admissible",
+              "reason": "confirmed",
+              "confirmed_by": "$r3"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "op": "reports",
+      "name": "rep_conf2",
+      "filter": {
+        "id": "$r2"
+      },
+      "expect": {
+        "rows": [
+          {
+            "admission": {
+              "outcome": "admissible",
+              "reason": "confirmed",
+              "confirmed_by": "$r3"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_est",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "acme"
+          }
+        },
+        "_environments": {
+          "$unordered": [
+            {
+              "$unordered": [
+                "$r3"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

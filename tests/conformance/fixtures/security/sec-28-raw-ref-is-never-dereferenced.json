@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-28-raw-ref-is-never-dereferenced",
+  "title": "A raw_ref pointing at a local file is never dereferenced by the core",
+  "gate": "G1",
+  "area": "security",
+  "status": "pending-decision",
+  "covers": [
+    "SEC-28",
+    "T-26"
+  ],
+  "requires": [
+    "raw_ref_resolver"
+  ],
+  "spec_dependencies": [],
+  "why": "raw_ref is an opaque pointer. Setting it to /etc/passwd is accepted as a string, but the resolver allow-list rejects it and the core never reads the file.",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-28)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day",
+        "raw_ref": "/etc/passwd"
+      }
+    },
+    {
+      "op": "resolve_raw_ref",
+      "name": "res",
+      "raw_ref": "/etc/passwd",
+      "expect": {
+        "error": {
+          "code": "$any"
+        }
+      }
+    }
+  ],
+  "status_reason": "Threat-model mitigation T-26 (raw_ref resolver allow-list) is [proposed], not ratified (docs/THREAT_MODEL.md; gate G-S is a proposal)."
+}

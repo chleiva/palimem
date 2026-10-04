@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "s12-03-rule-depth-nine-refused",
+  "title": "A rule chain deeper than 8 is refused at schema load",
+  "gate": "G0",
+  "area": "rules",
+  "status": "active",
+  "covers": [
+    "S-12",
+    "design-exactness-conditions"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "S-12 (accepted): the schema forbids rule chains deeper than 8, matching the oracle, which raises RecursionError beyond depth 8. x9 is nine derivation steps above the base attribute x0.",
+  "source": "S-12 decision (accepted 2026-10-04)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "x0": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      },
+      "x1": {
+        "class": "derived",
+        "value_type": "entity",
+        "inertia": false,
+        "rule": {
+          "reads": [
+            "x0"
+          ],
+          "fn": "x1(e,v) <- x0(e,v)"
+        }
+      },
+      "x2": {
+        "class": "derived",
+        "value_type": "entity",
+        "inertia": false,
+        "rule": {
+          "reads": [
+            "x1"
+          ],
+          "fn": "x2(e,v) <- x1(e,v)"
+        }
+      },
+      "x3": {
+        "class": "derived",
+        "value_type": "entity",
+        "inertia": false,
+        "rule": {
+          "reads": [
+            "x2"
+          ],
+          "fn": "x3(e,v) <- x2(e,v)"
+        }
+      },
+      "x4": {
+        "class": "derived",
+        "value_type": "entity",
+        "inertia": false,
+        "rule": {
+          "reads": [
+            "x3"
+          ],
+          "fn": "x4(e,v) <- x3(e,v)"
+        }
+      },
+      "x5": {
+        "class": "derived",
+        "value_type": "entity",
+        "inertia": false,
+        "rule": {
+          "reads": [
+            "x4"
+          ],
+          "fn": "x5(e,v) <- x4(e,v)"
+        }
+      },
+      "x6": {
+        "class": "derived",
+        "value_type": "entity",
+        "inertia": false,
+        "rule": {
+          "reads": [
+            "x5"
+          ],
+          "fn": "x6(e,v) <- x5(e,v)"
+        }
+      },
+      "x7": {
+        "class": "derived",
+        "value_type": "entity",
+        "inertia": false,
+        "rule": {
+          "reads": [
+            "x6"
+          ],
+          "fn": "x7(e,v) <- x6(e,v)"
+        }
+      },
+      "x8": {
+        "class": "derived",
+        "value_type": "entity",
+        "inertia": false,
+        "rule": {
+          "reads": [
+            "x7"
+          ],
+          "fn": "x8(e,v) <- x7(e,v)"
+        }
+      },
+      "x9": {
+        "class": "derived",
+        "value_type": "entity",
+        "inertia": false,
+        "rule": {
+          "reads": [
+            "x8"
+          ],
+          "fn": "x9(e,v) <- x8(e,v)"
+        }
+      }
+    },
+    "sources": {},
+    "expect_load_error": {
+      "reason": "rule_depth_exceeded"
+    }
+  },
+  "ops": []
+}

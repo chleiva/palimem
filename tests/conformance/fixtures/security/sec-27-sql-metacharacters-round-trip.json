@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-27-sql-metacharacters-round-trip",
+  "title": "Keys and values containing SQL metacharacters and odd Unicode round-trip exactly",
+  "gate": "G1",
+  "area": "security",
+  "status": "active",
+  "covers": [
+    "SEC-27",
+    "T-25"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "An entity, attribute value and source id containing quotes, semicolons, comment markers and non-ASCII text are stored and returned byte-for-byte; nothing is interpreted. (Invalid UTF-8 cannot be written in JSON and is outside this fixture; it belongs to a binary-level test.)",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-27)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "note": {
+        "class": "single_changeable",
+        "value_type": "string",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice'; DROP TABLE reports;--",
+          "attr": "note"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "O'Brien\"; -- é中😀 %s ? \\x00"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "alice'; DROP TABLE reports;--",
+          "attr": "note"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "O'Brien\"; -- é中😀 %s ? \\x00"
+          }
+        }
+      }
+    },
+    {
+      "op": "reports",
+      "name": "rep",
+      "filter": {},
+      "expect": {
+        "count": 1
+      }
+    }
+  ]
+}

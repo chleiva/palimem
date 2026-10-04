@@ -1,0 +1,302 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "s06-03-collapse-invariance-interchangeable",
+  "title": "Collapsing interchangeable reports changes no answer on either axis",
+  "gate": "G1",
+  "area": "collapsing",
+  "status": "shell",
+  "covers": [
+    "S-06",
+    "T-B6"
+  ],
+  "requires": [
+    "collapse_toggle"
+  ],
+  "spec_dependencies": [],
+  "why": "S-06 (decided): collapsing is allowed only for provably interchangeable reports (same key, same proposition, same origin group, same validity) and only once a fixture shows the answers do not change on the frozen sets, including belief_as_of queries. R4.1 measured 41% of instances changing at historical times when reports were tied more loosely. Here the same appends are queried with collapsing off and on, at five (valid_at, belief_as_of) points that include LSN-based historical snapshots; every pair must be identical in status, assertion, alternatives and provenance. The three reports are identical in everything but time of arrival.",
+  "source": "S-06 decision (2026-10-04)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "press": {
+        "class": "standard",
+        "origin_group": "g_press"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "configure",
+      "collapse": false,
+      "name": "cfg_off"
+    },
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-01-05T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "press",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_press",
+        "actor": "connector:press",
+        "valid_from": "2026-01-01T00:00:00Z",
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-05T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "press",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_press",
+        "actor": "connector:press",
+        "valid_from": "2026-01-01T00:00:00Z",
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r3",
+      "at": "2026-03-05T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "press",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_press",
+        "actor": "connector:press",
+        "valid_from": "2026-01-01T00:00:00Z",
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "off_a",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "valid_at": "2026-01-15T00:00:00Z"
+      }
+    },
+    {
+      "op": "query",
+      "name": "off_b",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "valid_at": "2026-01-15T00:00:00Z",
+        "belief_as_of": "$r1.lsn"
+      }
+    },
+    {
+      "op": "query",
+      "name": "off_c",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "valid_at": "2026-02-15T00:00:00Z",
+        "belief_as_of": "$r2.lsn"
+      }
+    },
+    {
+      "op": "query",
+      "name": "off_d",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "valid_at": "2026-03-15T00:00:00Z"
+      }
+    },
+    {
+      "op": "query",
+      "name": "off_e",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "valid_at": "2026-05-01T00:00:00Z"
+      }
+    },
+    {
+      "op": "configure",
+      "collapse": true,
+      "name": "cfg_on"
+    },
+    {
+      "op": "query",
+      "name": "on_a",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "valid_at": "2026-01-15T00:00:00Z"
+      }
+    },
+    {
+      "op": "query",
+      "name": "on_b",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "valid_at": "2026-01-15T00:00:00Z",
+        "belief_as_of": "$r1.lsn"
+      }
+    },
+    {
+      "op": "query",
+      "name": "on_c",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "valid_at": "2026-02-15T00:00:00Z",
+        "belief_as_of": "$r2.lsn"
+      }
+    },
+    {
+      "op": "query",
+      "name": "on_d",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "valid_at": "2026-03-15T00:00:00Z"
+      }
+    },
+    {
+      "op": "query",
+      "name": "on_e",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "valid_at": "2026-05-01T00:00:00Z"
+      }
+    }
+  ],
+  "status_reason": "Awaiting T-B6: the collapse toggle does not exist yet; the shell fixes what 'answer invariance' means so the implementation cannot define it for itself.",
+  "expect": {
+    "equal": [
+      {
+        "a": "off_a",
+        "b": "on_a",
+        "fields": [
+          "kernel_status",
+          "decision",
+          "assertion",
+          "alternatives",
+          "_environments"
+        ]
+      },
+      {
+        "a": "off_b",
+        "b": "on_b",
+        "fields": [
+          "kernel_status",
+          "decision",
+          "assertion",
+          "alternatives",
+          "_environments"
+        ]
+      },
+      {
+        "a": "off_c",
+        "b": "on_c",
+        "fields": [
+          "kernel_status",
+          "decision",
+          "assertion",
+          "alternatives",
+          "_environments"
+        ]
+      },
+      {
+        "a": "off_d",
+        "b": "on_d",
+        "fields": [
+          "kernel_status",
+          "decision",
+          "assertion",
+          "alternatives",
+          "_environments"
+        ]
+      },
+      {
+        "a": "off_e",
+        "b": "on_e",
+        "fields": [
+          "kernel_status",
+          "decision",
+          "assertion",
+          "alternatives",
+          "_environments"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,170 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "ind-06-agent-repeats-own-hypothesis",
+  "title": "An agent repeating its own hypothesis is not corroboration",
+  "gate": "G1",
+  "area": "admission",
+  "status": "active",
+  "covers": [
+    "design-row-6",
+    "S-03"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "r1 comes from a quarantined source (admissible only on confirmation by an already admissible report of a DIFFERENT origin group). The agent then states the same value twice as agent_hypothesis reports sharing one origin group. Agent-origin reports are never admissible and never confirm: both are excluded (reason origin_not_admissible) and r1 stays quarantined. With nothing admissible the key is unknown.",
+  "source": "design-v0.3 §Independent acceptance tests, row 6",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "agent_a1": {
+        "class": "standard",
+        "origin_group": "g_agent_a1"
+      },
+      "q1": {
+        "class": "quarantined",
+        "origin_group": "g_q1"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "q1",
+          "class": "quarantined"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_q1",
+        "actor": "connector:q1",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      },
+      "expect": {
+        "admission": {
+          "outcome": "quarantined",
+          "reason": "source_quarantined"
+        }
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "agent_a1",
+          "class": "standard"
+        },
+        "origin": "agent_hypothesis",
+        "origin_group": "g_agent_a1",
+        "actor": "agent:a1",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      },
+      "expect": {
+        "admission": {
+          "outcome": "excluded",
+          "reason": "origin_not_admissible"
+        }
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r3",
+      "at": "2026-02-03T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "agent_a1",
+          "class": "standard"
+        },
+        "origin": "agent_hypothesis",
+        "origin_group": "g_agent_a1",
+        "actor": "agent:a1",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      },
+      "expect": {
+        "admission": {
+          "outcome": "excluded",
+          "reason": "origin_not_admissible"
+        }
+      }
+    },
+    {
+      "op": "reports",
+      "name": "rep_r1",
+      "filter": {
+        "id": "$r1"
+      },
+      "expect": {
+        "rows": [
+          {
+            "admission": {
+              "outcome": "quarantined"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "unknown",
+        "_candidates": {
+          "$len": 0
+        }
+      }
+    }
+  ]
+}

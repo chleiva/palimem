@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-24-oversized-value-or-raw-ref-rejected",
+  "title": "A report with an oversized value or raw_ref is rejected at append",
+  "gate": "G1",
+  "area": "security",
+  "status": "pending-decision",
+  "covers": [
+    "SEC-24",
+    "T-22"
+  ],
+  "requires": [
+    "budget_control"
+  ],
+  "spec_dependencies": [],
+  "why": "With maximum value length 64 and raw_ref length 128 configured, a 65-character value and a 129-character raw_ref are each rejected at append with a stable error and store nothing.",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-24)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "note": {
+        "class": "single_changeable",
+        "value_type": "string",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "configure",
+      "limits": {
+        "max_value_length": 64,
+        "max_raw_ref_length": 128
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "note"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      },
+      "expect": {
+        "error": {
+          "code": "$any"
+        }
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "note"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "ok"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day",
+        "raw_ref": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "expect": {
+        "error": {
+          "code": "$any"
+        }
+      }
+    },
+    {
+      "op": "reports",
+      "name": "rep",
+      "filter": {},
+      "expect": {
+        "count": 0
+      }
+    }
+  ],
+  "status_reason": "Threat-model mitigation T-22 (size limits) is [proposed], not ratified (docs/THREAT_MODEL.md; gate G-S is a proposal)."
+}

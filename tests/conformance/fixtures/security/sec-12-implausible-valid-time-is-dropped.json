@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-12-implausible-valid-time-is-dropped",
+  "title": "A valid_from outside the connector's plausibility bounds is treated as no valid-time hint",
+  "gate": "G1",
+  "area": "security",
+  "status": "pending-decision",
+  "covers": [
+    "SEC-12",
+    "T-09"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "The registry connector declares valid-time bounds 2000 to 2030. A report claiming valid_from in 1900 is outside them: it is stored with the valid-time hint dropped and a recorded reason, so it cannot reshape the timeline or fake a retrospective correction.",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-12)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry",
+        "valid_time_bounds": {
+          "min": "2000-01-01T00:00:00Z",
+          "max": "2030-01-01T00:00:00Z"
+        }
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": "1900-01-01T00:00:00Z",
+        "valid_to": null,
+        "precision": "day"
+      },
+      "expect": {
+        "notes": {
+          "$contains": {
+            "code": "valid_time_out_of_bounds"
+          }
+        }
+      }
+    },
+    {
+      "op": "reports",
+      "name": "rep",
+      "filter": {
+        "id": "$r1"
+      },
+      "expect": {
+        "rows": [
+          {
+            "valid_from": "$absent"
+          }
+        ]
+      }
+    }
+  ],
+  "status_reason": "Threat-model mitigation T-09 (per-connector plausibility bounds) is [proposed], not ratified (docs/THREAT_MODEL.md; gate G-S is a proposal)."
+}

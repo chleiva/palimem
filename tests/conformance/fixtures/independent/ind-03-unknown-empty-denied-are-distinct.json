@@ -1,0 +1,199 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "ind-03-unknown-empty-denied-are-distinct",
+  "title": "No evidence, explicit empty set and explicit denial give three distinct answers",
+  "gate": "G1",
+  "area": "evidence_states",
+  "status": "active",
+  "covers": [
+    "design-row-3",
+    "S-04"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "Open world (the product default): absence of any report is unknown (alice). An explicit enumeration([]) report on a multi_set key is explicit negative evidence and yields established_empty (bob). An explicit denial (not_member on a set key, not_value on a single-valued key) yields established_false and keeps its content as the candidate (carol, dave). Three different statuses; absence alone never produces established_empty or established_false.",
+  "source": "design-v0.3 §Independent acceptance tests, row 3",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "affiliations": {
+        "class": "multi_set",
+        "value_type": "string",
+        "inertia": false
+      },
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "bob",
+          "attr": "affiliations"
+        },
+        "proposition": {
+          "form": "enumeration",
+          "values": []
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "carol",
+          "attr": "affiliations"
+        },
+        "proposition": {
+          "form": "not_member",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r3",
+      "at": "2026-02-03T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "dave",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "not_value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_alice",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "affiliations"
+        }
+      },
+      "expect": {
+        "kernel_status": "unknown",
+        "_candidates": {
+          "$len": 0
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_bob",
+      "query": {
+        "key": {
+          "entity": "bob",
+          "attr": "affiliations"
+        }
+      },
+      "expect": {
+        "kernel_status": "established_empty",
+        "_candidates": {
+          "$contains": {
+            "form": {
+              "form": "empty"
+            }
+          }
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_carol",
+      "query": {
+        "key": {
+          "entity": "carol",
+          "attr": "affiliations"
+        }
+      },
+      "expect": {
+        "kernel_status": "established_false",
+        "_candidates": {
+          "$contains": {
+            "form": {
+              "form": "not_member",
+              "v": "acme"
+            }
+          }
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_dave",
+      "query": {
+        "key": {
+          "entity": "dave",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established_false",
+        "_candidates": {
+          "$contains": {
+            "form": {
+              "form": "not_value",
+              "v": "acme"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

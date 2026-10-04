@@ -1,0 +1,192 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "ind-22-belief-as-of-into-stale-snapshot",
+  "title": "belief_as_of into a snapshot that was stale at that time: ResourceLimited, not the later completed version",
+  "gate": "G1",
+  "area": "resource_limits",
+  "status": "active",
+  "covers": [
+    "design-row-22",
+    "S-05"
+  ],
+  "requires": [
+    "budget_control",
+    "completion_jobs"
+  ],
+  "spec_dependencies": [],
+  "why": "Same stale-C set-up as row 14. After the completion job C is resolved at 'now'. A historical query with belief_as_of = the LSN of the append that left C stale must apply the barrier of THAT snapshot: ResourceLimited(stale_dependency) for C, not the later completed (unknown) version and not a Resolved answer.",
+  "source": "design-v0.3 §Independent acceptance tests, row 22",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      },
+      "hq_city": {
+        "class": "single_stable",
+        "value_type": "entity",
+        "inertia": false
+      },
+      "work_city": {
+        "class": "derived",
+        "value_type": "entity",
+        "inertia": false,
+        "rule": {
+          "reads": [
+            "employer",
+            "hq_city"
+          ],
+          "fn": "work_city(e,c) <- employer(e,x), hq_city(x,c)"
+        }
+      },
+      "local_tax_city": {
+        "class": "derived",
+        "value_type": "entity",
+        "inertia": false,
+        "rule": {
+          "reads": [
+            "work_city"
+          ],
+          "fn": "local_tax_city(e,c) <- work_city(e,c)"
+        }
+      }
+    },
+    "sources": {
+      "press": {
+        "class": "standard",
+        "origin_group": "g_press"
+      },
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "veltran"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "press",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_press",
+        "actor": "connector:press",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "veltran",
+          "attr": "hq_city"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "tessaly"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "configure",
+      "limits": {
+        "revision_budget": 2
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r3",
+      "at": "2026-02-10T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": null,
+        "cue": "withdraw",
+        "target": "$r1",
+        "source": {
+          "id": "press",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_press",
+        "actor": "connector:press",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "complete_jobs",
+      "name": "jobs"
+    },
+    {
+      "op": "query",
+      "name": "q_now",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "local_tax_city"
+        }
+      },
+      "expect": {
+        "kernel_status": "unknown",
+        "_candidates": {
+          "$len": 0
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_then",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "local_tax_city"
+        },
+        "belief_as_of": "$r3.lsn"
+      },
+      "expect": {
+        "decision": "resource_limited",
+        "reason": "stale_dependency",
+        "kernel_status": "$absent",
+        "segment": "$absent",
+        "assertion": "$absent"
+      }
+    }
+  ]
+}

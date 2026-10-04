@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "s10-05-shared-ancestor-rule-refused",
+  "title": "A rule whose body reaches one base attribute twice is refused at schema load",
+  "gate": "G0",
+  "area": "rules",
+  "status": "active",
+  "covers": [
+    "S-10",
+    "T-B5",
+    "design-exactness-conditions"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "c reads a and b, and b itself derives from a, so the closures of c's rule body overlap at a: the per-key kernel would over-generate (the paper's counter-example {A,B,∅} against {A,B}). The static check must refuse the schema at load, not at query time.",
+  "source": "S-10 / design §Conceptual model (kernel exactness conditions)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "a": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      },
+      "b": {
+        "class": "derived",
+        "value_type": "entity",
+        "inertia": false,
+        "rule": {
+          "reads": [
+            "a"
+          ],
+          "fn": "b(e,x) <- a(e,x)"
+        }
+      },
+      "c": {
+        "class": "derived",
+        "value_type": "entity",
+        "inertia": false,
+        "rule": {
+          "reads": [
+            "a",
+            "b"
+          ],
+          "fn": "c(e,x) <- a(e,x), b(e,y)"
+        }
+      }
+    },
+    "sources": {},
+    "expect_load_error": {
+      "reason": "rule_closures_overlap"
+    }
+  },
+  "ops": []
+}

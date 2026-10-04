@@ -1,0 +1,136 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-30-tombstone-leaks-no-key-text",
+  "title": "A tombstone of a sensitive report leaks no key text and keeps the log chain verifiable",
+  "gate": "G1",
+  "area": "privacy",
+  "status": "active",
+  "covers": [
+    "SEC-30",
+    "T-29",
+    "S-13"
+  ],
+  "requires": [
+    "delete",
+    "hash_chain"
+  ],
+  "spec_dependencies": [],
+  "why": "Deleting a report about (alice, health_condition) leaves a tombstone with id, actor, reason and the ORIGINAL entry hash, but no plain key, value or free text (S-13). The row stays linked in the chain, so verify_log still passes: it reports the row as linked but not content-verified.",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-30)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "health_condition": {
+        "class": "single_changeable",
+        "value_type": "string",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "press": {
+        "class": "standard",
+        "origin_group": "g_press"
+      },
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "health_condition"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "diabetes"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "health_condition"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "diabetes"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "press",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_press",
+        "actor": "connector:press",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "delete",
+      "target": "$r1",
+      "actor": "system:admin",
+      "reason": "erasure_request",
+      "at": "2026-02-10T10:00:00Z",
+      "name": "del"
+    },
+    {
+      "op": "reports",
+      "name": "rep",
+      "filter": {
+        "id": "$r1"
+      },
+      "expect": {
+        "rows": [
+          {
+            "tombstone": true,
+            "key": "$absent",
+            "proposition": "$absent",
+            "entry_hash": "$any"
+          }
+        ]
+      }
+    },
+    {
+      "op": "verify_log",
+      "name": "v",
+      "expect": {
+        "ok": true,
+        "rows": {
+          "$contains": {
+            "lsn": "$r1.lsn",
+            "linked": true,
+            "content_verified": false
+          }
+        }
+      }
+    }
+  ]
+}

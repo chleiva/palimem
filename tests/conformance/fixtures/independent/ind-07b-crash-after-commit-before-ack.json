@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "ind-07b-crash-after-commit-before-ack",
+  "title": "Extension: crash after commit but before the acknowledgement; the retry is a duplicate",
+  "gate": "G1",
+  "area": "crash_recovery",
+  "status": "active",
+  "covers": [
+    "design-row-7",
+    "E1.4"
+  ],
+  "requires": [
+    "crash_injection"
+  ],
+  "spec_dependencies": [],
+  "why": "Variant of row 7 where the crash happens after the transaction committed but before the caller got its acknowledgement. After recovery the report exists exactly once; the caller's retry with the same idempotency key is reported as a duplicate and returns the id of the committed report.",
+  "source": "design-v0.3 §Independent acceptance tests, row 7 (extension)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1x",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      },
+      "idempotency_key": "k1",
+      "crash": {
+        "point": "after_commit_before_ack"
+      },
+      "expect": {
+        "crashed": true
+      }
+    },
+    {
+      "op": "recover",
+      "name": "rec",
+      "expect": {
+        "recovered": true
+      }
+    },
+    {
+      "op": "reports",
+      "name": "rep_one",
+      "filter": {},
+      "expect": {
+        "count": 1
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      },
+      "idempotency_key": "k1",
+      "expect": {
+        "duplicate": true,
+        "report_id": "$eq:$rep_one.rows.0.id"
+      }
+    },
+    {
+      "op": "reports",
+      "name": "rep_still_one",
+      "filter": {},
+      "expect": {
+        "count": 1
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "acme"
+          }
+        }
+      }
+    }
+  ]
+}

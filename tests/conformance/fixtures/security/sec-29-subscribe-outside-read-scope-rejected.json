@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-29-subscribe-outside-read-scope-rejected",
+  "title": "Subscribing to a key outside the caller's read scope is rejected",
+  "gate": "G2",
+  "area": "security",
+  "status": "pending-decision",
+  "covers": [
+    "SEC-29",
+    "T-28"
+  ],
+  "requires": [
+    "outbox",
+    "principal_scopes"
+  ],
+  "spec_dependencies": [],
+  "why": "A principal whose read scope covers only alice cannot subscribe to bob's employer: the call is rejected and no events are ever delivered for it.",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-29)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "bob",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "initech"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "subscribe",
+      "plan_id": "p1",
+      "keys": [
+        {
+          "entity": "bob",
+          "attr": "employer"
+        }
+      ],
+      "as": {
+        "principal": "agent:a1",
+        "read_scope": [
+          "alice"
+        ]
+      },
+      "name": "sub",
+      "expect": {
+        "error": {
+          "code": "$any"
+        }
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "bob",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "globex"
+        },
+        "cue": "correct",
+        "target": "$r1",
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "deliver",
+      "name": "d1",
+      "expect": {
+        "events": {
+          "$len": 0
+        }
+      }
+    }
+  ],
+  "status_reason": "Threat-model mitigation T-28 (read scopes) is [proposed], not ratified (docs/THREAT_MODEL.md; gate G-S is a proposal)."
+}

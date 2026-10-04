@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-41a-source-withdraws-its-own-single-origin-report",
+  "title": "A trusted source withdrawing its own report repairs everything downstream",
+  "gate": "G1",
+  "area": "poisoning",
+  "status": "active",
+  "covers": [
+    "SEC-41",
+    "T-17"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "Third mitigation of the declared residual risk: withdrawal by the source repairs the cascade. work_city rests on two single-origin reports; when the employer report is withdrawn by its own source, the derived conclusion disappears and no stale single-origin belief remains.",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-41)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      },
+      "hq_city": {
+        "class": "single_stable",
+        "value_type": "entity",
+        "inertia": false
+      },
+      "work_city": {
+        "class": "derived",
+        "value_type": "entity",
+        "inertia": false,
+        "rule": {
+          "reads": [
+            "employer",
+            "hq_city"
+          ],
+          "fn": "work_city(e,c) <- employer(e,x), hq_city(x,c)"
+        }
+      }
+    },
+    "sources": {
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "veltran"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "veltran",
+          "attr": "hq_city"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "tessaly"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "work_city"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "tessaly"
+          }
+        },
+        "provenance": {
+          "$len": 1
+        }
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r3",
+      "at": "2026-02-10T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": null,
+        "cue": "withdraw",
+        "target": "$r1",
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q2",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "work_city"
+        }
+      },
+      "expect": {
+        "kernel_status": "unknown",
+        "_candidates": {
+          "$len": 0
+        }
+      }
+    }
+  ]
+}

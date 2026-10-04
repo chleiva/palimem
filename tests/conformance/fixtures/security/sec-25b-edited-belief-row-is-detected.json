@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-25b-edited-belief-row-is-detected",
+  "title": "Editing a materialised belief row is detected by a recomputing verify",
+  "gate": "G1",
+  "area": "integrity",
+  "status": "pending-decision",
+  "covers": [
+    "SEC-25",
+    "T-23"
+  ],
+  "requires": [
+    "hash_chain",
+    "tamper_hook"
+  ],
+  "spec_dependencies": [],
+  "why": "The chain protects the LOG; serving never replays, so a directly edited belief row would be served as truth. The threat model proposes a verify that recomputes beliefs and compares. After tampering with the belief for employer(alice), verify_beliefs fails and names the key.",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-25)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "verify_beliefs",
+      "name": "v_ok",
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "op": "tamper",
+      "tamper": {
+        "target": "belief_row",
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "set": {
+          "kernel_status": "established_false"
+        }
+      },
+      "name": "tamper"
+    },
+    {
+      "op": "verify_beliefs",
+      "name": "v_bad",
+      "expect": {
+        "ok": false,
+        "keys": {
+          "$contains": {
+            "entity": "alice",
+            "attr": "employer"
+          }
+        }
+      }
+    }
+  ],
+  "status_reason": "The author decided the hash chain over the log; a belief-recomputing verify (T-23) is only proposed."
+}

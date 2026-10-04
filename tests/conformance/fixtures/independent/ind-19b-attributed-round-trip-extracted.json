@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "ind-19b-attributed-round-trip-extracted",
+  "title": "Attributed claim round trip through extraction",
+  "gate": "G2",
+  "area": "extraction",
+  "status": "active",
+  "covers": [
+    "design-row-19",
+    "S-11"
+  ],
+  "requires": [
+    "extractor"
+  ],
+  "spec_dependencies": [],
+  "why": "Same as 19a but the typed report is produced by an extractor from text ('Bob told me Alice works at Acme'). The extractor is a deterministic stub so the fixture tests the contract, not a model. Holder and proposition must survive extraction, storage, query and answer, and the report carries the extractor stamp.",
+  "source": "design-v0.3 §Independent acceptance tests, row 19 (extraction)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "chat": {
+        "class": "standard",
+        "origin_group": "g_chat"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "observe_text",
+      "ref": "r1",
+      "name": "obs",
+      "connector": "chat",
+      "at": "2026-02-01T10:00:00Z",
+      "text": "Bob told me that Alice works at Acme.",
+      "extractor_stub": [
+        {
+          "key": {
+            "entity": "alice",
+            "attr": "employer"
+          },
+          "proposition": {
+            "form": "belief_of",
+            "holder": "bob",
+            "proposition": {
+              "form": "value",
+              "v": "acme"
+            }
+          },
+          "cue": "assert",
+          "target": null,
+          "source": {
+            "id": "chat",
+            "class": "standard"
+          },
+          "origin": "attributed",
+          "origin_group": "g_chat",
+          "actor": "connector:chat",
+          "valid_from": null,
+          "valid_to": null,
+          "precision": "day",
+          "extractor": {
+            "model": "stub",
+            "version": "1",
+            "prompt_hash": "sha256:0000"
+          }
+        }
+      ],
+      "expect": {
+        "reports": [
+          {
+            "report_id": "$any"
+          }
+        ]
+      }
+    },
+    {
+      "op": "reports",
+      "name": "rep",
+      "filter": {
+        "id": "$r1"
+      },
+      "expect": {
+        "rows": [
+          {
+            "proposition": {
+              "form": "belief_of",
+              "holder": "bob",
+              "proposition": {
+                "form": "value",
+                "v": "acme"
+              }
+            },
+            "extractor": {
+              "model": "stub"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "_candidates": {
+          "$contains": {
+            "form": {
+              "form": "belief_of",
+              "holder": "bob",
+              "proposition": {
+                "form": "value",
+                "v": "acme"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "ind-19a-attributed-round-trip-typed",
+  "title": "Attributed claim round trip (typed input): belief_of(holder, P) keeps holder and P",
+  "gate": "G1",
+  "area": "attribution",
+  "status": "active",
+  "covers": [
+    "design-row-19",
+    "S-11"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "A typed attributed report belief_of(bob, value(acme)) on key (alice, employer) is stored exactly as given (holder and inner proposition intact) and comes back through query and answer as a belief_of candidate with the same holder and proposition.",
+  "source": "design-v0.3 §Independent acceptance tests, row 19 (storage, query, answer)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "chat": {
+        "class": "standard",
+        "origin_group": "g_chat"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "belief_of",
+          "holder": "bob",
+          "proposition": {
+            "form": "value",
+            "v": "acme"
+          }
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "chat",
+          "class": "standard"
+        },
+        "origin": "attributed",
+        "origin_group": "g_chat",
+        "actor": "connector:chat",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "reports",
+      "name": "rep",
+      "filter": {
+        "id": "$r1"
+      },
+      "expect": {
+        "rows": [
+          {
+            "proposition": {
+              "form": "belief_of",
+              "holder": "bob",
+              "proposition": {
+                "form": "value",
+                "v": "acme"
+              }
+            },
+            "origin": "attributed"
+          }
+        ]
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "_candidates": {
+          "$contains": {
+            "form": {
+              "form": "belief_of",
+              "holder": "bob",
+              "proposition": {
+                "form": "value",
+                "v": "acme"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
