@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-39a-single-origin-commit-is-visible",
+  "title": "An answer resting on one origin group shows exactly one environment",
+  "gate": "G1",
+  "area": "poisoning",
+  "status": "active",
+  "covers": [
+    "SEC-39",
+    "T-17"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "Declared residual risk (decided 2026-10-04): a single-origin, uncorroborated belief can be wrong, so it must always be visible as such. One trusted source, one report: the answer's provenance is exactly one environment, {r1}.",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-39)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "acme"
+          }
+        },
+        "provenance": {
+          "$len": 1
+        },
+        "_environments": {
+          "$unordered": [
+            {
+              "$unordered": [
+                "$r1"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

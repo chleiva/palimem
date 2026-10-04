@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-34-find-and-explain-respect-read-scope",
+  "title": "find and explain reveal nothing outside the caller's read scope",
+  "gate": "G2",
+  "area": "security",
+  "status": "pending-decision",
+  "covers": [
+    "SEC-34",
+    "T-33"
+  ],
+  "requires": [
+    "principal_scopes"
+  ],
+  "spec_dependencies": [],
+  "why": "A principal that may read only alice's keys calls find('bob') and explain on (bob, employer): no keys, sources or raw_ref of bob are revealed, and the denial looks like an unknown key.",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-34)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "bob",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "initech"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day",
+        "raw_ref": "blob:secret"
+      }
+    },
+    {
+      "op": "find",
+      "name": "f1",
+      "text": "bob",
+      "as": {
+        "principal": "agent:a1",
+        "read_scope": [
+          "alice"
+        ]
+      },
+      "expect": {
+        "keys": {
+          "$len": 0
+        }
+      }
+    },
+    {
+      "op": "explain",
+      "name": "e1",
+      "key": {
+        "entity": "bob",
+        "attr": "employer"
+      },
+      "mode": "all",
+      "depth": null,
+      "as": {
+        "principal": "agent:a1",
+        "read_scope": [
+          "alice"
+        ]
+      },
+      "expect": {
+        "environments": {
+          "$len": 0
+        }
+      }
+    }
+  ],
+  "status_reason": "Threat-model mitigation T-33 (read scopes) is [proposed], not ratified (docs/THREAT_MODEL.md; gate G-S is a proposal)."
+}

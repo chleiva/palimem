@@ -1,0 +1,172 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "ind-04-retrospective-correction-two-axes",
+  "title": "Retrospective correction: right answers on both time axes, old answer still served",
+  "gate": "G1",
+  "area": "temporal",
+  "status": "active",
+  "covers": [
+    "design-row-4",
+    "S-05"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "r1 (recorded 10 Jan) says alice worked for Acme from 2025-01-01. On 10 Mar the same source corrects r1: the employer was Globex from the same date. A same-source correction withdraws its target (A-SELF) and asserts the corrected value. valid_at 2025-02-01 is the world axis; belief_as_of is the log axis, given both as a timestamp and as an LSN (S-05). Before the correction (belief axis 1 Mar, or the LSN of r1): Acme. After it: Globex. The two belief_as_of forms must agree.",
+  "source": "design-v0.3 §Independent acceptance tests, row 4",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-01-10T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": "2025-01-01T00:00:00Z",
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-03-10T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "globex"
+        },
+        "cue": "correct",
+        "target": "$r1",
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": "2025-01-01T00:00:00Z",
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_ts_before",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "valid_at": "2025-02-01T00:00:00Z",
+        "belief_as_of": "2026-03-01T00:00:00Z"
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "acme"
+          }
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_lsn_before",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "valid_at": "2025-02-01T00:00:00Z",
+        "belief_as_of": "$r1.lsn"
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "acme"
+          }
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_after_ts",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "valid_at": "2025-02-01T00:00:00Z",
+        "belief_as_of": "2026-03-15T00:00:00Z"
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "globex"
+          }
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_now",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "valid_at": "2025-02-01T00:00:00Z"
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "globex"
+          }
+        }
+      }
+    }
+  ]
+}

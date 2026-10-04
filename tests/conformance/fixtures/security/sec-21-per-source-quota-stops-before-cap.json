@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-21-per-source-quota-stops-before-cap",
+  "title": "Twenty distinct reports on one key from one source stop at a quota, not at a hang",
+  "gate": "G1",
+  "area": "security",
+  "status": "pending-decision",
+  "covers": [
+    "SEC-21",
+    "T-19"
+  ],
+  "requires": [
+    "quotas"
+  ],
+  "spec_dependencies": [],
+  "why": "One source appends 20 distinct values to one key. A per-source quota must stop the appends before the key can hit its environment budget of 7, so at most 7 reports are accepted and the key still answers (it never hangs). Each rejected append returns an error.",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-21)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "forum": {
+        "class": "low",
+        "origin_group": "g_forum"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r{i}",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "v{i}"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "forum",
+          "class": "low"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_forum",
+        "actor": "connector:forum",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      },
+      "repeat": 20
+    },
+    {
+      "op": "reports",
+      "name": "rep",
+      "filter": {},
+      "expect": {
+        "count": {
+          "$lte": 7
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "decision": "$any"
+      }
+    }
+  ],
+  "status_reason": "Threat-model mitigation T-19 (per-source report quota) is [proposed], not ratified (docs/THREAT_MODEL.md; gate G-S is a proposal)."
+}

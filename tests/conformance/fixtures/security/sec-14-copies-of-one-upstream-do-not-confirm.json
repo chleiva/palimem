@@ -1,0 +1,173 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-14-copies-of-one-upstream-do-not-confirm",
+  "title": "Three connectors carrying one upstream claim do not confirm a quarantined report of the same origin",
+  "gate": "G1",
+  "area": "poisoning",
+  "status": "active",
+  "covers": [
+    "SEC-14",
+    "T-11"
+  ],
+  "requires": [],
+  "spec_dependencies": [
+    "Assumes the host assigns the shared origin group (lineage detection is a host concern; 'unknown lineage' cannot be tested)."
+  ],
+  "why": "A quarantined report r0 is in origin group g_wire. Three admissible connectors (press, directory, forum) all carry the same wire story and the host stamps all three with origin group g_wire. Reports in one origin group count once, and confirmation needs a DIFFERENT group from the quarantined report's, so none of the three can confirm r0: it stays quarantined however many copies agree.",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-14)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "directory": {
+        "class": "standard",
+        "origin_group": "g_directory"
+      },
+      "forum": {
+        "class": "low",
+        "origin_group": "g_forum"
+      },
+      "press": {
+        "class": "standard",
+        "origin_group": "g_press"
+      },
+      "q1": {
+        "class": "quarantined",
+        "origin_group": "g_q1"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r0",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "q1",
+          "class": "quarantined"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_wire",
+        "actor": "connector:q1",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "press",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_wire",
+        "actor": "connector:press",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-03T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "directory",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_wire",
+        "actor": "connector:directory",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r3",
+      "at": "2026-02-04T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "forum",
+          "class": "low"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_wire",
+        "actor": "connector:forum",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "reports",
+      "name": "rep_r0",
+      "filter": {
+        "id": "$r0"
+      },
+      "expect": {
+        "rows": [
+          {
+            "admission": {
+              "outcome": "quarantined"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

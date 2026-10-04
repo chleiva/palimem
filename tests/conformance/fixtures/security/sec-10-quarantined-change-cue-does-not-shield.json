@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-10-quarantined-change-cue-does-not-shield",
+  "title": "A quarantined report with a change cue does not shield its value or displace an admitted one",
+  "gate": "G1",
+  "area": "poisoning",
+  "status": "active",
+  "covers": [
+    "SEC-10",
+    "T-07"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "The registry's r1 says Acme from 1 Jan. A quarantined source sends a change-cued report claiming Globex from 1 Mar. A report that is not admitted takes no part in the kernel, so its cue shields nothing: employer is still established Acme and Globex is not even a candidate. (The cue is an attack surface only for ADMITTED reports.)",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-10)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "q1": {
+        "class": "quarantined",
+        "origin_group": "g_q1"
+      },
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": "2026-01-01T00:00:00Z",
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-03-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "globex"
+        },
+        "cue": "change",
+        "target": null,
+        "source": {
+          "id": "q1",
+          "class": "quarantined"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_q1",
+        "actor": "connector:q1",
+        "valid_from": "2026-03-01T00:00:00Z",
+        "valid_to": null,
+        "precision": "day"
+      },
+      "expect": {
+        "admission": {
+          "outcome": "quarantined"
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "acme"
+          }
+        },
+        "_candidates": {
+          "$none": {
+            "form": {
+              "form": "value",
+              "v": "globex"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

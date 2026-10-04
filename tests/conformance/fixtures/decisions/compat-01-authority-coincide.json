@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "kind": "harness_check",
+  "id": "compat-01-authority-coincide",
+  "title": "On the frozen sets origin-based and source-based authority give identical A-SELF results",
+  "gate": "G1",
+  "area": "compat",
+  "status": "active",
+  "covers": [
+    "S-02",
+    "profile-revise-stream-v1"
+  ],
+  "requires": [],
+  "spec_dependencies": [
+    "Setting 1 only: Settings 2 and 3 are not covered by the harness (T-J5 re-runs this check at G2)."
+  ],
+  "why": "S-02 (amended): the compat profile is origin-based, the product default source-based. They must give identical results on the frozen sets, or the profile would silently drift from the product. Verified 2026-10-04 on Setting 1: all 500 streams have several sources sharing an origin (the correlated mirrors), but of 5,505 correction reports none is made by a DIFFERENT source of the SAME origin as its target, so A-SELF is identical under both bases. The check asserts that property (not 'source == origin', which is false).",
+  "source": "S-02 decision (amended 2026-10-04)",
+  "check": {
+    "runner": "tests/conformance/test_compat_authority.py",
+    "description": "For every stream of the frozen Setting 1 set: no correction observation comes from a source different from its target's source while sharing that source's origin."
+  }
+}

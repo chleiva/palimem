@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-18-forged-alias-does-not-merge",
+  "title": "A forged alias claim cannot merge two entities",
+  "gate": "G2",
+  "area": "entity_resolution",
+  "status": "pending-decision",
+  "covers": [
+    "SEC-18",
+    "T-14"
+  ],
+  "requires": [
+    "merge"
+  ],
+  "spec_dependencies": [],
+  "why": "A merge request from an agent principal, or from a report asserting the alias, is refused: merges need authority or admissible confirmation. The beliefs of the two entities are not mixed.",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-18)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alicia",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "globex"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "merge",
+      "merge_id": "m1",
+      "entities": [
+        "alice",
+        "alicia"
+      ],
+      "canonical": "alice",
+      "actor": "agent:a1",
+      "at": "2026-02-03T10:00:00Z",
+      "name": "mg",
+      "expect": {
+        "error": {
+          "code": "$any"
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "acme"
+          }
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q2",
+      "query": {
+        "key": {
+          "entity": "alicia",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "globex"
+          }
+        }
+      }
+    }
+  ],
+  "status_reason": "Threat-model mitigation T-14 (merge authority) is [proposed], not ratified (docs/THREAT_MODEL.md; gate G-S is a proposal). Merge is not a Power in AuthorityRule."
+}

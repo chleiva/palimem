@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "compat-02-per-slot-type-closed-world",
+  "title": "revise-stream-v1: closed-world conventions are per slot type; the open-world profile stays unknown",
+  "gate": "G1",
+  "area": "compat",
+  "status": "active",
+  "covers": [
+    "S-04",
+    "profile-revise-stream-v1"
+  ],
+  "requires": [
+    "profile_revise_stream_v1"
+  ],
+  "spec_dependencies": [],
+  "why": "S-04 (decided): the paper's conventions are per slot type: a single-valued slot with no evidence is unknown; a multi-valued slot with no justified member is established_empty. Under the open-world profile both are unknown (absence never produces established_empty). The same empty store, queried under the two profiles, shows the difference.",
+  "source": "S-04 decision (2026-10-04)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      },
+      "affiliations": {
+        "class": "multi_set",
+        "value_type": "string",
+        "inertia": false
+      }
+    },
+    "sources": {}
+  },
+  "ops": [
+    {
+      "op": "query",
+      "name": "q_single_compat",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "profile": "revise-stream-v1"
+      },
+      "expect": {
+        "kernel_status": "unknown"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_multi_compat",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "affiliations"
+        },
+        "profile": "revise-stream-v1"
+      },
+      "expect": {
+        "kernel_status": "established_empty"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_single_open",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "profile": "open-world"
+      },
+      "expect": {
+        "kernel_status": "unknown"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_multi_open",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "affiliations"
+        },
+        "profile": "open-world"
+      },
+      "expect": {
+        "kernel_status": "unknown"
+      }
+    }
+  ]
+}

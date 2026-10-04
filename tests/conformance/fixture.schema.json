@@ -1,0 +1,1345 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chleiva/palimem/tests/conformance/fixture.schema.json",
+  "title": "palimem conformance fixture",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "kind",
+        "id",
+        "title",
+        "gate",
+        "area",
+        "status",
+        "covers",
+        "requires",
+        "spec_dependencies",
+        "why",
+        "source",
+        "setup",
+        "ops"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 8
+        },
+        "gate": {
+          "enum": [
+            "G0",
+            "G1",
+            "G2"
+          ]
+        },
+        "area": {
+          "enum": [
+            "retraction",
+            "evidence_states",
+            "temporal",
+            "authority",
+            "admission",
+            "crash_recovery",
+            "resource_limits",
+            "entity_resolution",
+            "deletion",
+            "segments",
+            "negative_evidence",
+            "attribution",
+            "outbox",
+            "extraction",
+            "security",
+            "budget",
+            "compat",
+            "trust_boundary",
+            "rules",
+            "collapsing",
+            "provenance",
+            "integrity",
+            "poisoning",
+            "privacy"
+          ]
+        },
+        "status": {
+          "enum": [
+            "active",
+            "pending-decision",
+            "shell"
+          ]
+        },
+        "status_reason": {
+          "type": "string",
+          "minLength": 8
+        },
+        "covers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "requires": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "budget_control",
+              "crash_injection",
+              "completion_jobs",
+              "outbox",
+              "merge",
+              "delete",
+              "extractor",
+              "hash_chain",
+              "tamper_hook",
+              "backup_restore",
+              "collapse_toggle",
+              "principal_scopes",
+              "quotas",
+              "raw_ref_resolver",
+              "profile_revise_stream_v1"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "spec_dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "why": {
+          "type": "string",
+          "minLength": 40
+        },
+        "source": {
+          "type": "string",
+          "minLength": 3
+        },
+        "version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "scenario"
+        },
+        "setup": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profile",
+            "schema"
+          ],
+          "properties": {
+            "profile": {
+              "enum": [
+                "open-world",
+                "revise-stream-v1"
+              ]
+            },
+            "schema": {
+              "type": "object",
+              "minProperties": 1
+            },
+            "sources": {
+              "type": "object"
+            },
+            "authority": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "limits": {
+              "type": "object"
+            },
+            "connectors": {
+              "type": "object"
+            },
+            "scopes": {
+              "type": "object"
+            },
+            "expect_load_error": {
+              "type": "object",
+              "required": [
+                "reason"
+              ],
+              "properties": {
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "ops": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "op"
+            ],
+            "properties": {
+              "op": {
+                "enum": [
+                  "configure",
+                  "append",
+                  "observe_text",
+                  "delete",
+                  "merge",
+                  "unmerge",
+                  "subscribe",
+                  "deliver",
+                  "ack",
+                  "crash",
+                  "recover",
+                  "checkpoint",
+                  "restore_backup",
+                  "tamper",
+                  "complete_jobs",
+                  "query",
+                  "explain",
+                  "reports",
+                  "verify_log",
+                  "export_head",
+                  "find",
+                  "subscriber_effects",
+                  "resolve_raw_ref",
+                  "verify_beliefs"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_{}]+$"
+              },
+              "ref": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_{}]+$"
+              },
+              "at": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+              },
+              "expect": {
+                "type": "object"
+              },
+              "repeat": {
+                "type": "integer",
+                "minimum": 2
+              },
+              "report": {
+                "type": "object",
+                "required": [
+                  "key",
+                  "proposition",
+                  "cue",
+                  "source",
+                  "origin",
+                  "origin_group",
+                  "actor"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "key": {
+                    "type": "object",
+                    "required": [
+                      "entity",
+                      "attr"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "entity": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "attr": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "proposition": {
+                    "type": [
+                      "object",
+                      "null"
+                    ]
+                  },
+                  "cue": {
+                    "enum": [
+                      "assert",
+                      "change",
+                      "correct",
+                      "withdraw",
+                      "dispute",
+                      "allege"
+                    ]
+                  },
+                  "target": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^\\$[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)*$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "source": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "class"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "class": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "origin": {
+                    "enum": [
+                      "external_observation",
+                      "attributed",
+                      "agent_hypothesis",
+                      "agent_statement",
+                      "plan",
+                      "simulation",
+                      "counterfactual"
+                    ]
+                  },
+                  "origin_group": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "actor": {
+                    "type": "string",
+                    "pattern": "^(agent|user|connector|system):.+$"
+                  },
+                  "valid_from": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "valid_to": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "precision": {
+                    "enum": [
+                      "day",
+                      "month",
+                      "year"
+                    ]
+                  },
+                  "observed_at": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "raw_ref": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "extractor": {
+                    "type": [
+                      "object",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "idempotency_key": {
+                "type": "string"
+              },
+              "crash": {
+                "type": "object",
+                "required": [
+                  "point"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "point": {
+                    "type": "string"
+                  }
+                }
+              },
+              "limits": {
+                "type": "object"
+              },
+              "collapse": {
+                "type": "boolean"
+              },
+              "text": {
+                "type": "string"
+              },
+              "connector": {
+                "type": "string"
+              },
+              "extractor_stub": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "key",
+                    "proposition",
+                    "cue",
+                    "source",
+                    "origin",
+                    "origin_group",
+                    "actor"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "key": {
+                      "type": "object",
+                      "required": [
+                        "entity",
+                        "attr"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "entity": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "attr": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    "proposition": {
+                      "type": [
+                        "object",
+                        "null"
+                      ]
+                    },
+                    "cue": {
+                      "enum": [
+                        "assert",
+                        "change",
+                        "correct",
+                        "withdraw",
+                        "dispute",
+                        "allege"
+                      ]
+                    },
+                    "target": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^\\$[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)*$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "source": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "class"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "class": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    "origin": {
+                      "enum": [
+                        "external_observation",
+                        "attributed",
+                        "agent_hypothesis",
+                        "agent_statement",
+                        "plan",
+                        "simulation",
+                        "counterfactual"
+                      ]
+                    },
+                    "origin_group": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "actor": {
+                      "type": "string",
+                      "pattern": "^(agent|user|connector|system):.+$"
+                    },
+                    "valid_from": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "valid_to": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "precision": {
+                      "enum": [
+                        "day",
+                        "month",
+                        "year"
+                      ]
+                    },
+                    "observed_at": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "raw_ref": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "extractor": {
+                      "type": [
+                        "object",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              },
+              "target": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\$[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)*$"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "actor": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "merge_id": {
+                "type": "string"
+              },
+              "entities": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 2
+              },
+              "canonical": {
+                "type": "string"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "keys": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "entity",
+                    "attr"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "entity": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "attr": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              },
+              "point": {
+                "type": "string"
+              },
+              "generation": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\$[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)*$"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "query": {
+                "type": "object"
+              },
+              "filter": {
+                "type": "object"
+              },
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              },
+              "as": {
+                "type": "object"
+              },
+              "key": {
+                "type": "object",
+                "required": [
+                  "entity",
+                  "attr"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "entity": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "attr": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "mode": {
+                "enum": [
+                  "all",
+                  "one"
+                ]
+              },
+              "depth": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "valid_at": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "belief_as_of": {
+                "type": [
+                  "integer",
+                  "string",
+                  "null"
+                ]
+              },
+              "tamper": {
+                "type": "object"
+              },
+              "checkpoint_name": {
+                "type": "string"
+              },
+              "from_lsn": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\$[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)*$"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "to_lsn": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\$[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)*$"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "raw_ref": {
+                "type": "string"
+              },
+              "expected_head": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "append"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "ref",
+                    "report"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "observe_text"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "text",
+                    "connector",
+                    "extractor_stub"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "delete"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "target",
+                    "actor",
+                    "reason"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "merge"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "merge_id",
+                    "entities",
+                    "actor"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "unmerge"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "merge_id",
+                    "actor"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "subscribe"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "plan_id",
+                    "keys"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "deliver"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "ack"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "from"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "crash"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "point"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "checkpoint"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "checkpoint_name"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "restore_backup"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "checkpoint_name"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "tamper"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "tamper"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "query"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "name",
+                    "query"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "explain"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "name",
+                    "key"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "reports"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "name",
+                    "filter"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "verify_log"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "export_head"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "find"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "name",
+                    "text"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "subscriber_effects"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "resolve_raw_ref"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "name",
+                    "raw_ref"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "verify_beliefs"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "name"
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "expect": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "equal": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "a",
+                  "b",
+                  "fields"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "a": {
+                    "type": "string"
+                  },
+                  "b": {
+                    "type": "string"
+                  },
+                  "fields": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1
+                  },
+                  "negate": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "pending-decision",
+                  "shell"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "status_reason"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "setup": {
+                "required": [
+                  "expect_load_error"
+                ]
+              }
+            },
+            "required": [
+              "setup"
+            ]
+          },
+          "then": {
+            "properties": {
+              "ops": {
+                "maxItems": 0
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "ops": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "kind",
+        "id",
+        "title",
+        "gate",
+        "area",
+        "status",
+        "covers",
+        "requires",
+        "spec_dependencies",
+        "why",
+        "source",
+        "check"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 8
+        },
+        "gate": {
+          "enum": [
+            "G0",
+            "G1",
+            "G2"
+          ]
+        },
+        "area": {
+          "enum": [
+            "retraction",
+            "evidence_states",
+            "temporal",
+            "authority",
+            "admission",
+            "crash_recovery",
+            "resource_limits",
+            "entity_resolution",
+            "deletion",
+            "segments",
+            "negative_evidence",
+            "attribution",
+            "outbox",
+            "extraction",
+            "security",
+            "budget",
+            "compat",
+            "trust_boundary",
+            "rules",
+            "collapsing",
+            "provenance",
+            "integrity",
+            "poisoning",
+            "privacy"
+          ]
+        },
+        "status": {
+          "enum": [
+            "active",
+            "pending-decision",
+            "shell"
+          ]
+        },
+        "status_reason": {
+          "type": "string",
+          "minLength": 8
+        },
+        "covers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "requires": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "budget_control",
+              "crash_injection",
+              "completion_jobs",
+              "outbox",
+              "merge",
+              "delete",
+              "extractor",
+              "hash_chain",
+              "tamper_hook",
+              "backup_restore",
+              "collapse_toggle",
+              "principal_scopes",
+              "quotas",
+              "raw_ref_resolver",
+              "profile_revise_stream_v1"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "spec_dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "why": {
+          "type": "string",
+          "minLength": 40
+        },
+        "source": {
+          "type": "string",
+          "minLength": 3
+        },
+        "version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "harness_check"
+        },
+        "check": {
+          "type": "object",
+          "required": [
+            "runner",
+            "description"
+          ],
+          "properties": {
+            "runner": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "pending-decision",
+              "shell"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "status_reason"
+        ]
+      }
+    }
+  ]
+}

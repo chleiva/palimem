@@ -1,0 +1,306 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-23-explanation-budget-clamped-to-server-max",
+  "title": "An explanation_budget far above the server maximum is clamped",
+  "gate": "G1",
+  "area": "security",
+  "status": "pending-decision",
+  "covers": [
+    "SEC-23",
+    "T-21"
+  ],
+  "requires": [
+    "budget_control"
+  ],
+  "spec_dependencies": [],
+  "why": "The server maximum is 5. Seven independent supports exist. A query asking for a budget of 1,000,000 gets exactly 5 environments and explanation=truncated, identical to a query asking for 5; kernel_status and decision are unaffected.",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-23)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "s1": {
+        "class": "standard",
+        "origin_group": "g_s1"
+      },
+      "s2": {
+        "class": "standard",
+        "origin_group": "g_s2"
+      },
+      "s3": {
+        "class": "standard",
+        "origin_group": "g_s3"
+      },
+      "s4": {
+        "class": "standard",
+        "origin_group": "g_s4"
+      },
+      "s5": {
+        "class": "standard",
+        "origin_group": "g_s5"
+      },
+      "s6": {
+        "class": "standard",
+        "origin_group": "g_s6"
+      },
+      "s7": {
+        "class": "standard",
+        "origin_group": "g_s7"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "configure",
+      "limits": {
+        "explanation_budget_max": 5
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "s1",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_s1",
+        "actor": "connector:s1",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "s2",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_s2",
+        "actor": "connector:s2",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r3",
+      "at": "2026-02-03T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "s3",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_s3",
+        "actor": "connector:s3",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r4",
+      "at": "2026-02-04T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "s4",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_s4",
+        "actor": "connector:s4",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r5",
+      "at": "2026-02-05T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "s5",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_s5",
+        "actor": "connector:s5",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r6",
+      "at": "2026-02-06T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "s6",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_s6",
+        "actor": "connector:s6",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r7",
+      "at": "2026-02-07T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "s7",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_s7",
+        "actor": "connector:s7",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_huge",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "explanation_budget": 1000000
+      },
+      "expect": {
+        "kernel_status": "established",
+        "explanation": "truncated",
+        "provenance": {
+          "$len": 5
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_max",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "explanation_budget": 5
+      },
+      "expect": {
+        "kernel_status": "established",
+        "explanation": "truncated",
+        "provenance": {
+          "$len": 5
+        }
+      }
+    }
+  ],
+  "status_reason": "Threat-model mitigation T-21 (server-side explanation maximum) is [proposed], not ratified (docs/THREAT_MODEL.md; gate G-S is a proposal). The agent-tool half is trust_boundary tb-13.",
+  "expect": {
+    "equal": [
+      {
+        "a": "q_huge",
+        "b": "q_max",
+        "fields": [
+          "kernel_status",
+          "decision",
+          "provenance"
+        ]
+      }
+    ]
+  }
+}

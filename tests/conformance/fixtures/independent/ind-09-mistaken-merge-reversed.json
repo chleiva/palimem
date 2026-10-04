@@ -1,0 +1,282 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "ind-09-mistaken-merge-reversed",
+  "title": "Mistaken entity merge reversed: exactly the beliefs pinned to the merge are recomputed",
+  "gate": "G2",
+  "area": "entity_resolution",
+  "status": "active",
+  "covers": [
+    "design-row-9",
+    "E2.1"
+  ],
+  "requires": [
+    "merge"
+  ],
+  "spec_dependencies": [
+    "merge authority is not a Power of AuthorityRule in palimem.types (correct/withdraw/dispute only); SEC-18/19 need it"
+  ],
+  "why": "Two different people were merged by mistake: 'alice smith' (Acme) and 'a. smith' (Globex). While merged the canonical entity has two competing employers (unresolved). Reversing the merge restores both separate beliefs. Bob's belief is not pinned to the merge, so it must not be recomputed: its belief version is unchanged across the merge and the reversal, and he never appears among the recomputed keys. A merge is an admission-stage decision performed by a host-level principal (system:admin).",
+  "source": "design-v0.3 §Independent acceptance tests, row 9",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice smith",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "a. smith",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "globex"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r3",
+      "at": "2026-02-03T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "bob",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "initech"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_bob_before",
+      "query": {
+        "key": {
+          "entity": "bob",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "initech"
+          }
+        }
+      }
+    },
+    {
+      "op": "merge",
+      "merge_id": "m1",
+      "entities": [
+        "alice smith",
+        "a. smith"
+      ],
+      "canonical": "alice smith",
+      "actor": "system:admin",
+      "at": "2026-02-10T10:00:00Z",
+      "name": "mg",
+      "expect": {
+        "recomputed_keys": {
+          "$none": {
+            "entity": "bob"
+          }
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_merged",
+      "query": {
+        "key": {
+          "entity": "alice smith",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "unresolved",
+        "_candidates": {
+          "$unordered": [
+            {
+              "form": {
+                "form": "value",
+                "v": "acme"
+              }
+            },
+            {
+              "form": {
+                "form": "value",
+                "v": "globex"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_alias",
+      "query": {
+        "key": {
+          "entity": "a. smith",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "unresolved"
+      }
+    },
+    {
+      "op": "unmerge",
+      "merge_id": "m1",
+      "actor": "system:admin",
+      "at": "2026-02-11T10:00:00Z",
+      "name": "unmg",
+      "expect": {
+        "recomputed_keys": {
+          "$none": {
+            "entity": "bob"
+          }
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_alice_after",
+      "query": {
+        "key": {
+          "entity": "alice smith",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "acme"
+          }
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_asmith_after",
+      "query": {
+        "key": {
+          "entity": "a. smith",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "globex"
+          }
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_bob_after",
+      "query": {
+        "key": {
+          "entity": "bob",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "initech"
+          }
+        }
+      }
+    }
+  ],
+  "expect": {
+    "equal": [
+      {
+        "a": "q_bob_before",
+        "b": "q_bob_after",
+        "fields": [
+          "justified.version"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "ind-18-two-not-values-distinct",
+  "title": "'Employer is not Acme' and 'employer is not Globex' survive as two distinct not_value candidates",
+  "gate": "G1",
+  "area": "negative_evidence",
+  "status": "active",
+  "covers": [
+    "design-row-18",
+    "S-04"
+  ],
+  "requires": [],
+  "spec_dependencies": [
+    "Status for several compatible negative candidates is not defined by design v0.3 or S-04."
+  ],
+  "why": "Two denials about different values are compatible evidence (the employer is neither). Candidates are identified by their content, so not_value(acme) and not_value(globex) are two different candidates, each carrying its value; neither collapses to a bare 'false', and no positive value candidate appears. The kernel status is established_false or unresolved depending on how several negative candidates are summarised, which the design does not fix.",
+  "source": "design-v0.3 §Independent acceptance tests, row 18",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "press": {
+        "class": "standard",
+        "origin_group": "g_press"
+      },
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "not_value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "not_value",
+          "v": "globex"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "press",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_press",
+        "actor": "connector:press",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": {
+          "$oneof": [
+            "established_false",
+            "unresolved"
+          ]
+        },
+        "_candidates": {
+          "$unordered": [
+            {
+              "form": {
+                "form": "not_value",
+                "v": "acme"
+              }
+            },
+            {
+              "form": {
+                "form": "not_value",
+                "v": "globex"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q2",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "_candidates": {
+          "$none": {
+            "form": {
+              "form": "value"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

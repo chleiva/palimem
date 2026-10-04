@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-06-unregistered-source-is-quarantined",
+  "title": "A report from an unregistered source id is quarantined whatever class it claims",
+  "gate": "G1",
+  "area": "security",
+  "status": "pending-decision",
+  "covers": [
+    "SEC-06",
+    "T-04"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "The source 'mystery' is not in the source registry. The caller labels it 'trusted'; class comes from connector metadata of a REGISTERED connector only, so the report is treated as quarantined: not admitted without confirmation, and the key stays unknown.",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-06)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {}
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "mystery",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_mystery",
+        "actor": "connector:mystery",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      },
+      "expect": {
+        "admission": {
+          "outcome": "quarantined"
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "unknown",
+        "_candidates": {
+          "$len": 0
+        }
+      }
+    }
+  ],
+  "status_reason": "Threat-model mitigation T-04 (unregistered source => quarantine class) is [proposed], not ratified (docs/THREAT_MODEL.md; gate G-S is a proposal)."
+}

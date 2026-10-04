@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-13-quarantined-shared-parent-counts-once",
+  "title": "Two quarantined sources with a registered shared parent count as one origin group",
+  "gate": "G1",
+  "area": "security",
+  "status": "pending-decision",
+  "covers": [
+    "SEC-13",
+    "T-10"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "q1 and q2 are two quarantined connectors that the registry declares as sharing one parent (one origin group). They agree on Acme. Neither is admitted (quarantined sources cannot confirm each other, and here they are not even independent), and the key is unknown.",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-13)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "q1": {
+        "class": "quarantined",
+        "origin_group": "g_q1"
+      },
+      "q2": {
+        "class": "quarantined",
+        "origin_group": "g_q2"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "q1",
+          "class": "quarantined"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_parent",
+        "actor": "connector:q1",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      },
+      "expect": {
+        "admission": {
+          "outcome": "quarantined"
+        }
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "q2",
+          "class": "quarantined"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_parent",
+        "actor": "connector:q2",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      },
+      "expect": {
+        "admission": {
+          "outcome": "quarantined"
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "unknown",
+        "_candidates": {
+          "$len": 0
+        }
+      }
+    }
+  ],
+  "status_reason": "Threat-model mitigation T-10 (registered shared parents) is [proposed], not ratified (docs/THREAT_MODEL.md; gate G-S is a proposal)."
+}

@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-07-echo-of-recall-does-not-corroborate",
+  "title": "Re-ingested memory output does not corroborate the report it came from",
+  "gate": "G1",
+  "area": "security",
+  "status": "pending-decision",
+  "covers": [
+    "SEC-07",
+    "T-05"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "r1 is quarantined (source q1). A second connector re-ingests palimem's own output about r1 and the host stamps it with r1's origin group. Confirmation needs a DIFFERENT origin group, so r1 stays quarantined. Whether the echo itself is rejected or merely admitted as a same-group copy is left open (either satisfies the threat model).",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-07)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "chat": {
+        "class": "standard",
+        "origin_group": "g_chat"
+      },
+      "q1": {
+        "class": "quarantined",
+        "origin_group": "g_q1"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "q1",
+          "class": "quarantined"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_q1",
+        "actor": "connector:q1",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "chat",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_q1",
+        "actor": "connector:chat",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      },
+      "expect": {
+        "admission": {
+          "outcome": {
+            "$oneof": [
+              "excluded",
+              "admissible"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "op": "reports",
+      "name": "rep_r1",
+      "filter": {
+        "id": "$r1"
+      },
+      "expect": {
+        "rows": [
+          {
+            "admission": {
+              "outcome": "quarantined"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "status_reason": "Threat-model mitigation T-05 (echo handling) is [proposed], not ratified (docs/THREAT_MODEL.md; gate G-S is a proposal)."
+}

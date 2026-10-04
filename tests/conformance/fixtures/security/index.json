@@ -1,0 +1,310 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "SEC-01",
+      "disposition": "trust_boundary",
+      "fixtures": [
+        "tb-01-llm-supplied-origin-and-source"
+      ]
+    },
+    {
+      "id": "SEC-02",
+      "disposition": "trust_boundary",
+      "fixtures": [
+        "tb-01-llm-supplied-origin-and-source",
+        "tb-02-llm-supplied-source-class"
+      ]
+    },
+    {
+      "id": "SEC-03",
+      "disposition": "trust_boundary",
+      "fixtures": [
+        "tb-01-llm-supplied-origin-and-source"
+      ]
+    },
+    {
+      "id": "SEC-04",
+      "disposition": "trust_boundary",
+      "fixtures": [
+        "tb-03-forged-actor-on-retract",
+        "tb-16-agent-cannot-withdraw-external-observation"
+      ]
+    },
+    {
+      "id": "SEC-05",
+      "disposition": "trust_boundary",
+      "fixtures": [
+        "tb-07-injection-text-in-tool-result",
+        "tb-09-extractor-cannot-set-identity"
+      ]
+    },
+    {
+      "id": "SEC-06",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-06-unregistered-source-is-quarantined"
+      ]
+    },
+    {
+      "id": "SEC-07",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-07-echo-of-recall-does-not-corroborate"
+      ]
+    },
+    {
+      "id": "SEC-08",
+      "disposition": "trust_boundary",
+      "fixtures": [
+        "tb-11-correction-text-in-remember"
+      ]
+    },
+    {
+      "id": "SEC-09",
+      "disposition": "trust_boundary",
+      "fixtures": [
+        "tb-07-injection-text-in-tool-result"
+      ]
+    },
+    {
+      "id": "SEC-10",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-10-quarantined-change-cue-does-not-shield"
+      ]
+    },
+    {
+      "id": "SEC-11",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-11-instruction-like-value-round-trips"
+      ]
+    },
+    {
+      "id": "SEC-12",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-12-implausible-valid-time-is-dropped"
+      ]
+    },
+    {
+      "id": "SEC-13",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-13-quarantined-shared-parent-counts-once"
+      ]
+    },
+    {
+      "id": "SEC-14",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-14-copies-of-one-upstream-do-not-confirm"
+      ]
+    },
+    {
+      "id": "SEC-15",
+      "disposition": "not_expressible",
+      "reason": "Report.target is a report id; source-wide withdrawal does not exist in the contract (S-02 finding: the study's registry retraction by source id has no counterpart). Needs a contract decision before a fixture can be written."
+    },
+    {
+      "id": "SEC-16",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-16-allege-flood-is-quota-limited"
+      ]
+    },
+    {
+      "id": "SEC-17",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-17-low-class-report-cannot-unseat-established"
+      ]
+    },
+    {
+      "id": "SEC-18",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-18-forged-alias-does-not-merge"
+      ]
+    },
+    {
+      "id": "SEC-19",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-19-merge-across-privacy-scopes-refused",
+        "ind-09-mistaken-merge-reversed"
+      ]
+    },
+    {
+      "id": "SEC-20",
+      "disposition": "not_expressible",
+      "reason": "A measured scenario (slow-drip injected-commit rate), not a pass/fail assertion, until a limit is declared; lives with T-H2."
+    },
+    {
+      "id": "SEC-21",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-21-per-source-quota-stops-before-cap"
+      ]
+    },
+    {
+      "id": "SEC-22",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-22-component-scoped-dirty-marker"
+      ]
+    },
+    {
+      "id": "SEC-23",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-23-explanation-budget-clamped-to-server-max",
+        "tb-13-explain-depth-clamped"
+      ]
+    },
+    {
+      "id": "SEC-24",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-24-oversized-value-or-raw-ref-rejected"
+      ]
+    },
+    {
+      "id": "SEC-25",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-25a-edited-log-row-is-detected",
+        "sec-25b-edited-belief-row-is-detected"
+      ]
+    },
+    {
+      "id": "SEC-26",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-26-restored-old-copy-is-detected"
+      ]
+    },
+    {
+      "id": "SEC-27",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-27-sql-metacharacters-round-trip"
+      ]
+    },
+    {
+      "id": "SEC-28",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-28-raw-ref-is-never-dereferenced"
+      ]
+    },
+    {
+      "id": "SEC-29",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-29-subscribe-outside-read-scope-rejected"
+      ]
+    },
+    {
+      "id": "SEC-30",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-30-tombstone-leaks-no-key-text",
+        "ind-10-deletion-with-dependants"
+      ]
+    },
+    {
+      "id": "SEC-31",
+      "disposition": "not_expressible",
+      "reason": "Inspects the database file and WAL after secure-delete, checkpoint and vacuum: a storage-level test of the SQLite backend, not expressible at the contract level."
+    },
+    {
+      "id": "SEC-32",
+      "disposition": "not_expressible",
+      "reason": "Needs a network probe on the extractor path; an implementation test of the extractor adapter (T-G2), not a contract fixture."
+    },
+    {
+      "id": "SEC-33",
+      "disposition": "not_expressible",
+      "reason": "The cost ledger is not part of the memory contract; covered by tests/test_costs.py."
+    },
+    {
+      "id": "SEC-34",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-34-find-and-explain-respect-read-scope"
+      ]
+    },
+    {
+      "id": "SEC-35",
+      "disposition": "not_expressible",
+      "reason": "Transport level: the MCP tool list. Lands with the MCP server (T-F3); the agent tool set itself is specified in docs/API_TRUST_BOUNDARY.md."
+    },
+    {
+      "id": "SEC-36",
+      "disposition": "not_expressible",
+      "reason": "Transport level: HTTP Origin/token checks of the MCP server (T-F3)."
+    },
+    {
+      "id": "SEC-37",
+      "disposition": "trust_boundary",
+      "fixtures": [
+        "tb-15-agent-withdraws-own-reports-a-week-later",
+        "tb-16-agent-cannot-withdraw-external-observation"
+      ]
+    },
+    {
+      "id": "SEC-38",
+      "disposition": "not_expressible",
+      "reason": "Two MCP clients interleaving writes needs session-bound principals on the agent tool API; no trust_boundary fixture covers it yet (a tb-21 is needed, wave 2)."
+    },
+    {
+      "id": "SEC-39",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-39a-single-origin-commit-is-visible",
+        "sec-39b-second-origin-group-raises-it"
+      ]
+    },
+    {
+      "id": "SEC-40",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-40a-trusted-injection-contradicted-is-unresolved",
+        "sec-40b-trusted-injection-with-change-cue"
+      ]
+    },
+    {
+      "id": "SEC-41",
+      "disposition": "fixture",
+      "fixtures": [
+        "sec-41a-source-withdraws-its-own-single-origin-report",
+        "sec-41b-later-dispute-repairs-single-origin-belief"
+      ]
+    },
+    {
+      "id": "SEC-42",
+      "disposition": "trust_boundary",
+      "fixtures": [
+        "tb-04-agent-withdraws-own-statement-earlier-session",
+        "tb-15-agent-withdraws-own-reports-a-week-later"
+      ]
+    },
+    {
+      "id": "SEC-43",
+      "disposition": "trust_boundary",
+      "fixtures": [
+        "tb-16-agent-cannot-withdraw-external-observation"
+      ]
+    },
+    {
+      "id": "SEC-44",
+      "disposition": "trust_boundary",
+      "fixtures": [
+        "tb-17-agent-dispute-without-grant",
+        "tb-18-agent-dispute-with-grant"
+      ]
+    }
+  ]
+}

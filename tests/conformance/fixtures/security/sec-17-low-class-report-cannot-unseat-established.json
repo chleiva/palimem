@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "sec-17-low-class-report-cannot-unseat-established",
+  "title": "A single low-class report conflicting with an established value is quarantined",
+  "gate": "G1",
+  "area": "poisoning",
+  "status": "pending-decision",
+  "covers": [
+    "SEC-17",
+    "T-13"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "The registry's Acme is established. One low-class forum report claims Globex at the same time. The study's P0 would make the slot unresolved (any competing report disputes); the threat model proposes that low-class reports conflicting with an established value are quarantined so that one report cannot deny belief. Expected: the report is quarantined and the status stays established.",
+  "source": "docs/THREAT_MODEL.md §7 (SEC-17)",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "forum": {
+        "class": "low",
+        "origin_group": "g_forum"
+      },
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": "2026-01-01T00:00:00Z",
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "globex"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "forum",
+          "class": "low"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_forum",
+        "actor": "connector:forum",
+        "valid_from": "2026-01-01T00:00:00Z",
+        "valid_to": null,
+        "precision": "day"
+      },
+      "expect": {
+        "admission": {
+          "outcome": "quarantined"
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "acme"
+          }
+        }
+      }
+    }
+  ],
+  "status_reason": "Threat-model mitigation T-13 (low-class conflict => quarantine) is [proposed], not ratified (docs/THREAT_MODEL.md; gate G-S is a proposal). Contradicts the paper's P0 admission (nothing below blocked is rejected); the compat profile must keep P0."
+}
