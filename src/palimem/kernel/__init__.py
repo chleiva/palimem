@@ -22,9 +22,19 @@ from palimem.kernel.exactness import ExactnessViolation, check_schema, find_over
 from palimem.kernel.justify import (
     Justification,
     ResourceLimitedResult,
+    canonical_environment,
     classify,
+    explain_at,
     justify_key,
     policy_of,
+)
+from palimem.kernel.provenance import (
+    DEFAULT_ENV_CAP,
+    EnvBudget,
+    EnvEngine,
+    SupportProvider,
+    flatten,
+    minimize,
 )
 from palimem.kernel.spec import (
     AttrSpec,
@@ -36,9 +46,12 @@ from palimem.kernel.spec import (
 )
 
 __all__ = [
+    "DEFAULT_ENV_CAP",
     "EPOCH",
     "AttrSpec",
     "DerivedJustification",
+    "EnvBudget",
+    "EnvEngine",
     "Ev",
     "ExactnessViolation",
     "Justification",
@@ -48,16 +61,21 @@ __all__ = [
     "Provider",
     "ResourceLimitedResult",
     "RuleSpec",
+    "SupportProvider",
     "base_attrs_closure",
+    "canonical_environment",
     "check_schema",
     "classify",
     "cross_key_corrections",
     "day_of",
     "dt_of_day",
     "evidence_from_entries",
+    "explain_at",
     "find_overlaps",
+    "flatten",
     "justify_derived",
     "justify_key",
+    "minimize",
     "parse_rule_fn",
     "policy_of",
     "rule_fn",

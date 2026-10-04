@@ -16,13 +16,35 @@ derived belief consumed) is the store's business, expressed by which justificati
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Protocol
+from typing import Protocol, cast
 
-from palimem.kernel.justify import Family, Justification, build_segments, segment_at
+from palimem.kernel.justify import (
+    Family,
+    Justification,
+    build_segments,
+    explain_at,
+    segment_at,
+)
+from palimem.kernel.provenance import (
+    DEFAULT_ENV_CAP,
+    Dist,
+    EnvBudget,
+    EnvEngine,
+    SupportProvider,
+    oracle_flat_ids_derived,
+    oracle_flat_parts_derived,
+)
 from palimem.kernel.spec import KernelSchema, KernelUnsupported, RuleSpec
-from palimem.types import Key, Profile, SemanticConfig
+from palimem.types import (
+    ExplainMode,
+    Explanation,
+    ExplanationState,
+    Key,
+    Profile,
+    SemanticConfig,
+)
 from palimem.types import Segment as PSegment
 from palimem.types._codec import Value
 
@@ -50,6 +72,16 @@ class JustificationProvider:
     def breakpoints(self, key: Key) -> frozenset[int]:
         j = self._j.get(key)
         return frozenset() if j is None else j.breakpoints()
+
+    # ---- SupportProvider (explanations, T-B4)
+
+    def world_envs(self, key: Key, t: int, budget: EnvBudget) -> Dist:
+        j = self._j.get(key)
+        return {frozenset(): frozenset({frozenset()})} if j is None else j.world_envs_at(t, budget=budget)
+
+    def reports(self, key: Key) -> Sequence[tuple[str, Value]]:
+        j = self._j.get(key)
+        return () if j is None else tuple((e.id, e.value) for e in j.evidence)
 
 
 def is_var(x: object) -> bool:
@@ -156,6 +188,8 @@ class DerivedJustification:
     _engine: _Engine
     _bps: frozenset[int]
     _segs: list[tuple[PSegment, ...]] = field(default_factory=list, repr=False, compare=False)
+    _budget: EnvBudget = field(default_factory=EnvBudget, repr=False, compare=False)
+    _full: list[EnvEngine] = field(default_factory=list, repr=False, compare=False)
 
     def candidates_at(self, t: int) -> Family:
         return self._engine.candidates_at(self.key.entity, self.key.attr, t)
@@ -163,10 +197,56 @@ class DerivedJustification:
     def breakpoints(self) -> frozenset[int]:
         return self._bps
 
+    # ---- provenance (T-B4, S-12): environments over BASE reports along the derivation path
+
+    def _support_provider(self) -> SupportProvider:
+        prov = self._engine.provider
+        if not (hasattr(prov, "world_envs") and hasattr(prov, "reports")):
+            raise TypeError("this provider cannot explain: it must implement SupportProvider (world_envs, reports)")
+        return cast(SupportProvider, prov)
+
+    def world_envs_at(self, t: int, *, depth: int | None = None, budget: EnvBudget | None = None) -> Dist:
+        """Candidate world -> subset-minimal environments over base reports at valid day ``t``.
+
+        ``depth`` limits derivation levels (the derived key is level 1, the keys its rules read level 2, ...);
+        base evidence below ``depth`` is left out and the explanation is flagged truncated on ``budget``."""
+        if depth is None and budget is None:
+            if not self._full:
+                self._full.append(EnvEngine(self.schema, self._support_provider(), self._budget))
+            return self._full[0].dist(self.key.entity, self.key.attr, t)
+        eng = EnvEngine(self.schema, self._support_provider(), budget or EnvBudget(), depth)
+        return eng.dist(self.key.entity, self.key.attr, t)
+
+    def oracle_flat_ids(self, t: int) -> frozenset[str]:
+        """Profile ``revise-stream-v1``: the study's flat provenance set (``gold.support_ids``) at ``t``."""
+        return oracle_flat_ids_derived(self.schema, self._support_provider(), self.key, t, self.candidates_at(t))
+
+    def oracle_exception_ids(self, t: int) -> frozenset[str]:
+        """Diagnostic: the part of the oracle's flat set reached only through exception literals."""
+        return oracle_flat_parts_derived(self.schema, self._support_provider(), self.key, t, self.candidates_at(t))[1]
+
+    def always_err_ids(self) -> frozenset[str]:
+        """Diagnostic: not computed for derived keys (it would need every base key's interpretations)."""
+        return frozenset()
+
+    @property
+    def explanation_state(self) -> ExplanationState:
+        return ExplanationState.TRUNCATED if self._budget.truncated else ExplanationState.COMPLETE
+
+    def explain(
+        self, day: int, *, mode: ExplainMode = ExplainMode.ALL, depth: int | None = None, env_cap: int = DEFAULT_ENV_CAP
+    ) -> Explanation:
+        return explain_at(self, day, mode=mode, depth=depth, env_cap=env_cap)
+
     def segments(self) -> tuple[PSegment, ...]:
         if not self._segs:
             spec = self.schema.spec(self.key.attr)
-            self._segs.append(build_segments(self.key, spec, self.profile, self._bps, self.candidates_at))
+            can_explain = hasattr(self._engine.provider, "world_envs") and hasattr(self._engine.provider, "reports")
+            self._segs.append(
+                build_segments(
+                    self.key, spec, self.profile, self._bps, self.candidates_at, self.world_envs_at if can_explain else None
+                )
+            )
         return self._segs[0]
 
     def segment_at(self, day: int) -> PSegment:
