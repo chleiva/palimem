@@ -1,0 +1,94 @@
+{
+  "id": "RA-011",
+  "slug": "unauthorised-dispute-logged",
+  "title": "An unauthorised dispute is logged but does not make the key unresolved",
+  "category": "unauthorised",
+  "split": "dev",
+  "stakes": "medium",
+  "description": "A low-reliability account disputes a trusted report. The dispute lacks authority (recorded as allege).",
+  "tags": [],
+  "depends_on_decision": [],
+  "attrs": {
+    "payee_account": {
+      "class": "single_changeable"
+    }
+  },
+  "derivations": [],
+  "sources": {
+    "registry": {
+      "class": "trusted",
+      "origin_group": "registry"
+    },
+    "forum": {
+      "class": "low",
+      "origin_group": "forum"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 1,
+      "key": {
+        "entity": "vendor9",
+        "attr": "payee_account"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "acc-111"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "registry",
+        "class": "trusted"
+      },
+      "origin": "external_observation",
+      "origin_group": "registry",
+      "actor": "registry",
+      "text": "registry reports that vendor9's payee account is acc-111."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 5,
+      "key": {
+        "entity": "vendor9",
+        "attr": "payee_account"
+      },
+      "proposition": {
+        "form": "not_value",
+        "value": "acc-111"
+      },
+      "cue": "dispute",
+      "source": {
+        "id": "forum",
+        "class": "low"
+      },
+      "origin": "external_observation",
+      "origin_group": "forum",
+      "actor": "forum",
+      "target": "r1",
+      "text": "forum disputes the report that vendor9's payee account is acc-111."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-011.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Pay vendor9's invoice to the registered account.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "vendor9",
+          "attr": "payee_account"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "Failed authority downgrades the dispute to allege: visible to audit, no effect on belief.",
+        "value": "acc-111"
+      }
+    }
+  ]
+}

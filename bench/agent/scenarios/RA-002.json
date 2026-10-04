@@ -1,0 +1,153 @@
+{
+  "id": "RA-002",
+  "slug": "two-supports-one-withdrawn",
+  "title": "Conclusion survives the withdrawal of one of two independent supports",
+  "category": "withdrawal",
+  "split": "test",
+  "stakes": "medium",
+  "description": "Two independent origins report Alex's employer; one is withdrawn. The derived work city must survive.",
+  "tags": [
+    "derived",
+    "over-abstention-trap"
+  ],
+  "depends_on_decision": [],
+  "attrs": {
+    "employer": {
+      "class": "single_changeable"
+    },
+    "hq_city": {
+      "class": "single_stable"
+    },
+    "work_city": {
+      "class": "derived"
+    }
+  },
+  "derivations": [
+    {
+      "head": "work_city",
+      "kind": "lookup",
+      "via": "employer",
+      "lookup": "hq_city"
+    }
+  ],
+  "sources": {
+    "press": {
+      "class": "standard",
+      "origin_group": "press"
+    },
+    "hr_feed": {
+      "class": "standard",
+      "origin_group": "hr_feed"
+    },
+    "registry": {
+      "class": "trusted",
+      "origin_group": "registry"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 2,
+      "key": {
+        "entity": "alex",
+        "attr": "employer"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "veltran"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "press",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "press",
+      "actor": "press",
+      "text": "press reports that alex's employer is veltran."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 3,
+      "key": {
+        "entity": "alex",
+        "attr": "employer"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "veltran"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "hr_feed",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "hr_feed",
+      "actor": "hr_feed",
+      "text": "hr_feed reports that alex's employer is veltran."
+    },
+    {
+      "id": "r3",
+      "recorded_at": 4,
+      "key": {
+        "entity": "veltran",
+        "attr": "hq_city"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "tessaly"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "registry",
+        "class": "trusted"
+      },
+      "origin": "external_observation",
+      "origin_group": "registry",
+      "actor": "registry",
+      "text": "registry reports that veltran's hq city is tessaly."
+    },
+    {
+      "id": "r4",
+      "recorded_at": 10,
+      "key": {
+        "entity": "alex",
+        "attr": "employer"
+      },
+      "proposition": null,
+      "cue": "withdraw",
+      "source": {
+        "id": "press",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "press",
+      "actor": "press",
+      "target": "r1",
+      "text": "press withdraws its earlier report r1."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-002.d1",
+      "after_report": "r4",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Book Alex's work-travel expenses against his work city.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "alex",
+          "attr": "work_city"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "The HR feed independently supports employer(alex)=veltran; the conclusion survives with the surviving environment.",
+        "value": "tessaly"
+      }
+    }
+  ]
+}

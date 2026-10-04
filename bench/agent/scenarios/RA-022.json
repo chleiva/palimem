@@ -1,0 +1,91 @@
+{
+  "id": "RA-022",
+  "slug": "single-source-update-latest-true",
+  "title": "Single source, flagged change: the latest report is right and must be used",
+  "category": "recency",
+  "split": "test",
+  "stakes": "low",
+  "description": "A profile app reports Ivan's city, then a change.",
+  "tags": [
+    "over-abstention-trap"
+  ],
+  "depends_on_decision": [],
+  "attrs": {
+    "home_city": {
+      "class": "single_changeable"
+    }
+  },
+  "derivations": [],
+  "sources": {
+    "profile_app": {
+      "class": "standard",
+      "origin_group": "profile_app"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 1,
+      "key": {
+        "entity": "ivan",
+        "attr": "home_city"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "lisbon"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "profile_app",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "profile_app",
+      "actor": "profile_app",
+      "text": "profile_app reports that ivan's home city is lisbon."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 8,
+      "key": {
+        "entity": "ivan",
+        "attr": "home_city"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "porto"
+      },
+      "cue": "change",
+      "source": {
+        "id": "profile_app",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "profile_app",
+      "actor": "profile_app",
+      "text": "profile_app reports that ivan's home city has changed to porto."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-022.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Send Ivan the local newsletter edition.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "ivan",
+          "attr": "home_city"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "An explicit change cue explains the earlier value; no dispute.",
+        "value": "porto"
+      }
+    }
+  ]
+}

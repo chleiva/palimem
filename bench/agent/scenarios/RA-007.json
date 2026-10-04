@@ -1,0 +1,105 @@
+{
+  "id": "RA-007",
+  "slug": "correction-same-origin-different-source",
+  "title": "Correction by a sibling source of the same origin group",
+  "category": "correction",
+  "split": "dev",
+  "stakes": "low",
+  "description": "Two desks of one newspaper group publish; desk B corrects desk A's figure.",
+  "tags": [
+    "spec-dependent"
+  ],
+  "depends_on_decision": [
+    "S-2"
+  ],
+  "attrs": {
+    "office_city": {
+      "class": "single_changeable"
+    }
+  },
+  "derivations": [],
+  "sources": {
+    "desk_a": {
+      "class": "standard",
+      "origin_group": "newsco"
+    },
+    "desk_b": {
+      "class": "standard",
+      "origin_group": "newsco"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 2,
+      "key": {
+        "entity": "acme",
+        "attr": "office_city"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "leeds"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "desk_a",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "newsco",
+      "actor": "desk_a",
+      "text": "desk_a reports that acme's office city is leeds."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 6,
+      "key": {
+        "entity": "acme",
+        "attr": "office_city"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "manchester"
+      },
+      "cue": "correct",
+      "source": {
+        "id": "desk_b",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "newsco",
+      "actor": "desk_b",
+      "target": "r1",
+      "text": "desk_b corrects report r1: acme's office city is manchester."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-007.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Address the courier booking to Acme's office city.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "acme",
+          "attr": "office_city"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "Default profile (authority = origin group, as in the paper's A-SELF): the correction is authorised and withdraws r1.",
+        "value": "manchester"
+      },
+      "gold_by_profile": {
+        "authority_source": {
+          "action": "act",
+          "rationale": "Under source-level authority the correction fails the check, is recorded as allege and has no effect; r1 stands.",
+          "value": "leeds"
+        }
+      }
+    }
+  ]
+}

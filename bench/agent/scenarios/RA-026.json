@@ -1,0 +1,166 @@
+{
+  "id": "RA-026",
+  "slug": "retrospective-correction",
+  "title": "A late correction changes the past: right answer depends on valid time and on what was believed when",
+  "category": "temporal",
+  "split": "dev",
+  "stakes": "high",
+  "description": "A registry reports Jo moved to Paris from day 400, then corrects the date to day 150. A tax statement was issued in between.",
+  "tags": [
+    "valid-time",
+    "post-hoc"
+  ],
+  "depends_on_decision": [],
+  "attrs": {
+    "residence": {
+      "class": "single_changeable"
+    }
+  },
+  "derivations": [],
+  "sources": {
+    "registry": {
+      "class": "trusted",
+      "origin_group": "registry"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 5,
+      "key": {
+        "entity": "jo",
+        "attr": "residence"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "london"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "registry",
+        "class": "trusted"
+      },
+      "origin": "external_observation",
+      "origin_group": "registry",
+      "actor": "registry",
+      "valid_from": 100,
+      "text": "registry reports that jo's residence is london (effective from day 100)."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 20,
+      "key": {
+        "entity": "jo",
+        "attr": "residence"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "paris"
+      },
+      "cue": "change",
+      "source": {
+        "id": "registry",
+        "class": "trusted"
+      },
+      "origin": "external_observation",
+      "origin_group": "registry",
+      "actor": "registry",
+      "valid_from": 400,
+      "text": "registry reports that jo's residence has changed to paris (effective from day 400)."
+    },
+    {
+      "id": "r3",
+      "recorded_at": 30,
+      "key": {
+        "entity": "jo",
+        "attr": "residence"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "paris"
+      },
+      "cue": "correct",
+      "source": {
+        "id": "registry",
+        "class": "trusted"
+      },
+      "origin": "external_observation",
+      "origin_group": "registry",
+      "actor": "registry",
+      "target": "r2",
+      "valid_from": 150,
+      "text": "registry corrects report r2: jo's residence is paris."
+    }
+  ],
+  "executed_actions": [
+    {
+      "after_report": "r2",
+      "tool": "issue_tax_statement",
+      "note": "Statement for day 300 issued using London."
+    }
+  ],
+  "decision_points": [
+    {
+      "id": "RA-026.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Issue the tax statement for day 300.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "jo",
+          "attr": "residence"
+        }
+      },
+      "valid_at": 300,
+      "gold": {
+        "action": "act",
+        "rationale": "On day 300 the believed residence is London.",
+        "value": "london"
+      }
+    },
+    {
+      "id": "RA-026.d2",
+      "after_report": "r3",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Issue the tax statement for day 300.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "jo",
+          "attr": "residence"
+        }
+      },
+      "valid_at": 300,
+      "gold": {
+        "action": "act",
+        "rationale": "After the correction Jo lived in Paris from day 150.",
+        "value": "paris"
+      }
+    },
+    {
+      "id": "RA-026.d3",
+      "after_report": "r3",
+      "kind": "post_hoc_review",
+      "mode": "required",
+      "task": "Review the tax statement already issued for day 300.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "jo",
+          "attr": "residence"
+        }
+      },
+      "valid_at": 300,
+      "resolvers": [
+        "trusted"
+      ],
+      "gold": {
+        "action": "ask",
+        "rationale": "The statement was issued under a belief since revised: surface the gap (belief_as_of answers the old view; the action cannot be undone by the memory)."
+      }
+    }
+  ]
+}

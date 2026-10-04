@@ -1,0 +1,109 @@
+{
+  "id": "RA-018",
+  "slug": "attributed-only",
+  "title": "Attributed claims establish the attribution, never the claim (no direct evidence)",
+  "category": "attribution",
+  "split": "dev",
+  "stakes": "medium",
+  "description": "Two chat logs say a colleague believes the refund window is 30 days.",
+  "tags": [
+    "attributed"
+  ],
+  "depends_on_decision": [],
+  "attrs": {
+    "refund_window_days": {
+      "class": "single_changeable"
+    }
+  },
+  "derivations": [],
+  "sources": {
+    "policy_doc": {
+      "class": "trusted",
+      "origin_group": "policy_doc"
+    },
+    "chat_a": {
+      "class": "standard",
+      "origin_group": "chat_a"
+    },
+    "chat_b": {
+      "class": "standard",
+      "origin_group": "chat_b"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 4,
+      "key": {
+        "entity": "acme_store",
+        "attr": "refund_window_days"
+      },
+      "proposition": {
+        "form": "belief_of",
+        "holder": "dave",
+        "inner": {
+          "form": "value",
+          "value": "30"
+        }
+      },
+      "cue": "assert",
+      "source": {
+        "id": "chat_a",
+        "class": "standard"
+      },
+      "origin": "attributed",
+      "origin_group": "chat_a",
+      "actor": "chat_a",
+      "text": "chat_a says dave believes acme_store's refund window days is 30."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 5,
+      "key": {
+        "entity": "acme_store",
+        "attr": "refund_window_days"
+      },
+      "proposition": {
+        "form": "belief_of",
+        "holder": "dave",
+        "inner": {
+          "form": "value",
+          "value": "30"
+        }
+      },
+      "cue": "assert",
+      "source": {
+        "id": "chat_b",
+        "class": "standard"
+      },
+      "origin": "attributed",
+      "origin_group": "chat_b",
+      "actor": "chat_b",
+      "text": "chat_b says dave believes acme_store's refund window days is 30."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-018.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Tell the customer how many days they have to request a refund.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "acme_store",
+          "attr": "refund_window_days"
+        }
+      },
+      "resolvers": [
+        "trusted"
+      ],
+      "gold": {
+        "action": "ask",
+        "rationale": "Only the attribution is established; the refund window itself is unknown. Ask a policy source."
+      }
+    }
+  ]
+}

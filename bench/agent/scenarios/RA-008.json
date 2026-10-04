@@ -1,0 +1,150 @@
+{
+  "id": "RA-008",
+  "slug": "upstream-correction-propagates",
+  "title": "Control: a corrected upstream fact changes the derived conclusion",
+  "category": "control",
+  "split": "test",
+  "stakes": "medium",
+  "description": "A registry corrects Orbit's head-office city; the derived work city must follow.",
+  "tags": [
+    "derived",
+    "control"
+  ],
+  "depends_on_decision": [],
+  "attrs": {
+    "employer": {
+      "class": "single_changeable"
+    },
+    "hq_city": {
+      "class": "single_stable"
+    },
+    "work_city": {
+      "class": "derived"
+    }
+  },
+  "derivations": [
+    {
+      "head": "work_city",
+      "kind": "lookup",
+      "via": "employer",
+      "lookup": "hq_city"
+    }
+  ],
+  "sources": {
+    "hr": {
+      "class": "standard",
+      "origin_group": "hr"
+    },
+    "registry": {
+      "class": "trusted",
+      "origin_group": "registry"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 1,
+      "key": {
+        "entity": "hana",
+        "attr": "employer"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "orbit"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "hr",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "hr",
+      "actor": "hr",
+      "text": "hr reports that hana's employer is orbit."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 2,
+      "key": {
+        "entity": "orbit",
+        "attr": "hq_city"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "oslo"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "registry",
+        "class": "trusted"
+      },
+      "origin": "external_observation",
+      "origin_group": "registry",
+      "actor": "registry",
+      "text": "registry reports that orbit's hq city is oslo."
+    },
+    {
+      "id": "r3",
+      "recorded_at": 8,
+      "key": {
+        "entity": "orbit",
+        "attr": "hq_city"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "bergen"
+      },
+      "cue": "correct",
+      "source": {
+        "id": "registry",
+        "class": "trusted"
+      },
+      "origin": "external_observation",
+      "origin_group": "registry",
+      "actor": "registry",
+      "target": "r2",
+      "text": "registry corrects report r2: orbit's hq city is bergen."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-008.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Book Hana's site visit in her work city.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "hana",
+          "attr": "work_city"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "Supported chain.",
+        "value": "oslo"
+      }
+    },
+    {
+      "id": "RA-008.d2",
+      "after_report": "r3",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Book Hana's site visit in her work city.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "hana",
+          "attr": "work_city"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "The registry corrected itself; the derived belief follows the corrected value.",
+        "value": "bergen"
+      }
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "id": "RA-012",
+  "slug": "negative-evidence-conflict",
+  "title": "Explicit negative evidence against a reported value",
+  "category": "conflict",
+  "split": "test",
+  "stakes": "medium",
+  "description": "The CRM gives a customer's address; billing states that this address is NOT the customer's.",
+  "tags": [
+    "negative-evidence"
+  ],
+  "depends_on_decision": [],
+  "attrs": {
+    "home_address": {
+      "class": "single_changeable"
+    }
+  },
+  "derivations": [],
+  "sources": {
+    "crm": {
+      "class": "standard",
+      "origin_group": "crm"
+    },
+    "billing": {
+      "class": "standard",
+      "origin_group": "billing"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 2,
+      "key": {
+        "entity": "customer7",
+        "attr": "home_address"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "12 elm st"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "crm",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "crm",
+      "actor": "crm",
+      "text": "crm reports that customer7's home address is 12 elm st."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 6,
+      "key": {
+        "entity": "customer7",
+        "attr": "home_address"
+      },
+      "proposition": {
+        "form": "not_value",
+        "value": "12 elm st"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "billing",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "billing",
+      "actor": "billing",
+      "text": "billing states that customer7's home address is not 12 elm st."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-012.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Print the shipping label for customer7.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "customer7",
+          "attr": "home_address"
+        }
+      },
+      "resolvers": [
+        "customer"
+      ],
+      "gold": {
+        "action": "ask",
+        "rationale": "Admissible positive and negative evidence overlap: unresolved with both readings; a denial is evidence against, not a veto."
+      }
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "id": "RA-005",
+  "slug": "correction-same-origin",
+  "title": "A same-origin correction withdraws its target and states the right value",
+  "category": "correction",
+  "split": "test",
+  "stakes": "low",
+  "description": "A newspaper prints Frank's birth date then prints a correction.",
+  "tags": [
+    "control"
+  ],
+  "depends_on_decision": [],
+  "attrs": {
+    "birth_date": {
+      "class": "single_stable"
+    }
+  },
+  "derivations": [],
+  "sources": {
+    "press": {
+      "class": "standard",
+      "origin_group": "press"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 2,
+      "key": {
+        "entity": "frank",
+        "attr": "birth_date"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "1980-03-02"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "press",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "press",
+      "actor": "press",
+      "text": "press reports that frank's birth date is 1980-03-02."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 5,
+      "key": {
+        "entity": "frank",
+        "attr": "birth_date"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "1980-02-03"
+      },
+      "cue": "correct",
+      "source": {
+        "id": "press",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "press",
+      "actor": "press",
+      "target": "r1",
+      "text": "press corrects report r1: frank's birth date is 1980-02-03."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-005.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Schedule Frank's birthday card.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "frank",
+          "attr": "birth_date"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "The same origin corrected itself; the old value is withdrawn and the corrected one is an ordinary report.",
+        "value": "1980-02-03"
+      }
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "id": "RA-003",
+  "slug": "withdraw-reverts-to-older-value",
+  "title": "Withdrawing the latest report restores the older justified value",
+  "category": "withdrawal",
+  "split": "dev",
+  "stakes": "medium",
+  "description": "Registry says Dana works for Acme; later a press report says Globex; the press withdraws it.",
+  "tags": [
+    "recency-trap"
+  ],
+  "depends_on_decision": [],
+  "attrs": {
+    "employer": {
+      "class": "single_changeable"
+    }
+  },
+  "derivations": [],
+  "sources": {
+    "registry": {
+      "class": "trusted",
+      "origin_group": "registry"
+    },
+    "press": {
+      "class": "standard",
+      "origin_group": "press"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 1,
+      "key": {
+        "entity": "dana",
+        "attr": "employer"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "acme"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "registry",
+        "class": "trusted"
+      },
+      "origin": "external_observation",
+      "origin_group": "registry",
+      "actor": "registry",
+      "text": "registry reports that dana's employer is acme."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 6,
+      "key": {
+        "entity": "dana",
+        "attr": "employer"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "globex"
+      },
+      "cue": "change",
+      "source": {
+        "id": "press",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "press",
+      "actor": "press",
+      "text": "press reports that dana's employer has changed to globex."
+    },
+    {
+      "id": "r3",
+      "recorded_at": 9,
+      "key": {
+        "entity": "dana",
+        "attr": "employer"
+      },
+      "proposition": null,
+      "cue": "withdraw",
+      "source": {
+        "id": "press",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "press",
+      "actor": "press",
+      "target": "r2",
+      "text": "press withdraws its earlier report r2."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-003.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Send the contract renewal to Dana's current employer.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "dana",
+          "attr": "employer"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "A single admissible change report; established.",
+        "value": "globex"
+      }
+    },
+    {
+      "id": "RA-003.d2",
+      "after_report": "r3",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Send the contract renewal to Dana's current employer.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "dana",
+          "attr": "employer"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "The change report is withdrawn; the earlier registry value persists (inertia).",
+        "value": "acme"
+      }
+    }
+  ]
+}

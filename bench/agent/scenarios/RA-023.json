@@ -1,0 +1,100 @@
+{
+  "id": "RA-023",
+  "slug": "single-source-self-update",
+  "title": "Same-origin self-update without a change cue",
+  "category": "recency",
+  "split": "test",
+  "stakes": "low",
+  "description": "One source reports a different city later, with no cue. Under the self-update semantic the later value supersedes.",
+  "tags": [
+    "spec-dependent",
+    "over-abstention-trap"
+  ],
+  "depends_on_decision": [
+    "semantic:self_update"
+  ],
+  "attrs": {
+    "home_city": {
+      "class": "single_changeable"
+    }
+  },
+  "derivations": [],
+  "sources": {
+    "profile_app": {
+      "class": "standard",
+      "origin_group": "profile_app"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 1,
+      "key": {
+        "entity": "ivan",
+        "attr": "home_city"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "lisbon"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "profile_app",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "profile_app",
+      "actor": "profile_app",
+      "text": "profile_app reports that ivan's home city is lisbon."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 8,
+      "key": {
+        "entity": "ivan",
+        "attr": "home_city"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "porto"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "profile_app",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "profile_app",
+      "actor": "profile_app",
+      "text": "profile_app reports that ivan's home city is porto."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-023.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "Send Ivan the local newsletter edition.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "ivan",
+          "attr": "home_city"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "Default semantic configuration (P0cSU, self_update on): the source's later value supersedes its own earlier one.",
+        "value": "porto"
+      },
+      "gold_by_profile": {
+        "self_update_off": {
+          "action": "ask",
+          "rationale": "With self_update off (P0c) the two reports dispute each other: unresolved."
+        }
+      }
+    }
+  ]
+}

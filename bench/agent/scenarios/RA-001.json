@@ -1,0 +1,157 @@
+{
+  "id": "RA-001",
+  "slug": "withdraw-two-steps-upstream",
+  "title": "Withdrawal reaches a conclusion two steps downstream",
+  "category": "withdrawal",
+  "split": "test",
+  "stakes": "medium",
+  "description": "A press report says Alex works for Veltran; a registry puts Veltran's head office in Tessaly; rules derive work city and local tax city. The press withdraws its report.",
+  "tags": [
+    "derived",
+    "depth-3"
+  ],
+  "depends_on_decision": [],
+  "attrs": {
+    "employer": {
+      "class": "single_changeable"
+    },
+    "hq_city": {
+      "class": "single_stable"
+    },
+    "work_city": {
+      "class": "derived"
+    },
+    "local_tax_city": {
+      "class": "derived"
+    }
+  },
+  "derivations": [
+    {
+      "head": "work_city",
+      "kind": "lookup",
+      "via": "employer",
+      "lookup": "hq_city"
+    },
+    {
+      "head": "local_tax_city",
+      "kind": "copy",
+      "from": "work_city"
+    }
+  ],
+  "sources": {
+    "press": {
+      "class": "standard",
+      "origin_group": "press"
+    },
+    "registry": {
+      "class": "trusted",
+      "origin_group": "registry"
+    }
+  },
+  "reports": [
+    {
+      "id": "r1",
+      "recorded_at": 3,
+      "key": {
+        "entity": "alex",
+        "attr": "employer"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "veltran"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "press",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "press",
+      "actor": "press",
+      "text": "press reports that alex's employer is veltran."
+    },
+    {
+      "id": "r2",
+      "recorded_at": 5,
+      "key": {
+        "entity": "veltran",
+        "attr": "hq_city"
+      },
+      "proposition": {
+        "form": "value",
+        "value": "tessaly"
+      },
+      "cue": "assert",
+      "source": {
+        "id": "registry",
+        "class": "trusted"
+      },
+      "origin": "external_observation",
+      "origin_group": "registry",
+      "actor": "registry",
+      "text": "registry reports that veltran's hq city is tessaly."
+    },
+    {
+      "id": "r3",
+      "recorded_at": 12,
+      "key": {
+        "entity": "alex",
+        "attr": "employer"
+      },
+      "proposition": null,
+      "cue": "withdraw",
+      "source": {
+        "id": "press",
+        "class": "standard"
+      },
+      "origin": "external_observation",
+      "origin_group": "press",
+      "actor": "press",
+      "target": "r1",
+      "text": "press withdraws its earlier report r1."
+    }
+  ],
+  "executed_actions": [],
+  "decision_points": [
+    {
+      "id": "RA-001.d1",
+      "after_report": "r2",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "File Alex's local tax return for the city in which he is taxed.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "alex",
+          "attr": "local_tax_city"
+        }
+      },
+      "gold": {
+        "action": "act",
+        "rationale": "Both supports stand; derived belief is established.",
+        "value": "tessaly"
+      }
+    },
+    {
+      "id": "RA-001.d2",
+      "after_report": "r3",
+      "kind": "pre_action",
+      "mode": "required",
+      "task": "File Alex's local tax return for the city in which he is taxed.",
+      "tool": {
+        "name": "act_on_belief",
+        "use_key": {
+          "entity": "alex",
+          "attr": "local_tax_city"
+        }
+      },
+      "resolvers": [
+        "trusted"
+      ],
+      "gold": {
+        "action": "ask",
+        "rationale": "The only support for employer(alex) was withdrawn; both derived beliefs lose their justification. The task is required, so ask the employment record."
+      }
+    }
+  ]
+}

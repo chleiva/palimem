@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chleiva/palimem/bench/agent/schema.json",
+  "title": "RETRACT-ACT scenario (v0.1)",
+  "description": "One scenario: an ordered stream of typed reports, optional already-executed actions, and decision points whose gold action is written by hand. Reports use the field names of palimem's Report record (design v0.3); times are integer days. A report's `text` is its natural-language rendering for systems that ingest text.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "slug", "title", "category", "split", "stakes", "description", "attrs", "sources", "reports", "decision_points"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^RA-[0-9]{3}$" },
+    "slug": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "title": { "type": "string", "minLength": 5 },
+    "description": { "type": "string", "minLength": 10 },
+    "category": {
+      "enum": ["withdrawal", "correction", "unauthorised", "conflict", "poison", "attribution", "recency", "temporal", "action-gap", "plan-dependency", "derived", "control"]
+    },
+    "split": { "enum": ["dev", "test"], "description": "dev: may be used to tune prompts and adapters; test: frozen, confirmatory only." },
+    "stakes": { "enum": ["low", "medium", "high"], "description": "Selects the cost table in the scorer." },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "depends_on_decision": { "type": "array", "items": { "type": "string" }, "description": "Spec decisions (S-n, semantic:*) the gold depends on; see gold_by_profile." },
+    "attrs": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["class"],
+        "properties": { "class": { "enum": ["single_stable", "single_changeable", "multi_set", "derived"] } }
+      }
+    },
+    "derivations": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object", "additionalProperties": false, "required": ["head", "kind", "via", "lookup"],
+            "properties": {
+              "head": { "type": "string" }, "kind": { "const": "lookup" },
+              "via": { "type": "string", "description": "entity-valued attribute of the head's entity" },
+              "lookup": { "type": "string", "description": "attribute read on the entity that `via` returns" }
+            }
+          },
+          {
+            "type": "object", "additionalProperties": false, "required": ["head", "kind", "from"],
+            "properties": { "head": { "type": "string" }, "kind": { "const": "copy" }, "from": { "type": "string" } }
+          }
+        ]
+      }
+    },
+    "sources": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object", "additionalProperties": false, "required": ["class", "origin_group"],
+        "properties": {
+          "class": { "enum": ["trusted", "standard", "low", "quarantined", "agent_self"] },
+          "origin_group": { "type": "string" }
+        }
+      }
+    },
+    "reports": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/report" } },
+    "executed_actions": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["after_report", "tool", "note"],
+        "properties": { "after_report": { "type": "string" }, "tool": { "type": "string" }, "note": { "type": "string" } }
+      }
+    },
+    "decision_points": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/decision_point" } }
+  },
+  "$defs": {
+    "key": {
+      "type": "object", "additionalProperties": false, "required": ["entity", "attr"],
+      "properties": { "entity": { "type": "string" }, "attr": { "type": "string" } }
+    },
+    "proposition": {
+      "type": "object",
+      "required": ["form"],
+      "properties": {
+        "form": { "enum": ["value", "not_value", "member", "not_member", "belief_of"] },
+        "value": { "type": "string" },
+        "holder": { "type": "string" },
+        "inner": { "$ref": "#/$defs/proposition" }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        { "if": { "properties": { "form": { "const": "belief_of" } } }, "then": { "required": ["holder", "inner"] }, "else": { "required": ["value"] } }
+      ]
+    },
+    "report": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "recorded_at", "key", "proposition", "cue", "source", "origin", "origin_group", "actor", "text"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^r[0-9]+$" },
+        "recorded_at": { "type": "integer", "minimum": 0, "description": "Transaction time (day). Non-decreasing along the stream." },
+        "key": { "$ref": "#/$defs/key" },
+        "proposition": { "oneOf": [{ "$ref": "#/$defs/proposition" }, { "type": "null" }], "description": "null only for cue=withdraw (and dispute without content)." },
+        "cue": { "enum": ["assert", "change", "correct", "withdraw", "dispute", "confirm", "allege"] },
+        "target": { "type": "string", "description": "Report id; required for correct, withdraw, dispute." },
+        "source": {
+          "type": "object", "additionalProperties": false, "required": ["id", "class"],
+          "properties": { "id": { "type": "string" }, "class": { "enum": ["trusted", "standard", "low", "quarantined", "agent_self"] } }
+        },
+        "origin": { "enum": ["external_observation", "attributed", "agent_hypothesis", "agent_statement", "plan", "simulation", "counterfactual"] },
+        "origin_group": { "type": "string" },
+        "actor": { "type": "string", "description": "Principal that submitted the report (here: the source id). Authority is NOT stated in the scenario; it is part of what the gold encodes." },
+        "valid_from": { "type": "integer" },
+        "valid_to": { "type": "integer" },
+        "text": { "type": "string", "minLength": 5 }
+      },
+      "allOf": [
+        { "if": { "properties": { "cue": { "enum": ["correct", "withdraw", "dispute"] } } }, "then": { "required": ["target"] } },
+        { "if": { "properties": { "cue": { "not": { "const": "withdraw" } } } }, "then": { "properties": { "proposition": { "type": "object" } } } }
+      ]
+    },
+    "gold": {
+      "type": "object", "additionalProperties": false, "required": ["action", "rationale"],
+      "properties": {
+        "action": { "enum": ["act", "abstain", "ask", "revalidate"] },
+        "value": { "type": "string", "description": "Required for act and revalidate: the value the tool call must use." },
+        "rationale": { "type": "string", "minLength": 10 }
+      },
+      "allOf": [{ "if": { "properties": { "action": { "enum": ["act", "revalidate"] } } }, "then": { "required": ["value"] } }]
+    },
+    "decision_point": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "after_report", "kind", "mode", "task", "tool", "gold"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^RA-[0-9]{3}\\.d[0-9]+$" },
+        "after_report": { "type": "string", "description": "The agent sees reports up to and including this one." },
+        "kind": { "enum": ["pre_action", "post_hoc_review"], "description": "post_hoc_review: an action already executed may rest on beliefs that have since changed; act = proceed unchanged, ask = surface the gap." },
+        "mode": { "enum": ["required", "optional"], "description": "required: the task must be completed (unknown/unresolved -> ask); optional: best effort (unknown/unresolved -> abstain)." },
+        "task": { "type": "string" },
+        "tool": {
+          "type": "object", "additionalProperties": false, "required": ["name", "use_key"],
+          "properties": { "name": { "type": "string" }, "use_key": { "$ref": "#/$defs/key" } }
+        },
+        "valid_at": { "type": "integer", "description": "Valid-time coordinate of the decision (default: now)." },
+        "plan_formed_after": { "type": "string", "description": "Report id after which the plan being executed was formed." },
+        "resolvers": { "type": "array", "items": { "type": "string" }, "description": "Who could supply the missing evidence (for ask)." },
+        "gold": { "$ref": "#/$defs/gold" },
+        "gold_by_profile": {
+          "type": "object",
+          "description": "Alternative gold under a named semantic/authority profile; the default profile uses `gold`.",
+          "additionalProperties": { "$ref": "#/$defs/gold" }
+        },
+        "costs": {
+          "type": "object", "additionalProperties": false,
+          "description": "Optional per-point override of the stakes cost table.",
+          "properties": {
+            "harm": { "type": "number", "minimum": 0 }, "ask": { "type": "number", "minimum": 0 },
+            "miss": { "type": "number", "minimum": 0 }, "revalidate": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    }
+  }
+}
