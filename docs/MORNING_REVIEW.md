@@ -70,3 +70,15 @@ Defaults taken where the contract is silent; none changes a decided item.
   4. **`inertia=False`:** unspecified in the kernel, so zero-config attributes use `inertia=True` (harmless for a stable set).
   5. **Deletion** needs a `store_secret` argument or `PALIMEM_STORE_SECRET`.
 - **Not covered:** the MCP server is tested against a subprocess and an in-process fake only, not real MCP clients; `find` is lexical only (T-G3 is separate); the `mcp` SDK is not used and the `mcp` extra is declared but unused.
+
+## From the performance benchmark (Lane P): the first measured pass
+
+Declared targets (committed before any run): T1 query p50 <= 5 ms / p99 <= 25 ms; T2 append-to-visible p50 <= 25 ms / p99 <= 100 ms; T3 <= 1 KiB RSS per report; T4 <= 2 s to first correct query after a kill; T5 crossover r* <= 2; T6 p99 append ratio (largest to smallest scale) <= 4; T7 <= 5 KiB on disk per report. One pass, one seed, one laptop, synthetic workloads: not a load characterisation (T-J4).
+
+- **Held at the sizes measured:** T1 (p99 1.9 ms at 1,000 reports) and T4 (0.13 s, nothing lost). No run reached the 10^5-report reference size, so these are "not shown at 10^5".
+- **Missed:** T2 (p50 178 ms, p99 246 ms), T3 (176 KiB per report, ~175x over), T5 (r* 3.6), T6 (ratio 5.7-7.2), T7 (18 KiB per report).
+- **Real defect:** append cost is superlinear in *entity count*, not log length. Appends that feed a derived key cost 29 ms at 80 entities, ~200 ms at 262, 16.5 s at 2,625. Mechanism: each append re-justifies the derived key for every entity, and each call gathers breakpoints from every entity, so an append costs O(entities^2) (`justify_derived` is 79% of profiled time, called 134 times per append). The extrapolation to the reference size (~25,000 entities: tens of minutes per derived-affecting append) is an estimate from three points.
+- **Memory / disk / verify:** ~100-200 KiB heap per report (admission evaluation cache suspected, not proven); 11-92 KiB disk per report (rewriting unchanged derived versions suspected, not isolated); `verify_beliefs` is superlinear (1.2 s at 305 reports, 6.7 s at 1,004).
+- **Crossover:** the store answers 60-120x faster than a cold replay but only 2.6x faster than a replay that reuses the cached admission evaluation.
+- **Method:** the workload generator initially pushed some keys over the per-key budget of 7 (a correction aimed at a correction restores its target); fixed, with two end-to-end tests that fail if a workload exceeds the budget; first results discarded and re-run.
+- **Action taken:** an optimisation lane (revise only dependents, bounded admission cache, no rewrite of unchanged versions, incremental `verify_beliefs`) is running; the targets are not amended.
