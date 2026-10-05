@@ -202,3 +202,38 @@ def test_report_renders_from_a_results_directory(tmp_path: Path) -> None:
     (tmp_path / "workload-w1-60.json").write_text(json.dumps(run_workload("w1", 60, r=1.0, seed=1, db_path=":memory:")))
     text = report.render(tmp_path)
     assert "### Runs" in text and "### Targets" in text and "T1" in text and "T6" in text
+
+
+def test_warmup_is_a_fraction_of_the_reached_size_not_the_target() -> None:
+    """An early-stopped run must still have measured appends (warm-up used to be 5% of the *target* and could swallow all)."""
+    rep = run_workload("w1", 400, r=0.0, seed=1, db_path=":memory:", max_seconds=0.3)
+    reached = rep["reached"]["reports"]
+    assert rep["reached"]["stopped_early"] is True and 0 < reached < 400
+    assert rep["appends"]["count"] + rep["appends"]["warmup"]["count"] == reached
+    assert rep["appends"]["warmup"]["count"] == max(1, int(0.05 * reached))
+    assert rep["appends"]["count"] > 0 or reached < 20
+
+
+def test_old_all_warmup_results_fall_back_to_the_warmup_block() -> None:
+    run = _fake_run(72, perfect=True)
+    appends = run["appends"]
+    assert isinstance(appends, dict)
+    run["appends"] = {**appends, "count": 0, "p99_ms": 0.0, "warmup": {**appends["warmup"], "p99_ms": 321.0}}
+    assert targets.append_stats(run)["p99_ms"] == 321.0
+
+
+def test_tiny_runs_never_serve_as_the_smallest_scale_for_flatness() -> None:
+    tiny, small, large = _fake_run(72, perfect=True), _fake_run(300, perfect=True), _fake_run(1000, perfect=True)
+    for r in (tiny, small, large):
+        r["params"] = {"persons": None}
+    rows = targets.evaluate([tiny, small, large], [], [])
+    t6 = next(r for r in rows if r["id"] == "T6" and r["workload"] == "w1")
+    assert t6["measured_at_reports"] == [300, 1000]
+
+
+def test_explicit_persons_runs_never_judge_a_target() -> None:
+    primary, supplementary = _fake_run(500, perfect=True), _fake_run(9000, perfect=False)
+    primary["params"], supplementary["params"] = {"persons": None}, {"persons": 250}
+    rows = targets.evaluate([primary, supplementary], [], [])
+    t2 = next(r for r in rows if r["id"] == "T2" and r["workload"] == "w1")
+    assert t2["measured_at_reports"] == 500
