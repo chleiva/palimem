@@ -2,7 +2,7 @@
 
 **Justified memory for LLM agents.** Beliefs are held with the evidence that justifies them; withdrawing or correcting a report repairs every conclusion that depended on it; unresolved alternatives are kept rather than guessed.
 
-> **Status: pre-alpha (0.0.x). The memory API does not exist yet.** The package on PyPI is a name reservation. This repository holds the contracts, the evidence log and storage layer, admission and policy code, and the evaluation harness; the kernel is still being ported. Contracts may break at any 0.x release, and 1.0 means the gate-G2 acceptance suite passes. Nothing below is a claim about a released system.
+> **Status: pre-alpha (0.0.x).** The `Memory` facade, the agent tool API, an MCP server and a CLI exist in this repository; the package on PyPI (0.0.1) is still only a name reservation, so install from a checkout (`pip install -e .`). Contracts may break at any 0.x release, and 1.0 means the gate-G2 acceptance suite passes. Nothing below is a claim about a released system.
 
 palimem is the SDK built on the revision kernel validated in the PALIMPSEST study ([DOI 10.5281/zenodo.23127764](https://doi.org/10.5281/zenodo.23127764), code at [`chleiva/palimpsest`](https://github.com/chleiva/palimpsest)).
 
@@ -49,17 +49,45 @@ The full regime table (accuracy against the hidden world, by whether the latest 
 
 The poisoning figure comes from 78 queries and a single attacker model; the design calls it "better, not safe". The threat model is in [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md).
 
-## 6. Quickstart (planned API, not yet implemented)
+## 6. Quickstart
+
+Three calls cover the common case (a checkout install, `pip install -e .`; this snippet is run by the test suite):
 
 ```python
-# PLANNED. This does not run today.
 from palimem import Memory
 
-m = Memory("agent.db")                                         # SQLite, schema declared or loaded
-m.observe(text_or_report, source=..., origin=...)              # extract (optional) + append + admit + revise
-a = m.ask("employer", "alice", valid_at=..., belief_as_of=...) # Answer: kernel_status, decision, provenance
-m.withdraw(report_id, actor=...)                               # authority-checked; cascades through justifications
+m = Memory("agent.db")                                   # SQLite file (":memory:" for a throwaway store)
+r = m.observe({"entity": "alice", "attr": "employer", "value": "Acme"}, source="hr")
+a = m.ask("employer", "alice")                           # an Answer: kernel_status, decision, provenance
+print(a.kernel_status.value, a.decision.value)
+m.withdraw(r.report_id, actor="connector:hr")            # authority-checked; cascades through justifications
+print(m.ask("employer", "alice").kernel_status.value)
 ```
+
+```text
+established commit
+unknown
+```
+
+With no schema declared, an attribute is declared the first time it is seen as a multi-valued, open-world set (the
+safest class: absence is `unknown`, never "no"). Declare a schema for single-valued or changeable attributes
+(`Memory("agent.db", schema=...)`). `observe` takes a typed claim or a `Report`; plain text needs an extractor and is
+refused otherwise: palimem never guesses a key from prose.
+
+An LLM never gets this object. It gets a session whose source, origin and actor the host fixes:
+
+```python
+tools = m.agent_session("agent:support")                 # host code; the tools below are what the LLM may call
+print(tools.call("recall", {"query": {"entity": "alice", "attr": "employer"}}).text)
+```
+
+```text
+alice/employer: UNKNOWN (no admissible evidence). Do not guess; say it is unknown or ask.
+  decision=abstain; policy=p-default.
+```
+
+The same tools are served over MCP by `palimem mcp agent.db --principal agent:support`. How to read an answer
+(`established`, `unresolved`, `unknown`, `single_origin`, `resource_limited`) is in [`docs/AGENT_GUIDE.md`](docs/AGENT_GUIDE.md).
 
 The acceptance tests are the study's frozen evaluation sets plus the independent conformance fixtures (in progress). The frozen sets are fetched and checksum-verified by the harness.
 
@@ -72,11 +100,11 @@ The acceptance tests are the study's frozen evaluation sets plus the independent
 | Admission, authority and policy | Built, with unit tests | `src/palimem/admission/`, `src/palimem/policy/`, [`docs/API_TRUST_BOUNDARY.md`](docs/API_TRUST_BOUNDARY.md) |
 | Storage (in-memory and SQLite backends, salted hash-chained log, `verify_log`, crash tests) | Built; generation barrier, outbox, merges and erasure repair not yet | [`docs/STORAGE.md`](docs/STORAGE.md) |
 | Differential harness, frozen-set guard, cost ledger | Built; Setting 1 only | [`docs/HARNESS.md`](docs/HARNESS.md) |
-| Kernel (enumeration, with a faster candidate kernel researched) | In progress | [`docs/research/R41_MEMO.md`](docs/research/R41_MEMO.md) |
+| Kernel (enumeration; a faster candidate kernel researched) and the full pipeline | Built; the pipeline matches the study's frozen gold on all 30,272 Setting 1 queries | [`docs/PIPELINE.md`](docs/PIPELINE.md), [`docs/research/R41_MEMO.md`](docs/research/R41_MEMO.md) |
 | Conformance fixtures | In progress | `tests/conformance/` |
-| Extractor interface and extraction-quality evaluation | In progress | `tests/conformance/` |
+| Extractor interface and extraction-quality evaluation | Interface built; evaluation set designed, no model run yet | [`docs/EXTRACTION.md`](docs/EXTRACTION.md) |
 | Agent-level benchmark (RETRACT-ACT) | Designed, not run | [`docs/eval/AGENT_BENCHMARK.md`](docs/eval/AGENT_BENCHMARK.md) |
-| `Memory` facade, agent tool API, MCP server, CLI | Not started | |
+| `Memory` facade, agent tool API, MCP server (stdio), CLI | Built, pre-alpha; 18 of 20 trust-boundary fixtures pass, the other two have recorded causes | [`docs/AGENT_GUIDE.md`](docs/AGENT_GUIDE.md), [`docs/API_TRUST_BOUNDARY.md`](docs/API_TRUST_BOUNDARY.md) |
 | Threat model and security policy | Written | [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md), [`SECURITY.md`](SECURITY.md) |
 
 Versioning: [`docs/VERSIONING.md`](docs/VERSIONING.md). Releasing: [`docs/RELEASING.md`](docs/RELEASING.md).

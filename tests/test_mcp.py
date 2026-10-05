@@ -178,5 +178,5 @@ def test_real_subprocess_serves_one_client_over_stdio(tmp_path: Path) -> None:
 @pytest.mark.parametrize("name", ["remember", "retract", "dispute"])
 def test_write_tools_are_flagged_as_writes(name: str) -> None:
     s, _ = server()
-    spec = {x.name: x for x in s.tools._specs.values()}[name]  # noqa: SLF001
+    spec = {x.name: x for x in s.tools._specs.values()}[name]
     assert spec.writes is True and spec.to_dict()["annotations"]["readOnlyHint"] is False

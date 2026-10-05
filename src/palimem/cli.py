@@ -14,11 +14,12 @@ from collections import Counter
 from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
-from typing import Any, TextIO
+from typing import Any, TextIO, cast
 
 from palimem import __version__
 from palimem.agent import answer_json, answer_text, explanation_json, explanation_text
 from palimem.facade import Memory
+from palimem.store import Backend, SQLiteBackend
 from palimem.types import (
     Answer,
     ExplainMode,
@@ -170,10 +171,19 @@ def cmd_import(args: argparse.Namespace, out: TextIO) -> int:
     if dest.exists() and dest.stat().st_size > 0:
         raise CliError(f"{args.db} already exists: import needs a new or empty database")
     schema = _schema_from_export(lines)
-    with Memory(dest, schema=schema) as m:
-        rep = m.backend.import_jsonl(lines, reviser=m.core.reviser)
-        ok = m.verify().ok
-    out.write(f"imported {rep.log_rows} log rows, {rep.admissions} admissions; chain {'ok' if ok else 'BROKEN'}\n")
+    # The store must be empty for an import, but a Memory writes its inputs when it is built. So the kernel stages
+    # are built over a scratch store and bound to the target for the replay; reopening the result adopts what the
+    # export carried (schema, admission, policy).
+    with Memory(":memory:", schema=schema) as scratch:
+        target = cast(Backend, SQLiteBackend(dest))
+        try:
+            scratch.core.pipeline.bind(target)
+            rep = target.import_jsonl(lines, reviser=scratch.core.reviser)
+        finally:
+            target.close()
+    with Memory(dest) as m:
+        ok = m.verify().ok and m.backend.verify_beliefs(m.core.reviser).ok
+    out.write(f"imported {rep.log_rows} log rows, {rep.admissions} admissions; verified {'ok' if ok else 'BROKEN'}\n")
     return EXIT_OK if ok else EXIT_PROBLEM
 
 
