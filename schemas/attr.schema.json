@@ -340,7 +340,10 @@
         "reads",
         "fn"
       ],
-      "type": "object"
+      "type": "object",
+      "x-palimem-reserved": {
+        "exceptions": "reserved: rule exceptions are not part of contract v2 or of 0.x (S-10 narrows rules to strict rules); a rule carrying an 'exceptions' member is refused, and adding the field later is non-breaking"
+      }
     },
     "Timestamp": {
       "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?(Z|[+-]\\d{2}:\\d{2})$",

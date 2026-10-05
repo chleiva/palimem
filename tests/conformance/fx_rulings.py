@@ -383,8 +383,40 @@ def r05() -> list[dict[str, Any]]:
     return out
 
 
+def r07() -> list[dict[str, Any]]:
+    """Ruling 10: rule exceptions are reserved in 0.x; strict rules stay."""
+    out: list[dict[str, Any]] = []
+    f = scen(
+        "r07-rule-exceptions-are-reserved-in-the-product-profile", "A rule that declares exceptions is refused at load in the product profile",
+        "G0", "rules", ["ruling-10", "S-10"],
+        "AUTHOR RULING 10 of 2026-10-05: rule exceptions are not in 0.x; S-10 narrows to strict rules and `exceptions` is reserved. A schema whose "
+        "derived attribute declares an exception attribute is refused when the store is opened, with an explanation naming the rule. (The compat "
+        "profile keeps the paper's closed-world exception handling, exercised by s10-01, s10-03 and s10-04.)",
+        {"employer": A("single_changeable", vt="entity"), "hq_city": A("single_stable", vt="entity"), "remote": A("single_changeable", vt="bool"),
+         "work_city": A("derived", vt="entity", reads=["employer", "hq_city", "remote"],
+                        fn="work_city(e,c) <- employer(e,x), hq_city(x,c) unless remote(e,true)", exceptions=["remote"])},
+        [], source=RULINGS + " item 10")
+    f["setup"]["expect_load_error"] = {"reason": "rule_exceptions_reserved"}
+    out.append(f)
+    out.append(scen(
+        "r07-strict-rules-stay", "A strict rule (no exceptions) derives as before in the product profile",
+        "G1", "rules", ["ruling-10", "S-10"],
+        "Strict rules are what 0.x keeps: work_city(alice) reads employer(alice) and hq_city(veltran) with no exception; with both reports "
+        "present it is established Tessaly, and withdrawing the employer report removes it.",
+        {"employer": A("single_changeable", vt="entity"), "hq_city": A("single_stable", vt="entity"), "work_city": WORK_CITY},
+        [
+            append("r1", d(2, 1), "alice", "employer", V("veltran"), source="press"),
+            append("r2", d(2, 2), "veltran", "hq_city", V("tessaly")),
+            query("q1", Q("alice", "work_city"), resolved("established", assertion=c_value("tessaly"))),
+            withdraw("r3", d(2, 10), "$r1", "alice", "employer", source="press"),
+            query("q2", Q("alice", "work_city"), {"kernel_status": "unknown"}),
+        ],
+        source=RULINGS + " item 10"))
+    return out
+
+
 def build() -> list[dict[str, Any]]:
-    return [*r01(), *r02(), *r03(), *r04(), *r05()]
+    return [*r01(), *r02(), *r03(), *r04(), *r05(), *r07()]
 
 
 __all__ = ["build"]

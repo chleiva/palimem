@@ -51,6 +51,7 @@ from palimem.kernel import (
     day_of,
     justify_derived,
     justify_key,
+    reject_reserved_rule_features,
 )
 from palimem.kernel.derive import MAX_DEPTH as MAX_RULE_DEPTH
 from palimem.kernel.justify import Family, segment_at
@@ -427,6 +428,7 @@ class Pipeline:
         admission: str | None = None,
     ) -> None:
         check_schema(kernel_schema)  # static exactness: refuse a schema the per-key kernel cannot justify exactly
+        reject_reserved_rule_features(kernel_schema, semantic.profile)  # rule exceptions are reserved in the product (ruling 10)
         depths = derivation_depths(kernel_schema)
         if max(depths.values(), default=0) > MAX_RULE_DEPTH:
             raise RuleDepthError(

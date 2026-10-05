@@ -208,7 +208,7 @@ pipeline does not have), 14 are pending a decision, 2 are shells, 20 are the tru
 | fixture and a recorded decision disagree: row 20 store-wide dirty marker vs H4 component scope | `ind-20` |
 | fixture and a recorded store behaviour disagree: STORAGE §9.5 (completion at the same LSN answers a snapshot read) | `ind-22` |
 | the store does not expose it: erasure requester on the tombstone; keys stamped/skipped by a completion job | `ind-10`, `ind-21` |
-| not implemented in the kernel: open-world rule exceptions (S-10); semantics of an authorised `dispute` (S-02 open point) | `s10-02`, `sec-41b` |
+| not implemented in the kernel: open-world rule exceptions (reserved, ruling 10); (authorised `dispute` and negative evidence are now implemented, rulings 3 and 4) | `s10-02`, `sec-41b` |
 
 `tests/conformance/memory_status.json` is a **ratchet**: a fixture that passed must keep passing and a new failure must be
 listed with its cause. Fixtures are never edited to pass. (One shape defect was corrected, not weakened: `s12-01` expected
@@ -245,12 +245,16 @@ study checkout, no frozen cache and no deposit zip, on Python 3.11 and 3.13).
 4. **Erasure requester.** `ind-10` expects the tombstone to name who requested the erasure; the store's `Tombstone` carries a
    pseudonymised `actor_ref` of the *report's* actor and `Memory.delete` takes no requester.
 5. **Completion report.** `CompletionReport` has counts, not the keys stamped or skipped (`ind-21`).
-6. **Open-world rule exceptions** (S-10: an unknown exception follows the exception attribute's completeness) are not implemented
-   in the kernel (`s10-02`); `Rule` also has no `exceptions` field yet.
-7. **Authorised `dispute`** has no kernel semantics (S-02 open point): `EvidenceSet.disputes` is not read (`sec-41b`).
+6. **Rule exceptions are reserved** (author ruling 10 of 2026-10-05; S-10 narrows rules to strict rules): the product profile refuses a rule
+   with exceptions at load (`RuleExceptionsReserved`); the compat profile keeps the paper's closed-world handling. `s10-02` (open-world
+   unknown exception) is a shell reserved with the feature.
+7. **Authorised `dispute`** is read as a denial of its target in the product profile (ruling 3, `docs/decisions/S-02.md`): the target's
+   candidate becomes unresolved against "disputed" until another origin group confirms it or the dispute is withdrawn; a dispute the
+   kernel cannot model (out of the polarity scope) is inert but never fails an append. `sec-41b` and `tb-18` pass.
 8. **`inertia = false` on a changeable attribute** is specified (the value holds only within its stated valid interval, no extension;
    S-08, ruling 14 of 2026-10-05) but not implemented; the kernel refuses it and the adapter reports `ind-11` / `ind-12` as skipped.
-9. **Negative evidence, crash points other than the store's steps, tamper/restore hooks, extraction** are not in
+9. **Negative evidence** is supported in the product profile for the class of keys stated in `docs/decisions/S-04.md` (ruling 4);
+   outside it the kernel refuses. **Crash points other than the store's steps, tamper/restore hooks, extraction** are not in
    the pipeline; the adapter returns `NotImplemented` and those fixtures are skipped with a reason. (Entity merges and
    `find` are in the entity layer, `docs/ENTITIES.md`: three small hooks in `Pipeline`/`KernelReviser`/`Memory`.)
 10. **Source-scope withdraw.** The contract still has none; the compat marker is the only representation. Whether the product

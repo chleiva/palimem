@@ -145,8 +145,9 @@ def s10() -> list[dict[str, Any]]:
         append("r1", d(2, 1), "alice", "employer", V("veltran"), source="press"),
         append("r2", d(2, 2), "veltran", "hq_city", V("tessaly")),
     ]
-    ex = [("Rule has no structured 'exceptions' in palimem.types.Rule (only reads and fn); fixtures name them in fn and in rule.exceptions, "
-          "which the type must grow (S-10 needs exception attributes to be identifiable).")]
+    ex = [("AUTHOR RULING 10 of 2026-10-05: rule exceptions are RESERVED (not in 0.x; S-10 narrows rules to strict rules). The product profile "
+          "refuses a rule with exceptions at load (see r07-*). The compat profile keeps the paper's closed-world exception handling, "
+          "which is what the s10 fixtures that stay active now exercise.")]
     out.append(scen(
         "s10-01-exception-absent-closed-fires", "Rule exception absent on a closed (declared) attribute: the rule fires",
         "G1", "rules", ["S-10", "S-04"],
@@ -155,7 +156,8 @@ def s10() -> list[dict[str, Any]]:
         "profile reproduces).",
         rule_schema("declared"),
         [*base_ops, query("q1", Q("alice", "work_city"), resolved("established", assertion=c_value("tessaly")))],
-        deps=ex, source="S-10 decision (accepted 2026-10-04)"))
+        profile="revise-stream-v1", requires=["profile_revise_stream_v1"],
+        deps=ex, source="S-10 decision (accepted 2026-10-04); compat profile since ruling 10"))
     out.append(scen(
         "s10-02-exception-unknown-open-unresolved", "Rule exception unknown on an open attribute: the derived belief is unresolved",
         "G1", "rules", ["S-10"],
@@ -165,7 +167,9 @@ def s10() -> list[dict[str, Any]]:
         "choosing ask, so it is not asserted here.",
         rule_schema("open"),
         [*base_ops, query("q1", Q("alice", "work_city"), resolved("unresolved", _candidates=unordered(c_value("tessaly"), c_empty())))],
-        deps=ex, source="S-10 decision (accepted 2026-10-04)"))
+        status="shell",
+        reason="Reserved with the feature: rule exceptions are not in 0.x (ruling 10 of 2026-10-05). The open-world semantic is derived when exceptions are admitted.",
+        deps=ex, source="S-10 decision (accepted 2026-10-04); reserved by ruling 10"))
     out.append(scen(
         "s10-03-exception-established-true-blocks", "Rule exception established true: the rule is blocked",
         "G1", "rules", ["S-10"],
@@ -174,7 +178,8 @@ def s10() -> list[dict[str, Any]]:
         rule_schema("open"),
         [*base_ops, append("r3", d(2, 3), "alice", "remote", V(True)), query("q1", Q("alice", "work_city"), NOT_FOUND),
          query("q2", Q("alice", "employer"), resolved("established", assertion=c_value("veltran")))],
-        deps=ex, source="S-10 decision (accepted 2026-10-04)"))
+        profile="revise-stream-v1", requires=["profile_revise_stream_v1"],
+        deps=ex, source="S-10 decision (accepted 2026-10-04); compat profile since ruling 10"))
     out.append(scen(
         "s10-04-exception-unresolved-two-worlds", "Rule exception unresolved: two worlds, the derived belief is unresolved",
         "G1", "rules", ["S-10"],
@@ -183,7 +188,8 @@ def s10() -> list[dict[str, Any]]:
         rule_schema("open"),
         [*base_ops, append("r3", d(2, 3), "alice", "remote", V(True)), append("r4", d(2, 3), "alice", "remote", V(False), source="press"),
          query("q1", Q("alice", "work_city"), resolved("unresolved", _candidates=unordered(c_value("tessaly"), c_empty())))],
-        deps=ex, source="S-10 decision (accepted 2026-10-04)"))
+        profile="revise-stream-v1", requires=["profile_revise_stream_v1"],
+        deps=ex, source="S-10 decision (accepted 2026-10-04); compat profile since ruling 10"))
     f = scen(
         "s10-05-shared-ancestor-rule-refused", "A rule whose body reaches one base attribute twice is refused at schema load",
         "G0", "rules", ["S-10", "T-B5", "design-exactness-conditions"],

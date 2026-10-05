@@ -22,6 +22,7 @@ from dataclasses import dataclass
 
 from palimem.kernel.derive import base_attrs_closure
 from palimem.kernel.spec import KernelSchema, KernelUnsupported
+from palimem.types import Profile
 
 
 class ExactnessViolation(ValueError):
@@ -79,6 +80,26 @@ def check_schema(schema: KernelSchema) -> None:
             "schema violates the per-key kernel's exactness condition (a base key can be reached twice on a "
             "derivation path): " + "; ".join(str(o) for o in overlaps)
         )
+
+
+class RuleExceptionsReserved(KernelUnsupported):
+    """A rule declares exceptions, which are reserved in the product profile (not in 0.x; S-10, author ruling 10)."""
+
+
+def reject_reserved_rule_features(schema: KernelSchema, profile: Profile) -> None:
+    """Rule ``exceptions`` are **reserved** in the product profile (author ruling 10 of 2026-10-05): 0.x has strict rules only.
+
+    The compat profile keeps the closed-world exception handling the paper's oracle needs (the differential gates depend on
+    it); nothing else changes there. A refused schema names the rule, so the author of the schema knows what to remove."""
+    if profile is Profile.REVISE_STREAM_V1:
+        return
+    for r in schema.rules:
+        if r.exceptions:
+            raise RuleExceptionsReserved(
+                f"rule {r.id}: exceptions are reserved (not in 0.x; S-10 narrows rules to strict rules). Remove the rule's "
+                "exceptions, or model the blocking condition as a separate derived attribute. The compat profile "
+                "revise-stream-v1 keeps the paper's closed-world exception handling."
+            )
 
 
 def check_all(schemas: Sequence[KernelSchema]) -> None:

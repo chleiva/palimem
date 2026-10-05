@@ -258,7 +258,16 @@ def build_defs() -> dict[str, dict[str, Any]]:
             _when("mode", ["open", "by_enumeration"], _absent_or_null("scope")),
         ],
     )
-    d["Rule"] = _obj({"reads": _arr(nonempty, minItems=1, uniqueItems=True), "fn": nonempty}, ["reads", "fn"])
+    d["Rule"] = _obj(
+        {"reads": _arr(nonempty, minItems=1, uniqueItems=True), "fn": nonempty},
+        ["reads", "fn"],
+        **{
+            "x-palimem-reserved": {
+                "exceptions": "reserved: rule exceptions are not part of contract v2 or of 0.x (S-10 narrows rules to strict "
+                "rules); a rule carrying an 'exceptions' member is refused, and adding the field later is non-breaking"
+            }
+        },
+    )
     d["KeyScope"] = _obj({"attr": nonempty, "entity": nonempty}, [])
     d["Who"] = _obj(
         {"kind": _enum(_vals(WhoKind)), "value": _nullable(string)},

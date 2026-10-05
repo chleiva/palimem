@@ -1,25 +1,21 @@
 {
   "version": 1,
   "kind": "scenario",
-  "id": "s10-01-exception-absent-closed-fires",
-  "title": "Rule exception absent on a closed (declared) attribute: the rule fires",
+  "id": "r07-strict-rules-stay",
+  "title": "A strict rule (no exceptions) derives as before in the product profile",
   "gate": "G1",
   "area": "rules",
   "status": "active",
   "covers": [
-    "S-10",
-    "S-04"
+    "ruling-10",
+    "S-10"
   ],
-  "requires": [
-    "profile_revise_stream_v1"
-  ],
-  "spec_dependencies": [
-    "AUTHOR RULING 10 of 2026-10-05: rule exceptions are RESERVED (not in 0.x; S-10 narrows rules to strict rules). The product profile refuses a rule with exceptions at load (see r07-*). The compat profile keeps the paper's closed-world exception handling, which is what the s10 fixtures that stay active now exercise."
-  ],
-  "why": "remote is declared completeness declared(all). Closed world means absence of a remote(alice) report is 'remote is false', so the defeasible rule is not blocked and work_city(alice) = tessaly is established (this is the paper's behaviour, which the compat profile reproduces).",
-  "source": "S-10 decision (accepted 2026-10-04); compat profile since ruling 10",
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "Strict rules are what 0.x keeps: work_city(alice) reads employer(alice) and hq_city(veltran) with no exception; with both reports present it is established Tessaly, and withdrawing the employer report removes it.",
+  "source": "docs/decisions/RULINGS-2026-10-05.md item 10",
   "setup": {
-    "profile": "revise-stream-v1",
+    "profile": "open-world",
     "schema": {
       "employer": {
         "class": "single_changeable",
@@ -31,12 +27,6 @@
         "value_type": "entity",
         "inertia": false
       },
-      "remote": {
-        "class": "single_changeable",
-        "value_type": "bool",
-        "inertia": true,
-        "completeness": "declared"
-      },
       "work_city": {
         "class": "derived",
         "value_type": "entity",
@@ -44,13 +34,9 @@
         "rule": {
           "reads": [
             "employer",
-            "hq_city",
-            "remote"
+            "hq_city"
           ],
-          "fn": "work_city(e,c) <- employer(e,x), hq_city(x,c) unless remote(e,true)",
-          "exceptions": [
-            "remote"
-          ]
+          "fn": "work_city(e,c) <- employer(e,x), hq_city(x,c)"
         }
       }
     },
@@ -137,6 +123,43 @@
             "v": "tessaly"
           }
         }
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r3",
+      "at": "2026-02-10T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": null,
+        "cue": "withdraw",
+        "target": "$r1",
+        "source": {
+          "id": "press",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_press",
+        "actor": "connector:press",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q2",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "work_city"
+        }
+      },
+      "expect": {
+        "kernel_status": "unknown"
       }
     }
   ]

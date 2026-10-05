@@ -142,13 +142,18 @@ class KernelSchema:
           valid interval, with no extension; S-08, author ruling of 2026-10-05) but not implemented, so the kernel
           refuses it.
         """
-        del profile  # the profile selects classification, not the schema mapping
+        from palimem.kernel.exactness import (
+            reject_reserved_rule_features,  # circular at import time
+        )
+
         attrs: dict[str, AttrSpec] = {}
         rules: list[RuleSpec] = []
         for a in schema.attrs:
             attrs[a.name], rs = _spec_from_attr(a)
             rules.extend(rs)
-        return cls(attrs=attrs, rules=tuple(rules), entities=tuple(entities))
+        ks = cls(attrs=attrs, rules=tuple(rules), entities=tuple(entities))
+        reject_reserved_rule_features(ks, profile)
+        return ks
 
 
 def _spec_from_attr(a: Attr) -> tuple[AttrSpec, tuple[RuleSpec, ...]]:
