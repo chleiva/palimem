@@ -137,7 +137,7 @@ tested against a subprocess and an in-process fake transport; it has not been ex
 | `palimem inspect DB` | head, hash chain status, schema, and the current belief of every key |
 | `palimem explain DB ENTITY ATTR [--as-of N]` | the answer and what justifies it |
 | `palimem diff DB ENTITY ATTR --a N --b M` | how the belief changed between two log positions |
-| `palimem verify DB` | check the hash chain and recompute stored beliefs |
+| `palimem verify DB [--scope log\|beliefs\|all] [--incremental]` | `log`: the hash chain; `beliefs`: recompute each stored belief from the log, offline (no network, no model); `all` (default): both |
 | `palimem export DB -o dump.jsonl` / `palimem import NEWDB dump.jsonl` | portable evidence log (it carries salts: treat it like the database) |
 | `palimem mcp DB --principal P` | serve the agent tools over MCP |
 

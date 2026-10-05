@@ -21,7 +21,7 @@ import uuid
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from palimem.admission import AdmissionConfig, Admitter, Evaluation, EvidenceSet
 from palimem.engine import (
@@ -53,6 +53,7 @@ from palimem.store import (
     LimitedRead,
     StoreError,
     Tombstone,
+    VerifyResult,
 )
 from palimem.store import NotReconstructable as StoredNotReconstructable
 from palimem.store.views import belief_view, select_segment
@@ -91,6 +92,7 @@ from palimem.types._codec import Value
 from palimem.types.limits import DEFAULT_ENVIRONMENT_BUDGET
 
 ChangeFrom = Callable[[Report], Value | None]
+VerifyScope = Literal["log", "beliefs", "all"]
 
 
 @dataclass(frozen=True)
@@ -357,6 +359,37 @@ class Memory:
     def _head_lsn(self) -> int:
         return self.backend.head().lsn
 
+    def verify(
+        self, scope: VerifyScope = "log", *, keys: Sequence[Key] | None = None, incremental: bool = False
+    ) -> VerifyResult:
+        """Check the store, in one of two scopes (author ruling 2026-10-05: both are kept).
+
+        ``scope="log"``: the salted hash chain of the evidence and admission logs (edits, deletions, reordering, a restored
+        older copy); it needs only the log. ``scope="beliefs"``: recompute each stored current belief from the stored log
+        with the local kernel and compare (a tampered or stale belief row). The beliefs scope is **offline**: it opens no
+        network connection and calls no model; it needs only the database file and this package. ``keys`` verifies just
+        those keys; ``incremental`` verifies only what changed since the last successful incremental run (and moves the
+        checkpoint); with neither, every current key is verified. ``scope="all"`` runs both and merges the results."""
+        if scope not in ("log", "beliefs", "all"):
+            raise ValueError(f"verify scope must be 'log', 'beliefs' or 'all', not {scope!r}")
+        log = self.backend.verify_log() if scope in ("log", "all") else None
+        beliefs: VerifyResult | None = None
+        if scope in ("beliefs", "all"):
+            if incremental:
+                if keys is not None:
+                    raise ValueError("verify: 'keys' and 'incremental' are alternatives")
+                beliefs = self.backend.verify_beliefs_incremental(self.reviser)
+            else:
+                beliefs = self.backend.verify_beliefs(self.reviser, keys=keys)
+        if log is not None and beliefs is not None:
+            return VerifyResult(
+                ok=log.ok and beliefs.ok, checked=log.checked + beliefs.checked, problems=(*log.problems, *beliefs.problems),
+                rows=log.rows, checkpoint_lsn=beliefs.checkpoint_lsn,
+            )
+        res = log if log is not None else beliefs
+        assert res is not None
+        return res
+
     def lsn_of(self, as_of: BeliefAsOf | None) -> int:
         """Resolve a ``belief_as_of`` (LSN, timestamp or ``None`` = now) to a log position (S-05)."""
         if as_of is None:
@@ -567,4 +600,4 @@ def replace_memory(m: Memory) -> Memory:
     return c
 
 
-__all__ = ["AttributedClaim", "Memory", "NotReconstructableError", "admission_payload", "policy_payload", "semantic_payload"]
+__all__ = ["AttributedClaim", "Memory", "NotReconstructableError", "VerifyScope", "admission_payload", "policy_payload", "semantic_payload"]

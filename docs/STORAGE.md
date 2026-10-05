@@ -143,6 +143,9 @@ the plain-key index against the committed content, and the whole admission chain
 attacker cannot rewrite (a commit in a repo, an append-only bucket). **Without an anchor, an attacker who recomputes
 every hash is not detected** (T-24, accepted): the chain is tamper-*evidence*, not signing.
 
+`Memory.verify(scope)` (author ruling 2026-10-05) exposes both checks: `scope="log"` is `verify_log` (the chain), `scope="beliefs"` is
+`verify_beliefs` (offline: only the database file and this package, no network and no model), `scope="all"` runs both; `keys=` verifies
+keys on demand and `incremental=True` checks only what changed since the last successful run. The CLI is `palimem verify --scope`.
 `verify_beliefs(reviser, keys=None)` (SEC-25) recomputes each current belief with `Reviser.recompute` and compares
 `segments`, `pinned`, `depends_on`, `invalidated_by`; it also flags a current-version index that is behind the newest
 version (`index_mismatch`) and a stored belief that names another key or version (`belief_row_mismatch`). The problem

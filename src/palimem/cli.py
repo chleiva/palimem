@@ -201,18 +201,25 @@ def _schema_from_export(lines: Sequence[str]) -> Schema:
 
 
 def cmd_verify(args: argparse.Namespace, out: TextIO) -> int:
+    scope = args.scope
     with _open(args.db) as m:
-        log = m.verify()
-        bel = m.backend.verify_beliefs(m.core.reviser)
-    problems = [f"log: {p.detail}" for p in log.problems] + [f"beliefs: {p.detail}" for p in bel.problems]
-    data: dict[str, Any] = {"log_ok": log.ok, "beliefs_ok": bel.ok, "problems": problems}
+        log = m.core.verify("log") if scope in ("log", "all") else None
+        bel = m.core.verify("beliefs", incremental=args.incremental) if scope in ("beliefs", "all") else None
+    problems = [f"log: {p.detail}" for p in (log.problems if log else ())] + [
+        f"beliefs: {p.detail}" for p in (bel.problems if bel else ())
+    ]
+    log_ok = None if log is None else log.ok
+    bel_ok = None if bel is None else bel.ok
+    data: dict[str, Any] = {"scope": scope, "log_ok": log_ok, "beliefs_ok": bel_ok, "problems": problems}
     if args.json:
         out.write(json.dumps(data, indent=2, sort_keys=True) + "\n")
     else:
-        out.write(f"evidence log   {'ok' if log.ok else 'BROKEN'}\n")
-        out.write(f"stored beliefs {'ok' if bel.ok else 'BROKEN'}\n")
+        if log is not None:
+            out.write(f"evidence log   {'ok' if log.ok else 'BROKEN'}\n")
+        if bel is not None:
+            out.write(f"stored beliefs {'ok' if bel.ok else 'BROKEN'}\n")
         out.writelines(f"  - {p}\n" for p in problems)
-    return EXIT_OK if (log.ok and bel.ok) else EXIT_PROBLEM
+    return EXIT_OK if (log_ok is not False and bel_ok is not False) else EXIT_PROBLEM
 
 
 def cmd_mcp(args: argparse.Namespace, out: TextIO) -> int:
@@ -273,8 +280,15 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("file")
     sp.set_defaults(fn=cmd_import)
 
-    sp = sub.add_parser("verify", help="check the hash chain and recompute the stored beliefs")
+    sp = sub.add_parser("verify", help="check the hash chain and/or recompute the stored beliefs (offline)")
     db(sp)
+    sp.add_argument(
+        "--scope", choices=["log", "beliefs", "all"], default="all",
+        help="log: the hash chain; beliefs: recompute each stored belief from the log, offline (no network, no model); "
+             "all: both (default)",
+    )
+    sp.add_argument("--incremental", action="store_true",
+                    help="beliefs scope: check only what changed since the last successful incremental run")
     sp.add_argument("--json", action="store_true")
     sp.set_defaults(fn=cmd_verify)
 

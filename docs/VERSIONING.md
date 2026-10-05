@@ -62,6 +62,7 @@ do not change.
 |---|---|---|
 | 2026-10-05 | `Report.change_from` (optional; only for cue `change`; omitted when absent) | `decisions/RULINGS-2026-10-05.md` item 5 |
 | 2026-10-05 | `Power.MERGE`, `MergeRecord`, typed `MergeMarker` (payload version 2; version 1 still read) | `decisions/RULINGS-2026-10-05.md` item 4 |
+| 2026-10-05 | `Memory.verify(scope=log\|beliefs\|all)` and `palimem verify --scope` (the beliefs scope runs offline); the default of `Memory.verify()` stays the log check | `decisions/RULINGS-2026-10-05.md` item 7 |
 | 2026-10-05 | `NotReconstructable`, a third `Answer` variant (`decision: "not_reconstructable"`) | `decisions/RULINGS-2026-10-05.md` item 6 |
 
 ## 5. Deprecation

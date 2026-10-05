@@ -40,6 +40,7 @@ from palimem.agent import (
 )
 from palimem.extract import ExtractionContext, Extractor
 from palimem.memory import Memory as CoreMemory
+from palimem.memory import VerifyScope
 from palimem.policy import PRESETS, PolicyObject
 from palimem.store import Backend, ErasureReason, SQLiteBackend, Tombstone, VerifyResult
 from palimem.types import (
@@ -308,9 +309,14 @@ class Memory:
         ``requester`` (a principal id) is stored on the tombstone as a pseudonym only."""
         return self.host.mem.delete(report_id, reason, requester=requester)
 
-    def verify(self) -> VerifyResult:
-        """Check the log's hash chain."""
-        return self.host.verify_log()
+    def verify(
+        self, scope: VerifyScope = "log", *, keys: Sequence[tuple[str, str] | Key] | None = None, incremental: bool = False
+    ) -> VerifyResult:
+        """Check the store. ``scope="log"`` (the default) checks the hash chain; ``scope="beliefs"`` recomputes the stored
+        beliefs from the log, offline (no network, no model); ``"all"`` does both. ``keys`` are ``(attr, entity)`` pairs or ``Key``s;
+        ``incremental`` checks only what changed since the last successful incremental run."""
+        ks = None if keys is None else [k if isinstance(k, Key) else Key(entity=k[1], attr=k[0]) for k in keys]
+        return self.host.mem.verify(scope, keys=ks, incremental=incremental)
 
     def agent_session(
         self, agent_principal: str, *, session_id: str | None = None, **limits: Any
