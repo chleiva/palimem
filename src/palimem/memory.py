@@ -487,8 +487,35 @@ class Memory:
         ctx = None
         if view.segment.kernel_status.value == "unresolved":
             ctx = DecisionContext.from_entries(self.pipeline.log.entries(upto_lsn=self.lsn_of(q.belief_as_of)))
+        else:
+            ctx = self._support_context(view)  # source classes of the reports behind any listed constraint (the inquiry)
         res = decide(view, self.policy, ctx)  # on the full supports: truncation must never change a decision
+        if res.inquiry is not None:
+            res = self._with_deciding_keys(res, q)
         return cut_explanation(res, q.explanation_budget) if q.explanation_budget is not None else res
+
+    def _support_context(self, view: BeliefView) -> DecisionContext | None:
+        """A decision context over only the reports named in the segment's supports (cheap: no log scan)."""
+        ids = {rid for sl in view.segment.support.values() for s in sl for rid in s.environment}
+        if not ids:
+            return None
+        found = [e for e in (self.pipeline.log.get(rid) for rid in sorted(ids)) if e is not None]
+        return DecisionContext.from_entries(found) if found else None
+
+    def _with_deciding_keys(self, res: Resolved, q: Query) -> Resolved:
+        """Ruling 16: the inquiry names the keys whose evidence would decide. For a derived key those are the base keys
+        its rule reads (the stored belief's ``depends_on``), in addition to the key itself."""
+        inq = res.inquiry
+        assert inq is not None
+        try:
+            r = self.backend.read_belief(res.justified.key, q.belief_as_of)
+        except Exception:  # noqa: BLE001 - an unreadable belief only costs the extra keys, never the answer
+            return res
+        deps = getattr(r, "depends_on", ())
+        extra = [d.key for d in deps if d.key not in inq.missing]
+        if not extra:
+            return res
+        return replace(res, inquiry=replace(inq, missing=tuple(inq.missing) + tuple(extra)))
 
     def explain(self, q: ExplainQuery) -> Explanation:
         """Subset-minimal environments over **base** reports for the answered segment (S-12).

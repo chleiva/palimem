@@ -33,7 +33,7 @@ def test_fixture_is_well_formed(path):
     for ref in [r["ref"] for r in d["setup"]["log"] if "ref" in r]:
         assert ref.startswith("r")
     agent_calls = {s["call"] for s in d["steps"] if s["tier"] == "agent"}
-    assert agent_calls <= {"remember", "recall", "retract", "correct", "dispute", "explain"}
+    assert agent_calls <= {"remember", "recall", "retract", "correct", "dispute", "explain", "accept_proposal", "declare_attribute"}
 
 
 def test_agent_authority_scenarios_present():

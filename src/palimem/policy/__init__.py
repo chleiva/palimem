@@ -1,6 +1,7 @@
 """Decision policy: commit, abstain or ask (T-D3). See :mod:`palimem.policy.policy`."""
 
 from palimem.policy.policy import (
+    ABSTAIN,
     DEFAULT_PRIORS,
     JUSTIFIED,
     LWW,
@@ -10,6 +11,7 @@ from palimem.policy.policy import (
     PolicyError,
     PolicyObject,
     Selector,
+    build_inquiry,
     decide,
     group_weights,
     newest_lsn,
@@ -18,6 +20,7 @@ from palimem.policy.policy import (
 )
 
 __all__ = [
+    "ABSTAIN",
     "DEFAULT_PRIORS",
     "JUSTIFIED",
     "LWW",
@@ -27,6 +30,7 @@ __all__ = [
     "PolicyError",
     "PolicyObject",
     "Selector",
+    "build_inquiry",
     "decide",
     "group_weights",
     "newest_lsn",

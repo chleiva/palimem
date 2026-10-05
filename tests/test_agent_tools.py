@@ -80,8 +80,12 @@ def test_remember_text_needs_an_extractor_and_says_so(mem: Memory) -> None:
 def test_typed_fact_needs_all_three_parts_and_a_declared_attribute(mem: Memory) -> None:
     tools = mem.agent_session("agent:a1")
     assert tools.call("remember", {"entity": "alice", "attr": "employer"}).data["error"]["code"] == "invalid_arguments"
+    before = mem.schema.version
     out = tools.call("remember", {"entity": "alice", "attr": "salary", "value": "1"})
-    assert out.data["error"]["code"] == "undeclared_attr"  # an agent cannot extend a declared schema
+    # ruling 17: an agent cannot extend a declared schema; the unknown attribute is queued for the host, nothing is recorded
+    assert out.data["queued"] is True and out.data["report_ids"] == [] and out.data["admitted"] is False
+    assert mem.schema.version == before and not any(a.name == "salary" for a in mem.schema.attrs)
+    assert [p.attr for p in mem.proposals("pending")] == ["salary"]
 
 
 def test_request_id_makes_a_retry_safe(mem: Memory) -> None:

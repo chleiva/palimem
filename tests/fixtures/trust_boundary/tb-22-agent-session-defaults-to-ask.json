@@ -1,0 +1,148 @@
+{
+  "id": "tb-22-agent-session-defaults-to-ask",
+  "title": "an agent session bound without a policy defaults to ask, with the inquiry populated (ruling 16)",
+  "covers": [
+    "R9"
+  ],
+  "spec_dependencies": [
+    "ruling 16 of 2026-10-05: the agent session default policy is p-ask"
+  ],
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "inertia": true,
+        "completeness": "open"
+      },
+      "hq_city": {
+        "class": "single_changeable",
+        "inertia": true,
+        "completeness": "open"
+      },
+      "salary": {
+        "class": "single_changeable",
+        "inertia": true,
+        "completeness": "open"
+      }
+    },
+    "connectors": {
+      "conn:user": {
+        "source_id": "src:user",
+        "source_class": "trusted",
+        "origin_group": "g_user",
+        "kind": "user_message",
+        "principal": "user:alice"
+      },
+      "conn:web": {
+        "source_id": "src:web",
+        "source_class": "low",
+        "origin_group": "g_web",
+        "kind": "tool_result"
+      },
+      "conn:registry": {
+        "source_id": "src:registry",
+        "source_class": "trusted",
+        "origin_group": "g_registry",
+        "kind": "feed"
+      },
+      "conn:quarantined": {
+        "source_id": "src:q1",
+        "source_class": "quarantined",
+        "origin_group": "g_q",
+        "kind": "feed"
+      }
+    },
+    "authority": [],
+    "session": {
+      "session_id": "s2",
+      "agent_principal": "agent:a1",
+      "end_user_principal": "user:alice",
+      "allowed_attrs": [
+        "employer",
+        "hq_city"
+      ],
+      "max_explanation_budget": 50
+    },
+    "events": [],
+    "log": [
+      {
+        "ref": "r1",
+        "key": [
+          "acme",
+          "hq_city"
+        ],
+        "proposition": {
+          "form": "value",
+          "v": "London"
+        },
+        "cue": "assert",
+        "origin": "external_observation",
+        "source": {
+          "id": "src:registry",
+          "class": "trusted"
+        },
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "recorded_at": "2026-09-01T10:00:00Z"
+      },
+      {
+        "ref": "r2",
+        "key": [
+          "acme",
+          "hq_city"
+        ],
+        "proposition": {
+          "form": "value",
+          "v": "Paris"
+        },
+        "cue": "assert",
+        "origin": "external_observation",
+        "source": {
+          "id": "src:user",
+          "class": "trusted"
+        },
+        "origin_group": "g_user",
+        "actor": "user:alice",
+        "recorded_at": "2026-09-02T10:00:00Z"
+      }
+    ],
+    "now": "2026-10-02T09:00:00Z"
+  },
+  "steps": [
+    {
+      "tier": "agent",
+      "call": "recall",
+      "args": {
+        "query": {
+          "entity": "acme",
+          "attr": "hq_city"
+        }
+      }
+    }
+  ],
+  "expect": {
+    "steps": [
+      {
+        "result": {
+          "kernel_status": "unresolved",
+          "decision": "ask",
+          "policy": {
+            "version": "p-ask"
+          },
+          "inquiry": {
+            "missing": [
+              {
+                "entity": "acme",
+                "attr": "hq_city"
+              }
+            ],
+            "resolvers": [
+              "trusted"
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

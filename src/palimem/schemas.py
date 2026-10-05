@@ -134,6 +134,10 @@ def _when(prop: str, values: list[str], then: dict[str, Any]) -> dict[str, Any]:
     return {"if": {"properties": {prop: {"enum": values}}, "required": [prop]}, "then": then}
 
 
+def _when_empty(prop: str, then: dict[str, Any]) -> dict[str, Any]:
+    return {"if": {"properties": {prop: {"maxItems": 0}}, "required": [prop]}, "then": then}
+
+
 def _absent_or_null(prop: str) -> dict[str, Any]:
     return {"properties": {prop: {"type": "null"}}}
 
@@ -512,8 +516,10 @@ def build_defs() -> dict[str, dict[str, Any]]:
     )
     d["PolicyInfo"] = _obj({"version": _ref("Nat1"), "rule_fired": _enum(_vals(RuleFired))}, ["version"])
     d["Inquiry"] = _obj(
-        {"competing": _arr(_ref("Candidate"), minItems=1), "missing": _arr(_ref("Key")), "resolvers": _arr(nonempty)},
+        {"competing": _arr(_ref("Candidate")), "missing": _arr(_ref("Key")), "resolvers": _arr(nonempty)},
         ["competing"],
+        # ruling 16: a key with no evidence has no competing candidate; the inquiry must then name a missing key
+        allOf=[_when_empty("competing", _present("missing", _arr(_ref("Key"), minItems=1)))],
     )
     d["Resolved"] = _obj(
         {
@@ -534,7 +540,7 @@ def build_defs() -> dict[str, dict[str, Any]]:
             _when("decision", ["commit"], _present("assertion", _ref("Candidate"))),
             _when("decision", ["abstain", "ask"], _absent_or_null("assertion")),
             _when("decision", ["ask"], _present("inquiry", _ref("Inquiry"))),
-            _when("decision", ["commit", "abstain"], _absent_or_null("inquiry")),
+            _when("decision", ["commit"], _absent_or_null("inquiry")),
         ],
     )
     d["LastComplete"] = _obj({"belief_as_of": _ref("BeliefAsOf"), "view": _ref("BeliefView")}, ["belief_as_of", "view"])

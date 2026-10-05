@@ -76,29 +76,58 @@ value. If `current_available` is true, ask again without `belief_as_of` to read 
 | `scope_denied` | The target is outside this session's scope or you lack authority. Unknown ids look the same on purpose. |
 | `clamped` | A value you asked for exceeded the host's limit and was reduced (`depth`, `max_alternatives`). |
 | `event_unknown` | `cite_event` named an event the host does not hold for this session. Nothing was written. |
+| `attr_queued` | The attribute you named is not declared, so `remember` proposed it to the host and **recorded nothing**. See "Unknown attributes" below. |
 | `claim_rejected` | The extractor produced a claim that could not be bound legitimately (undeclared attribute, wrong form, ...). |
+
+### Unknown attributes (you cannot declare one)
+
+You never declare an attribute. If `remember(entity, attr, value)` names an attribute that does not exist, the memory **queues a
+proposal for the host and records nothing**; the result says `queued: true`, carries the `attr_queued` notice and reads:
+
+```text
+Not recorded: attribute 'bonus' is not declared. It was proposed to the host and queued; nothing is recorded until the host
+accepts it. Do not retry; tell the user the host must approve this attribute.
+```
+
+What to do: do not retry, do not rename the attribute to get around it, and tell the user. The host sees the queue
+(`Memory.proposals()` or `palimem proposals list DB`) and decides; accepting declares the attribute (multi-valued and open
+unless the host picks another class) and records your fact as **your own statement**; rejecting drops it and redacts the
+value. You are never shown a proposal id and there is no tool to list, accept or reject one (nor to declare). Two host
+settings change this, and only the host sets them: `allowed_attrs` (an attribute on the list is declared by the host when you
+first use it; one off the list is `scope_denied`) and `auto_declare` (the host lets this session's unknown attributes be
+declared). Sending `auto_declare`, `allowed_attrs`, `declare` or `accept` yourself does nothing: the fields are dropped with a
+`field_ignored` notice and the attempt is audited. A session may hold only a few pending proposals (`rate_limited` beyond).
 
 ### What it looks like
 
 ```text
 alice/employer: ESTABLISHED = 'Acme'.
   SINGLE ORIGIN: rests on one origin group (g_hr); uncorroborated. Corroboration from a second origin group is what raises it.
-  decision=commit; policy=p-default.
+  decision=commit; policy=p-ask.
 
 alice/employer: UNRESOLVED between 'Acme', 'Globex'.
   Evidence does not decide. Ask a source that can, or tell the user it is unsettled.
-  decision=ask; policy=p-default.
+  Resolvers that could decide: trusted, standard.
+  decision=ask; policy=p-ask.
 
 alice/employer: UNKNOWN (no admissible evidence). Do not guess; say it is unknown or ask.
-  decision=abstain; policy=p-default.
+  Resolvers that could decide: trusted, standard, low.
+  decision=abstain; policy=p-ask.
 
 store/refund_window_days: CONTENT UNKNOWN. Only what other parties are reported to believe is established:
   - dave is reported to believe '30' (2 origin groups).
   That does not establish the value itself. Do not state it as a fact; ask a source that can confirm it, or say it is unconfirmed.
-  decision=ask; policy=p-default.
+  decision=ask; policy=p-ask.
 ```
 
 These strings are pinned by golden tests (`tests/test_agent_render.py`): wording is a contract with the prompt.
+
+**Defaults (ruling 16 of 2026-10-05).** An agent session defaults to **ask** (policy label `p-ask`): abstaining would throw
+away the verification action an agent can take. The host API (`Memory.ask`, `Host.query`) defaults to **abstain** (label
+`p-default`). Whenever the decision is `ask` or `abstain` the answer's `inquiry` says what would settle it: the competing
+candidates (none for a key with no evidence), `missing` (the key itself, and for a derived key the base keys its rule reads)
+and `resolvers` (the source classes at least as trusted as the best class already heard from). A host can bind a session to
+another policy label; an LLM cannot choose its own policy (the argument is ignored and audited).
 
 ## 4. A system-prompt fragment
 

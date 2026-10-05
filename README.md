@@ -83,7 +83,8 @@ print(tools.call("recall", {"query": {"entity": "alice", "attr": "employer"}}).t
 
 ```text
 alice/employer: UNKNOWN (no admissible evidence). Do not guess; say it is unknown or ask.
-  decision=abstain; policy=p-default.
+  Resolvers that could decide: trusted, standard, low.
+  decision=abstain; policy=p-ask.
 ```
 
 The same tools are served over MCP by `palimem mcp agent.db --principal agent:support`. How to read an answer

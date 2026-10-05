@@ -23,11 +23,20 @@ read as a probability. For the best candidate ``p``:
 
 ``utility`` is reserved for learned policies (R3.2) and is not used by the shipped presets.
 
-Presets (``PRESETS``): ``justified`` never selects among unresolved alternatives and asks;
+Presets (``PRESETS``): ``abstain`` never selects among unresolved alternatives and abstains (the HOST default,
+ruling 16 of 2026-10-05); ``justified`` never selects among unresolved alternatives and asks (the AGENT-session
+default);
 ``recency`` picks the alternative with the newest report and commits unless it is outweighed
 (``p < 0.5`` -> ask); ``lww`` always commits the newest. The semantic half of "recency" (the
 same-origin self-update rule P0cSU) belongs to ``SemanticConfig`` and is selected there, not here.
 Reproducing the study's regime table through the adapter is a later task.
+
+Inquiry (ruling 16). Whenever the decision is ``ask`` or ``abstain`` the answer carries an ``inquiry``: the competing
+candidates (for an ``unknown`` segment, the negative constraints, possibly none), the keys whose evidence would decide
+(the key itself; the memory layer adds the base keys a derived key reads) and the source classes that could supply
+it: every class at least as trusted as the best class already heard from on the competing candidates, or every class
+the policy knows when nothing has been heard. ``ENRICH_INQUIRY`` is the registered-benchmark pin's switch: off, the
+inquiry is the pre-ruling one (``ask`` only; ``competing``, and the attribution key for attributions).
 """
 
 from __future__ import annotations
@@ -57,6 +66,7 @@ from palimem.types import (
 from palimem.types._codec import check_nat
 
 DEFAULT_BIAS = 0.5
+ENRICH_INQUIRY = True  # ruling 16; the registered benchmark pin turns it off to reproduce the registered behaviour
 _P_MAX = 1.0 - 1e-9  # the score is never certainty, so ask_threshold = 1.0 means "never commit"
 _TIE = 1e-12
 
@@ -116,7 +126,12 @@ RECENCY = PolicyObject(
 LWW = PolicyObject(
     version=1, name="lww", priors=DEFAULT_PRIORS, abstain_threshold=0.0, ask_threshold=0.0, selector=Selector.RECENCY
 )
-PRESETS: Mapping[str, PolicyObject] = MappingProxyType({p.name: p for p in (JUSTIFIED, RECENCY, LWW)})
+# ruling 16: the host API abstains on an unresolved key (and says what would settle it). Thresholds of 1.0 mean "never
+# commit" (the score is capped below 1) and "never ask", so every unresolved key abstains.
+ABSTAIN = PolicyObject(
+    version=1, name="abstain", priors=DEFAULT_PRIORS, abstain_threshold=1.0, ask_threshold=1.0
+)
+PRESETS: Mapping[str, PolicyObject] = MappingProxyType({p.name: p for p in (JUSTIFIED, RECENCY, LWW, ABSTAIN)})
 
 
 @dataclass(frozen=True)
@@ -199,6 +214,34 @@ def _select(
     return (None if tie else best), (max(scores.values()) if tie else scores[best.id])
 
 
+def _resolver_classes(
+    view: BeliefView, cands: Sequence[Candidate], policy: PolicyObject, ctx: DecisionContext
+) -> tuple[str, ...]:
+    """Source classes whose evidence could decide: every class at least as trusted as the best class already heard from
+    on ``cands`` (a weaker source cannot outweigh it), or every class the policy knows when nothing has been heard."""
+    known = {c: w for c, w in policy.priors.items() if c != "*"}
+    heard = {
+        ctx.report_source_class[rid]
+        for c in cands
+        for rid in _report_ids(_supports(view, c))
+        if rid in ctx.report_source_class
+    }
+    if heard:
+        top = max(policy.prior_of(c) for c in heard)
+        pool = {c: w for c, w in known.items() if w >= top} or known
+    else:
+        pool = known
+    return tuple(sorted(pool, key=lambda c: (-pool[c], c)))
+
+
+def build_inquiry(
+    view: BeliefView, cands: Sequence[Candidate], policy: PolicyObject, ctx: DecisionContext
+) -> Inquiry:
+    """What can be done about an ``ask`` or ``abstain``: the competing candidates, the key whose evidence would decide
+    and the source classes that could supply it. A key with no candidates names itself, so it is never empty."""
+    return Inquiry(competing=tuple(cands), missing=(view.key,), resolvers=_resolver_classes(view, cands, policy, ctx))
+
+
 def decide(
     justified: BeliefView,
     policy: PolicyObject,
@@ -249,16 +292,20 @@ def decide(
     attributed = ([seg.established] if seg.established is not None else []) + list(seg.alternatives)
     if attributed and all(isinstance(c.form, BeliefOfForm) for c in attributed):
         cands = tuple(attributed)
-        return answer(
-            Decision.ASK, RuleFired.ASK, alternatives=cands, inquiry=Inquiry(competing=cands, missing=(cands[0].key,))
+        inq = (
+            build_inquiry(justified, cands, policy, ctx)
+            if ENRICH_INQUIRY
+            else Inquiry(competing=cands, missing=(cands[0].key,))
         )
+        return answer(Decision.ASK, RuleFired.ASK, alternatives=cands, inquiry=inq)
 
     if status in (KernelStatus.ESTABLISHED, KernelStatus.ESTABLISHED_EMPTY, KernelStatus.ESTABLISHED_FALSE):
         assert seg.established is not None
         return answer(Decision.COMMIT, RuleFired.NONE, assertion=seg.established)
     if status is KernelStatus.UNKNOWN:
         # an `unknown` segment may list negative constraints (denials that narrow the value without determining it)
-        return answer(Decision.ABSTAIN, RuleFired.NONE, alternatives=seg.alternatives)
+        unknown_inq = build_inquiry(justified, seg.alternatives, policy, ctx) if ENRICH_INQUIRY else None
+        return answer(Decision.ABSTAIN, RuleFired.NONE, alternatives=seg.alternatives, inquiry=unknown_inq)
 
     # unresolved: the kernel lists alternatives; reliability and recency enter only here
     alts = seg.alternatives
@@ -267,6 +314,7 @@ def decide(
         rule = RuleFired.PRIOR if policy.selector is Selector.CONFIDENCE else RuleFired.THRESHOLD
         rest = tuple(c for c in alts if c.id != chosen.id)
         return answer(Decision.COMMIT, rule, assertion=chosen, alternatives=rest)
+    full_inq = build_inquiry(justified, alts, policy, ctx) if ENRICH_INQUIRY else None
     if p >= policy.abstain_threshold:
-        return answer(Decision.ASK, RuleFired.ASK, alternatives=alts, inquiry=Inquiry(competing=alts))
-    return answer(Decision.ABSTAIN, RuleFired.THRESHOLD, alternatives=alts)
+        return answer(Decision.ASK, RuleFired.ASK, alternatives=alts, inquiry=full_inq or Inquiry(competing=alts))
+    return answer(Decision.ABSTAIN, RuleFired.THRESHOLD, alternatives=alts, inquiry=full_inq)

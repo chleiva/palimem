@@ -182,7 +182,10 @@ def test_abstain_region():
     v, c = two_way()
     a = decide(v, pol, c)  # the best candidate's score is below 0.9
     assert (a.decision, a.policy.rule_fired) == (Decision.ABSTAIN, RuleFired.THRESHOLD)
-    assert a.inquiry is None and len(a.alternatives) == 2
+    # ruling 16: an abstain carries an inquiry too (what would settle it), not only an ask
+    assert len(a.alternatives) == 2 and a.inquiry is not None
+    assert {x.id for x in a.inquiry.competing} == {x.id for x in a.alternatives}
+    assert a.inquiry.missing == (v.key,) and a.inquiry.resolvers
 
 
 # ---------------------------------------------------------------- purity, validation, helpers
@@ -203,7 +206,7 @@ def test_policy_object_validation():
         PolicyObject(version=0, priors={}, abstain_threshold=0.0, ask_threshold=0.5)
     with pytest.raises(ValidationError):
         PolicyObject(version=1, priors={"x": float("nan")}, abstain_threshold=0.0, ask_threshold=0.5)
-    assert set(PRESETS) == {"justified", "recency", "lww"}
+    assert set(PRESETS) == {"justified", "recency", "lww", "abstain"}
     assert PRESETS["lww"].selector is Selector.RECENCY and PRESETS["justified"].selector is Selector.CONFIDENCE
 
 

@@ -40,6 +40,7 @@ from palimem.types.enums import AttrClass
 from palimem.types.values import MemberProp, ValueProp
 
 from .host import ExtractorRequired, Host, HostError, Notice, SessionContext
+from .proposals import ProposalError
 from .render import answer_json, answer_text, explanation_json, explanation_text
 
 
@@ -115,7 +116,8 @@ class AgentTools:
                 "Store something you were told or inferred. It is recorded as YOUR statement (or hypothesis); it never "
                 "becomes established evidence by itself and never confirms anyone else's report. To record what an "
                 "external event said, pass cite_event with its id: the evidence then takes its provenance from the event, "
-                "not from your words. Give plain text, or entity+attr+value for a typed fact.",
+                "not from your words. Give plain text, or entity+attr+value for a typed fact. You cannot create attributes: "
+                "an unknown attr is queued for the host and nothing is recorded.",
                 _schema({
                     "text": {**_STR, "description": "What to remember, in plain words."},
                     "kind": {"type": "string", "enum": ["note", "hypothesis"], "default": "note",
@@ -230,6 +232,9 @@ class AgentTools:
             if not ctx.in_scope(attr):  # check scope before anything can declare an attribute on the agent's say-so
                 return {"report_ids": [], "origin": origin.value, "admitted": False,
                         "_notices": [Notice("scope_denied", "attr", attr)]}
+            queued = self._undeclared(attr, entity, value, origin, request_id)
+            if queued is not None:
+                return queued
             reports = [self._typed(entity, attr, value, origin, source)]
         else:
             if text is None or not text.strip():
@@ -266,11 +271,39 @@ class AgentTools:
             notices.append(Notice("nothing_extracted"))
         return {"report_ids": ids, "origin": origin.value, "admitted": admitted, "_notices": notices}
 
+    def _undeclared(
+        self, attr: str, entity: str, value: Any, origin: Origin, request_id: str | None
+    ) -> dict[str, Any] | None:
+        """Ruling 17 (2026-10-05): an agent never declares an attribute. For an undeclared one: the host's own list
+        (`allowed_attrs`) or opt-in (`auto_declare`) lets the HOST declare it; otherwise it is queued as a proposal and
+        nothing is recorded. Returns the tool result when queued, ``None`` to carry on."""
+        host, ctx = self.host, self.ctx
+        if attr.startswith("__"):  # reserved attributes (entity merges, compat markers) are host-only, never an agent's
+            raise ToolError(f"attribute {attr!r} is reserved", code="reserved_attr")
+        if host.is_declared(attr):
+            return None
+        if ctx.allowed_attrs is not None:  # the host listed it (in_scope passed): pre-approved
+            host.declare_for_session(attr, reason="allowed_attrs", session_id=ctx.session_id)
+        elif ctx.auto_declare:  # the host opted this session in
+            host.declare_for_session(attr, reason="auto_declare", session_id=ctx.session_id)
+        else:
+            try:
+                host.propose_attr(
+                    ctx, entity=entity, attr=attr, value=value, request_id=request_id,
+                    kind="hypothesis" if origin is Origin.AGENT_HYPOTHESIS else "statement",
+                )
+            except ProposalError as e:
+                raise ToolError(str(e), code=e.code) from None
+            return {
+                "report_ids": [], "origin": origin.value, "admitted": False, "queued": True, "attr": attr,
+                "_notices": [Notice("attr_queued", "attr", attr)],
+            }
+        return None
+
     def _typed(self, entity: str, attr: str, value: Any, origin: Origin, source: Source) -> Report:
         host = self.host
         if attr.startswith("__"):  # reserved attributes (entity merges, compat markers) are host-only, never an agent's
             raise ToolError(f"attribute {attr!r} is reserved", code="reserved_attr")
-        host.ensure_declared(attr)
         try:
             a = host.mem.schema.attr(attr)
         except KeyError:
@@ -468,6 +501,11 @@ def _text_of(name: str, data: Mapping[str, Any]) -> str:
     if name == "explain":
         return explanation_text(data) if data.get("kind") == "explanation" else "No matching key in this session's scope."
     if name == "remember":
+        if data.get("queued"):
+            return (
+                f"Not recorded: attribute {data['attr']!r} is not declared. It was proposed to the host and queued; nothing "
+                "is recorded until the host accepts it. Do not retry; tell the user the host must approve this attribute."
+            )
         if data.get("origin") is None:
             return "Nothing recorded (unknown event)."
         n = len(data["report_ids"])

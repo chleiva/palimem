@@ -1,5 +1,5 @@
-"""The ``palimem`` command line (T-F6): inspect, explain, diff, export / import and verify an existing store, and
-serve it to an agent over MCP. Standard library only; output is plain text (``--json`` for tools), stable enough for
+"""The ``palimem`` command line (T-F6): inspect, explain, diff, export / import and verify an existing store, decide the
+attribute proposals agents have queued, and serve it to an agent over MCP. Standard library only; output is plain text (``--json`` for tools), stable enough for
 golden tests.
 
 Read commands never create a database: a missing file is an error, not an empty store.
@@ -227,8 +227,47 @@ def cmd_mcp(args: argparse.Namespace, out: TextIO) -> int:
 
     attrs = tuple(a for a in (args.attrs or "").split(",") if a) or None
     with Memory(args.db) as m:
-        tools = m.agent_session(args.principal, session_id=args.session_id, allowed_attrs=attrs)
+        tools = m.agent_session(
+            args.principal, session_id=args.session_id, allowed_attrs=attrs, auto_declare=args.auto_declare
+        )
         McpServer(tools, read_only=args.read_only).serve(sys.stdin, out)
+    return EXIT_OK
+
+
+def cmd_proposals(args: argparse.Namespace, out: TextIO) -> int:
+    """Host-side decisions on attributes an agent proposed (ruling 17). Not reachable from an agent tool."""
+    from palimem.agent import ProposalError
+    from palimem.agent.host import HostError
+
+    if args.action != "list" and not args.id:
+        raise CliError(f"{args.action} needs the proposal id (see: palimem proposals list DB)")
+    with _open(args.db) as m:
+        if args.action == "list":
+            status = None if args.status == "all" else args.status
+            rows = m.proposals(status)
+            if args.json:
+                out.write(json.dumps([p.to_dict() for p in rows], indent=2, sort_keys=True) + "\n")
+                return EXIT_OK
+            if not rows:
+                out.write("no proposals\n")
+            for p in rows:
+                shown = "(redacted)" if p.value is None else repr(p.value)
+                out.write(
+                    f"{p.id}  {p.status:<8}  {p.agent_principal}  {p.attr}  {p.entity} = {shown}  [{p.kind}, session {p.session_id}]\n"
+                )
+            return EXIT_OK
+        try:
+            if args.action == "accept":
+                p = m.accept_proposal(
+                    args.id, attr_class=args.attr_class, apply=not args.no_apply, actor=args.actor
+                )
+                applied = f", recorded {len(p.applied_report_ids)} report(s)" if p.applied_report_ids else ""
+                out.write(f"accepted {p.id}: declared {p.attr}{applied}\n")
+            else:
+                p = m.reject_proposal(args.id, reason=args.reason, actor=args.actor)
+                out.write(f"rejected {p.id}: {p.attr} stays undeclared; the queued value was redacted\n")
+        except (ProposalError, HostError) as e:
+            raise CliError(str(e)) from None
     return EXIT_OK
 
 
@@ -298,7 +337,24 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--session-id")
     sp.add_argument("--attrs", help="comma-separated attributes the session may touch (default: all)")
     sp.add_argument("--read-only", action="store_true", help="expose recall and explain only")
+    sp.add_argument(
+        "--auto-declare", action="store_true",
+        help="HOST opt-in: let this session's unknown attributes be declared (multi-valued, open) instead of queued as "
+             "proposals (default: queued; the agent can never declare)",
+    )
     sp.set_defaults(fn=cmd_mcp)
+
+    sp = sub.add_parser("proposals", help="list, accept or reject the attributes agents proposed (host only)")
+    sp.add_argument("action", choices=["list", "accept", "reject"])
+    db(sp)
+    sp.add_argument("id", nargs="?", help="the proposal id (accept and reject)")
+    sp.add_argument("--status", choices=["pending", "accepted", "rejected", "all"], default="pending", help="list filter")
+    sp.add_argument("--class", dest="attr_class", help="accept: the attribute class (default: multi_set)")
+    sp.add_argument("--no-apply", action="store_true", help="accept: declare the attribute but do not record the queued fact")
+    sp.add_argument("--reason", help="reject: why")
+    sp.add_argument("--actor", default="system:cli", help="the deciding principal (a user: or system: principal)")
+    sp.add_argument("--json", action="store_true")
+    sp.set_defaults(fn=cmd_proposals)
     return p
 
 

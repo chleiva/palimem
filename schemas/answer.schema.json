@@ -228,12 +228,39 @@
     },
     "Inquiry": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "competing": {
+                "maxItems": 0
+              }
+            },
+            "required": [
+              "competing"
+            ]
+          },
+          "then": {
+            "properties": {
+              "missing": {
+                "items": {
+                  "$ref": "#/$defs/Key"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "missing"
+            ]
+          }
+        }
+      ],
       "properties": {
         "competing": {
           "items": {
             "$ref": "#/$defs/Candidate"
           },
-          "minItems": 1,
           "type": "array"
         },
         "missing": {
@@ -534,8 +561,7 @@
             "properties": {
               "decision": {
                 "enum": [
-                  "commit",
-                  "abstain"
+                  "commit"
                 ]
               }
             },

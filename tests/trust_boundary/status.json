@@ -1,6 +1,4 @@
 {
   "_comment": "Ratchet for the trust-boundary fixtures. A fixture that passes must keep passing. A fixture that fails is listed with its cause; when it starts to pass, move it out of 'failing' (the test asks for that). Fixtures are never edited to pass.",
-  "failing": {
-    "tb-12-recall-cannot-set-profile-or-policy": "The fixture expects decision 'abstain' on an unresolved key under the default policy p-default. The default policy is the 'justified' preset, which asks (decision 'ask' with an inquiry naming the competing candidates) because abstaining throws away the verification action the agent could take. Every other assertion of the fixture (profile and policy stripped with notices, audit row, kernel_status unresolved, policy label p-default) passes. Needs an author line: should the default preset abstain or ask? (see docs/MORNING_REVIEW.md)"
-  }
+  "failing": {}
 }

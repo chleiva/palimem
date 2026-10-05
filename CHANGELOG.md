@@ -14,6 +14,27 @@ Prepared for a first release, to TestPyPI first by the author's ruling; **not ye
 0.0.1 name reservation. Everything below is installed from a checkout until then. What does not exist, was not measured or was not decided is in [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md); the
 numbers and their caveats are in the README (section 7).
 
+### Added (ruling 17 of 2026-10-05, Lane S3): an agent may never declare an attribute
+- An unknown attribute named by an agent `remember` is **queued as a proposal** (`queued: true`, notice `attr_queued`, nothing recorded) unless
+  the host listed it in `allowed_attrs` (the host declares it) or opted the session into `auto_declare` (new `SessionContext` fields
+  `auto_declare` and `max_proposals`; only the host sets them). The old behaviour (zero-config sessions declared whatever an agent named)
+  is gone.
+- Host-only decisions, recorded in the audit log (`attr_proposed`, `attr_declared`, `attr_accepted`, `attr_rejected`): `Memory.proposals()`,
+  `Memory.accept_proposal(id, attr_class=..., apply=True)` (declares the attribute and records the queued fact as the agent's own
+  statement), `Memory.reject_proposal(id)`; the CLI `palimem proposals list|accept|reject` and `palimem mcp --auto-declare`. The queue is
+  `<db>.proposals.jsonl`; a decision redacts the queued value. No tool and no MCP method reads, accepts or rejects a proposal.
+- Fixtures tb-23 and tb-24 (an LLM tries to declare, switch on `auto_declare`, widen its scope and accept its own proposal).
+
+### Changed (agent-surface ruling 16 of 2026-10-05, Lane S3; the compat profile and the registered results are unchanged)
+- **Ruling 16, defaults on an unresolved key.** The host API (`palimem.Memory`, `Host.query`, policy label `p-default`, new preset
+  `abstain`) answers `decision: abstain`; an agent session (`SessionContext.policy_version` now defaults to the new label `p-ask`,
+  the `justified` preset) defaults to `ask`. `Memory(...)`'s `policy` argument now defaults to `None`: a new store uses `abstain`, a
+  reopened store keeps the policy it stored. **Inquiry:** `decide()` populates `Resolved.inquiry` on every `ask` *and* every `abstain`
+  (competing candidates, the keys whose evidence would decide: the key itself plus, for a derived key, the base keys its rule reads;
+  and the source classes that could supply it). **Contract (additive loosening):** `Resolved.inquiry` is required on `ask`, allowed on
+  `abstain`, refused on `commit`; `Inquiry.competing` may be empty when `missing` names a key. JSON Schemas regenerated. Fixture tb-12
+  now passes; tb-21 and tb-22 added.
+
 ### Changed (semantics rulings of 2026-10-05, Lane S2; the compat profile and the registered results are unchanged)
 - **Failed `correct`** (product profile): loses its effect on the *target*, but its content is admitted as an ordinary `assert` from its
   own source (`failed_correction_is_allege` now means exactly the target part). RA-006 and RA-007 answer as registered again.
