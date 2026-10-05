@@ -405,3 +405,109 @@ employer justifies the same number of derived keys and reads the same number of 
 (`test_a_person_append_does_a_constant_amount_of_derived_work`, `test_work_per_append_does_not_grow_with_the_entity_count`),
 and an organisation change justifies its employees and only them
 (`test_an_organisation_change_justifies_its_employees_and_only_them`).
+
+
+## 10. After incremental admission (Lane O2), measured on 2026-10-05, same laptop
+
+**Same caveats as §8 and §9: one laptop, one seed, one pass, synthetic workloads; the declared targets in §3 are unchanged.**
+"Before" below is the code at the end of §9 (commit `ec4f6b6`), re-measured in the same session with the same commands and
+seeds, so the two columns share the machine state. Raw results: `bench/perf/results/o2/` (`before-*`, `after-*`).
+
+### 10.1 What changed (no answer changed, see 10.5)
+
+1. **Admission is maintained, not re-evaluated.** `IncrementalAdmission` (`src/palimem/admission/incremental.py`) holds the
+   evaluation's state for the committed head and updates it by what an append can change: the new report's own-merit
+   decision, its withdrawal effects, the confirmations of the keys that hold quarantined evidence, and the direct evidence of
+   the keys whose status changed. The whole-log `Admitter.evaluate` is the audit oracle and is no longer on the append path
+   (`tests/test_pipeline_incremental.py` fails if an append runs it).
+2. **Withdrawal effects are maintained too.** The first draft recomputed them over *all actors* for every actor append
+   (O(actors), and about half the appends of W1 are withdrawals or corrections, so it still grew with the log). They are now
+   kept as per-target claims plus a set of actors that no longer act, and an actor append recomputes only the cascade it
+   causes, in descending LSN order (the status of an actor depends only on higher-LSN actors). An actor append costs the same
+   with 10 or 1,500 actors in the log (`tests/test_admission_incremental_work.py`, operation counts).
+3. **Completion jobs recompute from the same state.** The first draft routed `KernelReviser.recompute` through a whole-log
+   evaluation that the old evaluation cache had been hiding, which would have made every append O(log). Found by the work-count
+   test, not by a benchmark.
+4. **The incremental path reads the log uncached** (`ViewLog.peek` / `scan`): it keeps the entries it needs, and reading
+   through the caching view held a second decoded copy of every report.
+5. **Audit modes.** `Pipeline(admission=...)` / `PALIMEM_ADMISSION`: `incremental` (default), `whole-log` (the previous path),
+   `crosscheck` (incremental, compared with the whole-log evaluation decision for decision after every append).
+
+### 10.2 Before and after (W1, 250 people, so reports per person grow with the log)
+
+| reports | append p50 ms | append p95 ms | append p99 ms | sustained appends/s | plain append mean ms (`residence:assert`) | RSS slope KiB/report |
+|---|---|---|---|---|---|---|
+| 1,000 before → after | 1.89 → 0.80 | 4.67 → 3.35 | 59.7 → 58.4 | 319 → 453 | 1.5 → 0.6 | 13.7 → 13.4 |
+| 3,000 before → after | 4.20 → 1.13 | 8.90 → 5.54 | 91.6 → 83.5 | 165 → 299 | 3.2 → 0.8 | 7.8 → 6.3 |
+| 10,000 before → after | **11.61 → 1.88** | 26.05 → 10.20 | 257.5 → 240.1 | 58 → 124 | **8.9 → 1.0** | 3.7 → 5.0 |
+
+W1 with the default population (people = reports / 4, so reports per person stay constant), 10,000 reports: p50 1.08 ms,
+p95 8.4 ms, p99 237.6 ms, 141 appends/s, 93 s (1,000 reports: p50 0.80 ms). Against Lane O's final run of the same size
+(p50 11.3 ms, 188 s) that is about 10 times lower p50 and 2 times faster in total.
+
+* **Plain appends no longer scan the log.** `residence:assert` was 1.5 → 3.2 → 8.9 ms at 1,000 → 3,000 → 10,000 reports and is
+  now 0.6 → 0.8 → 1.0 ms. The remaining growth (1.7 times over a 10 times longer log) is per-key history, not log length: with
+  the default population (constant reports per person) p50 goes from 0.80 to 1.08 ms over the same range (1.35 times).
+* **The tail did not move, as predicted in §9.4 R2.** `hq_city:change` appends average 140 ms at 10,000 reports (154.6 before):
+  an organisation's city is read by every employee's `work_city`, and each derived belief pins the organisation's version, so
+  one change writes one new derived version per employee. p99 is therefore 240 ms against the declared 100 ms: **T2 p99 is
+  still missed**, and T6 (p99 ratio, largest scale to smallest) is unchanged in kind: 59.7 → 257.5 ms over 1,000 → 10,000
+  reports before (4.3 times), 58.4 → 240.1 ms after (4.1 times). T6 is declared over 300 → 10,000 and this pass has no 300
+  point, so the verdict stays "missed, not re-measured at 300".
+* **Disk is unchanged** (this change does not touch what is stored): 59.1 KiB per report at 10,000 reports with 250 people
+  (checkpointed), 48.1 KiB with the default population. **T7 is still missed** (about 10 times over).
+
+### 10.3 Memory
+
+| measure | whole-log admission | incremental admission |
+|---|---|---|
+| tracemalloc retained, 400 reports, 50 people | 2.41 KiB per report | 1.85 KiB per report (−23%) |
+| tracemalloc retained, 3,000 reports, 250 people | 2.19 KiB per report | 1.67 KiB per report (−24%) |
+| tracemalloc peak, 3,000 reports, 250 people | 4.65 KiB per report | 3.69 KiB per report (−21%) |
+
+Both rows come from the same code in the same session with only `PALIMEM_ADMISSION` changed, so they isolate this change
+(`python -m bench.perf.heap_compare`). The incremental state's first draft *raised* retention by 0.7 KiB per report, because
+it kept the engine's entries while the log view cached decoded copies; point 4 above removed that duplicate.
+**The RSS slope at 10,000 reports is higher (3.7 → 5.0 KiB per report) and was not isolated**: RSS includes memory the
+allocator has not returned and measures whole-process behaviour, while tracemalloc measures retained Python objects, and the
+two disagree here. Candidates (not tested): allocator behaviour with the larger working set, the per-key tuples of direct
+evidence rebuilt on a key's change, and the claim dictionaries. **T3 is still missed** (about 5 times over).
+
+### 10.4 What remains (profile, 100 appends after 9,900, 250 people: `bench/perf/results/o2/after-profile-w1-10000-p250.json`)
+
+`Admitter._evaluate`, `direct_entries` and `_compute_withdrawn` are gone from the top of the profile. What is left: SQLite
+statements (27,200 per 100 appends, 272 per append, 0.145 s), `kernel/provenance.py:minimize` (92,800 calls, 0.082 s, the
+environment minimisation of the derived beliefs' supports), JSON encoding of belief versions (0.068 s) and belief construction.
+That is the cost of writing fan-out derived versions (R2, R3), which is the design's pinning granularity, not admission.
+
+### 10.5 What was verified so that no answer changed
+
+All with the final code. Commands from the repository root, `PALIMPSEST_STUDY_DIR=$HOME/palimpsest`.
+
+| check | command or test | result |
+|---|---|---|
+| full pipeline vs frozen gold, in memory, strict provenance, all streams | `python -m harness.pipeline_diff --backend memory --provenance strict` | 500 streams, 30,272 queries, 65,632 appends, **0 disagreements**, 0 provenance disagreements, 0 of 26,182 stored supports differ from the audit recomputation; 401 s (752 s with the first draft) |
+| full pipeline on SQLite, every 2nd stream | `python -m harness.pipeline_diff --backend sqlite --stride 2` | 250 streams, 15,149 queries, 32,714 appends, **0 disagreements** |
+| incremental vs whole-log oracle after every append, frozen streams | `PALIMEM_ADMISSION=crosscheck python -m harness.pipeline_diff --backend memory --stride 10` | 50 streams, 3,022 queries, 6,490 appends, **0 disagreements** (every append compared) |
+| kernel vs frozen gold | `python -m harness.kernel_diff --source-retract sidetable --strict --provenance strict` | 30,272 queries, **0 disagreements**, 0 unexplained |
+| gates can fail | `pipeline_diff --limit 25 --inject-bug {mutate-answer,no-source-retraction,self-update}` and `--provenance strict --inject-bug drop-provenance` | all four exit 1 |
+| equivalence on random streams | `tests/test_admission_incremental.py` | **2,040 random streams** (340 seeds × 6 admission configurations: product, grants, not-live, compat, compat-live, source-status overrides), 40 reports each, with confirmations, quarantine, origin groups, corrections, withdrawals of actors, source-level withdrawals, allege downgrades, agent origins, attributions and effects reaching far back; after **every** append every decision (outcome, reason, version, confirmers, effective cue, withdrawals, authority), the withdrawal map (`by` and `kind`), the direct evidence per key, the attributions, the entity universe and the emitted admission records equal a fresh whole-log evaluation, and `audit()` finds the maintained withdrawal state equal to a from-scratch recomputation |
+| rollbacks | `test_rolled_back_appends_leave_no_trace` | random appends applied and not committed (as a failed transaction): the state returns to the committed prefix from the undo journal, with zero rebuilds |
+| the net bites | `tests/test_admission_incremental.py -k mutation` | deliberately broken versions are all caught: no confirmation updates, rollbacks never undone, withdrawn actors keep acting, oldest actor owns a withdrawal, no status cascade, withdrawn ignored in direct evidence, attributions dropped, later reports of a covered source escape; and, end to end, a broken state under `crosscheck` raises |
+| work does not grow | `tests/test_admission_incremental_work.py`, `tests/test_pipeline_incremental.py` | plain appends scan nothing however many actors exist; an actor append costs the same with 10 or 1,500 actors; a withdraw-of-a-withdraw chain costs constant work and ends in the whole-log state; no append runs `Admitter.evaluate` |
+
+**Limits.** The random streams are short (40 reports): the long-log behaviour is covered by the frozen streams (a few
+hundred reports at most) and by a 3,000-report benchmark workload run under `crosscheck` (§10.6), not by exhaustive search.
+Whether a subclass that overrides the whole-log internals stays equivalent is the subclass's burden: `supports_incremental`
+sends any subclass without the two overlay hooks to the whole-log path, and the compat profile's source retraction
+(`CompatAdmitter`) provides them and is exercised by the frozen-stream gates above.
+
+### 10.6 A long realistic log under `crosscheck`
+
+`PALIMEM_ADMISSION=crosscheck python -m bench.perf run w1 --reports 3000 --persons 250` (the benchmark workload itself, with
+withdrawals, corrections, changes and organisation fan-out): all 3,000 appends completed with the incremental state compared
+against a whole-log evaluation of the same prefix after **every** append (decisions, withdrawals, direct evidence, attributions
+and the emitted admission records; any difference raises and aborts the run), 0 resource-limited answers, 120 visibility checks
+all visible, no pending completion jobs at the end (`bench/perf/results/o2/crosscheck-w1-3000-p250.json`, 32 s against 14 s
+without the comparison). This is the longest log the equivalence has been checked on; the 10,000-report runs of §10.2 were
+not compared append by append (that comparison is quadratic).

@@ -1,0 +1,147 @@
+{
+ "report_version": 1,
+ "kind": "heap",
+ "env": {
+  "python": "3.13.7",
+  "implementation": "CPython",
+  "sqlite": "3.50.4",
+  "os": "Darwin 25.3.0",
+  "machine": "arm64",
+  "cpu": "Apple M3",
+  "cpu_count": 8,
+  "git_commit": "aecb8e0"
+ },
+ "params": {
+  "workload": "w1",
+  "n_reports": 3000,
+  "seed": 1,
+  "persons": 250
+ },
+ "traced_current_bytes": 6722177,
+ "traced_peak_bytes": 14289702,
+ "by_file": [
+  {
+   "file": "src/palimem/admission/admitter.py",
+   "size_bytes": 1599912,
+   "blocks": 8912
+  },
+  {
+   "file": "decoder.py",
+   "size_bytes": 1073669,
+   "blocks": 22034
+  },
+  {
+   "file": "src/palimem/store/sqlite.py",
+   "size_bytes": 931265,
+   "blocks": 11888
+  },
+  {
+   "file": "dataclasses.py",
+   "size_bytes": 600560,
+   "blocks": 3003
+  },
+  {
+   "file": "src/palimem/types/values.py",
+   "size_bytes": 467634,
+   "blocks": 5534
+  },
+  {
+   "file": "src/palimem/store/engine.py",
+   "size_bytes": 337000,
+   "blocks": 3009
+  },
+  {
+   "file": "src/palimem/engine/pipeline.py",
+   "size_bytes": 334920,
+   "blocks": 5300
+  },
+  {
+   "file": "src/palimem/types/report.py",
+   "size_bytes": 264568,
+   "blocks": 3000
+  },
+  {
+   "file": "src/palimem/store/ids.py",
+   "size_bytes": 201072,
+   "blocks": 3002
+  },
+  {
+   "file": "src/palimem/admission/ids.py",
+   "size_bytes": 201000,
+   "blocks": 3000
+  },
+  {
+   "file": "bench/perf/heap.py",
+   "size_bytes": 147512,
+   "blocks": 2
+  },
+  {
+   "file": "src/palimem/store/chain.py",
+   "size_bytes": 144153,
+   "blocks": 3002
+  }
+ ],
+ "by_line": [
+  {
+   "where": "decoder.py:361",
+   "size_bytes": 1027082,
+   "blocks": 21108
+  },
+  {
+   "where": "src/palimem/store/sqlite.py:285",
+   "size_bytes": 925673,
+   "blocks": 11830
+  },
+  {
+   "where": "dataclasses.py:1630",
+   "size_bytes": 600320,
+   "blocks": 3001
+  },
+  {
+   "where": "src/palimem/admission/admitter.py:365",
+   "size_bytes": 415424,
+   "blocks": 8
+  },
+  {
+   "where": "src/palimem/admission/admitter.py:248",
+   "size_bytes": 362544,
+   "blocks": 3000
+  },
+  {
+   "where": "src/palimem/store/engine.py:176",
+   "size_bytes": 336512,
+   "blocks": 3000
+  },
+  {
+   "where": "src/palimem/admission/admitter.py:268",
+   "size_bytes": 326640,
+   "blocks": 2892
+  },
+  {
+   "where": "src/palimem/engine/pipeline.py:111",
+   "size_bytes": 322912,
+   "blocks": 5253
+  },
+  {
+   "where": "src/palimem/types/report.py:89",
+   "size_bytes": 264568,
+   "blocks": 3000
+  },
+  {
+   "where": "src/palimem/types/values.py:53",
+   "size_bytes": 264216,
+   "blocks": 3000
+  },
+  {
+   "where": "src/palimem/admission/admitter.py:343",
+   "size_bytes": 254632,
+   "blocks": 2307
+  },
+  {
+   "where": "src/palimem/types/values.py:74",
+   "size_bytes": 203208,
+   "blocks": 2532
+  }
+ ],
+ "pipeline_evals_cache_entries": 4
+}
