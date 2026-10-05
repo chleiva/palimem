@@ -600,7 +600,22 @@
           "then": {
             "properties": {
               "alternatives": {
-                "maxItems": 0
+                "items": {
+                  "properties": {
+                    "form": {
+                      "properties": {
+                        "form": {
+                          "enum": [
+                            "not_value",
+                            "not_member"
+                          ]
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                }
               },
               "established": {
                 "type": "null"

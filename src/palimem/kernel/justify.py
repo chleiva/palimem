@@ -390,6 +390,13 @@ def justify_key(
     for e in admitted:
         if e.report.key != key:
             raise ValueError(f"report {e.report.id} is on key {e.report.key}, not {key}")
+    from palimem.kernel.polarity import (  # circular at import time
+        has_negative_evidence,
+        justify_polarity,
+    )
+
+    if has_negative_evidence(admitted):  # product profile only: the compat profile has no oracle for denials
+        return justify_polarity(schema, key, admitted, semantic, profile=profile, budget=budget)
     ev = evidence_from_entries(admitted, change_from)
     n = len(ev)
     if n > budget:

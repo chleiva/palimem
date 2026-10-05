@@ -231,3 +231,9 @@ python -m harness.kernel_diff --limit 100 --source-retract sidetable --provenanc
 
 `harness/convert.py` (study stream -> `LogEntry`s, LSN = arrival index; `CompatAdmission` is the temporary
 admission stub until T-D1/T-D2) and `harness/kernel_diff.py` are wired into the CI `harness` job.
+
+## Negative evidence (product profile; ruling 4 of 2026-10-05)
+
+`palimem.kernel.polarity` justifies a base key whose admitted evidence includes `not_value` / `not_member` reports. It is a closed-form derivation over the consistent TRUE/ERR labellings (every ERR report disputed by a TRUE one; a denial and an affirmation of the same value conflict, nothing else does), checked in `tests/test_negative_evidence.py` against an independent brute-force enumeration. `justify_key` routes a key with a denial to it; the compat profile raises `KernelUnsupported` (the oracle cannot represent denials). The fast-kernel dispatch routes such keys to the enumeration path ("negative evidence"). The decision, the statuses, the scope and the open points are in `docs/decisions/S-04.md`.
+
+Time-free by construction: the result is one segment over all valid time, `breakpoints()` is empty and `candidates_at(t)` does not depend on `t`; derived rules read the positive candidates only, and `admitted_ids` pins every report, denials included. Supports are subset-minimal environments over base reports (the TRUE positives of a value reading, the TRUE denials of a denial candidate).

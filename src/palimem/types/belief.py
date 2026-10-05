@@ -140,8 +140,13 @@ class Segment(Codec):
             if len(alts) < 2:
                 raise ValidationError("segment: 'unresolved' lists at least two alternatives")
         else:  # UNKNOWN
-            if est is not None or alts:
-                raise ValidationError("segment: 'unknown' carries no candidates")
+            # No established candidate. Alternatives are allowed only as *constraints* (author ruling of 2026-10-05,
+            # negative evidence): denials such as ``not_value(Acme)`` and ``not_value(Globex)`` narrow what the value can
+            # be without determining it, so the status is `unknown` and the compatible negatives are listed.
+            if est is not None:
+                raise ValidationError("segment: 'unknown' names no established candidate")
+            if not all(isinstance(c, Candidate) and isinstance(c.form, NEGATIVE_FORM_TYPES) for c in alts):
+                raise ValidationError("segment: an 'unknown' segment may list only negative candidates (constraints)")
         cands = ([est] if est is not None else []) + list(alts)
         for c in cands:
             if not isinstance(c, Candidate):

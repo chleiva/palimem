@@ -502,6 +502,10 @@ def dispatch_key(
     policy = policy_of(semantic)
     why = in_fast_class(spec, policy)
     ev: list[Ev] | None = None
+    from palimem.kernel.polarity import has_negative_evidence  # circular at import time
+
+    if why is None and has_negative_evidence(admitted):
+        why = "negative evidence (the polarity kernel, product profile)"
     if why is None:
         for e in admitted:
             if e.report.key != key:

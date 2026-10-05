@@ -236,7 +236,11 @@ def build_defs() -> dict[str, dict[str, Any]]:
                 "required": ["alternatives"],
             }),
             _when("kernel_status", ["unknown"], {
-                "properties": {"established": {"type": "null"}, "alternatives": {"maxItems": 0}},
+                # alternatives are allowed only as constraints: negative candidates (not_value / not_member)
+                "properties": {
+                    "established": {"type": "null"},
+                    "alternatives": {"items": {"type": "object", "properties": {"form": {"type": "object", "properties": {"form": negative}}}}},
+                },
             }),
         ],
     )
