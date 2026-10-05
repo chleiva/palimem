@@ -1,0 +1,32 @@
+{
+  "version": "v1.1",
+  "date": "2026-10-05",
+  "adjudicator": "author",
+  "source": "bench/agent/gold_errata.md",
+  "errata": [
+    {
+      "item": "RA-026.d1",
+      "old": {"action": "act", "value": "london"},
+      "new": {"action": "ask", "value": null},
+      "rationale": "Under the study's gap semantics the later report does not establish that London remained valid through day 300; that date is unresolved, so the task calls for clarification (erratum v1.1, ruling 18).",
+      "reason": "Under the study's gap semantics the later report does not establish that London remained valid through day 300; that date is unresolved, so the task calls for clarification (ruling 18 retained)."
+    }
+  ],
+  "kept": [
+    {
+      "item": "RA-006.d1",
+      "gold": {"action": "ask", "value": null},
+      "annotator": {"action": "act", "value": "fr"},
+      "decision": "keep gold",
+      "reason": "The kernel is reliability-neutral, so the blog's cross-origin correction leaves a dispute rather than replacing the registry's value or automatically losing to it. Ask the registry or the user to resolve it; ruling 1 retained."
+    },
+    {
+      "item": "RA-023.d1",
+      "gold": {"action": "act", "value": "porto"},
+      "profile_gold": {"self_update_off": {"action": "ask", "value": null}},
+      "annotator": {"action": "ask", "value": null},
+      "decision": "keep gold; keep P0cSU as the benchmark default",
+      "reason": "A source's later report supersedes its own earlier value under this profile even without a change cue. This assumption is documented explicitly; self_update_off (gold ask) is retained as the separate condition testing the study's literal reading."
+    }
+  ]
+}

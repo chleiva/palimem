@@ -1,0 +1,204 @@
+{
+ "coverage": {
+  "answered": 29,
+  "expected": 29,
+  "missing": []
+ },
+ "date": "2026-10-05",
+ "disagreements": [
+  {
+   "adjudication": "",
+   "ann_action": "act",
+   "ann_reason": "London is effective from day 100 and Paris only from day 400, so London applies to the requested day 300.",
+   "ann_value": "london",
+   "decision_point": "RA-026.d1",
+   "gold_action": "ask",
+   "gold_alternatives": {},
+   "gold_rationale": "Under the study's gap semantics the later report does not establish that London remained valid through day 300; that date is unresolved, so the task calls for clarification (erratum v1.1, ruling 18).",
+   "gold_value": null,
+   "item": "I-0978fd",
+   "narrative": "  attributes: residence: one value at a time; it can change over time\n  source registry (trusted: a source treated as authoritative; origin group registry)\n  day 5 [Report 1] registry reports that jo's residence is london (effective from day 100).\n  day 20 [Report 2] registry reports that jo's residence has changed to paris (effective from day 400).\n  day 20 [Action taken] issue tax statement: Statement for day 300 issued using London.\n  > Today is day 20.\n  > Task (required): Issue the tax statement for day 300.\n  > The task concerns day 300.",
+   "scenario": "RA-026",
+   "split": "dev"
+  },
+  {
+   "adjudication": "",
+   "ann_action": "act",
+   "ann_reason": "The authoritative registry supports fr; a low-reliability blog cannot justify replacing its report with de.",
+   "ann_value": "fr",
+   "decision_point": "RA-006.d1",
+   "gold_action": "ask",
+   "gold_alternatives": {},
+   "gold_rationale": "A correction from a different origin withdraws nothing (A-CORR); the two values dispute each other and the stable key cannot hold both. Do not resolve by recency or by class.",
+   "gold_value": null,
+   "item": "I-6c1895",
+   "narrative": "  attributes: citizenship: one value; it does not normally change\n  source registry (trusted: a source treated as authoritative; origin group registry)\n  source blog (low: a low-reliability source; origin group blog)\n  day 1 [Report 1] registry reports that gina's citizenship is fr.\n  day 7 [Report 2] blog corrects report 1 (made by registry on day 1): gina's citizenship is de.\n  > Today is day 7.\n  > Task (required): Select the right customs form for Gina.",
+   "scenario": "RA-006",
+   "split": "test"
+  },
+  {
+   "adjudication": "",
+   "ann_action": "ask",
+   "ann_reason": "The source reports two different cities without identifying the later report as a change or correction; ask it to resolve which city is current.",
+   "ann_value": null,
+   "decision_point": "RA-023.d1",
+   "gold_action": "act",
+   "gold_alternatives": {
+    "self_update_off": {
+     "action": "ask",
+     "rationale": "With self_update off (P0c) the two reports dispute each other: unresolved."
+    }
+   },
+   "gold_rationale": "Default semantic configuration (P0cSU, self_update on): the source's later value supersedes its own earlier one.",
+   "gold_value": "porto",
+   "item": "I-ad82dd",
+   "narrative": "  attributes: home city: one value at a time; it can change over time\n  source profile_app (standard: an ordinary source; origin group profile_app)\n  day 1 [Report 1] profile_app reports that ivan's home city is lisbon.\n  day 8 [Report 2] profile_app reports that ivan's home city is porto.\n  > Today is day 8.\n  > Task (required): Send Ivan the local newsletter edition.",
+   "scenario": "RA-023",
+   "split": "test"
+  }
+ ],
+ "profile": "default",
+ "summaries": {
+  "all": {
+   "agreement": 0.896551724137931,
+   "agreement_k": 26,
+   "agreement_wilson95": [
+    0.736149189092262,
+    0.964185108649323
+   ],
+   "confusion_gold_rows_by_annotator_columns": {
+    "abstain": {
+     "abstain": 2,
+     "act": 0,
+     "ask": 0,
+     "revalidate": 0
+    },
+    "act": {
+     "abstain": 0,
+     "act": 16,
+     "ask": 1,
+     "revalidate": 0
+    },
+    "ask": {
+     "abstain": 0,
+     "act": 2,
+     "ask": 8,
+     "revalidate": 0
+    },
+    "revalidate": {
+     "abstain": 0,
+     "act": 0,
+     "ask": 0,
+     "revalidate": 0
+    }
+   },
+   "kappa": 0.8027210884353743,
+   "kappa_bootstrap95": {
+    "hi": 1.0,
+    "lo": 0.5396825396825398,
+    "n_boot": 2000,
+    "n_valid": 2000
+   },
+   "kappa_note": null,
+   "n": 29,
+   "value_agreement": {
+    "agree": 16,
+    "n_both_with_value": 16
+   }
+  },
+  "ruling_items_RA-006_007_026": {
+   "agreement": 0.6,
+   "agreement_k": 3,
+   "agreement_wilson95": [
+    0.23072428127601285,
+    0.8823792257673521
+   ],
+   "confusion_gold_rows_by_annotator_columns": {
+    "abstain": {
+     "abstain": 0,
+     "act": 0,
+     "ask": 0,
+     "revalidate": 0
+    },
+    "act": {
+     "abstain": 0,
+     "act": 2,
+     "ask": 0,
+     "revalidate": 0
+    },
+    "ask": {
+     "abstain": 0,
+     "act": 2,
+     "ask": 1,
+     "revalidate": 0
+    },
+    "revalidate": {
+     "abstain": 0,
+     "act": 0,
+     "ask": 0,
+     "revalidate": 0
+    }
+   },
+   "kappa": 0.2857142857142856,
+   "kappa_bootstrap95": {
+    "hi": 1.0,
+    "lo": 0.0,
+    "n_boot": 2000,
+    "n_valid": 1976
+   },
+   "kappa_note": null,
+   "n": 5,
+   "value_agreement": {
+    "agree": 2,
+    "n_both_with_value": 2
+   }
+  },
+  "test_25": {
+   "agreement": 0.92,
+   "agreement_k": 23,
+   "agreement_wilson95": [
+    0.750338910496047,
+    0.9777795987151525
+   ],
+   "confusion_gold_rows_by_annotator_columns": {
+    "abstain": {
+     "abstain": 2,
+     "act": 0,
+     "ask": 0,
+     "revalidate": 0
+    },
+    "act": {
+     "abstain": 0,
+     "act": 14,
+     "ask": 1,
+     "revalidate": 0
+    },
+    "ask": {
+     "abstain": 0,
+     "act": 1,
+     "ask": 7,
+     "revalidate": 0
+    },
+    "revalidate": {
+     "abstain": 0,
+     "act": 0,
+     "ask": 0,
+     "revalidate": 0
+    }
+   },
+   "kappa": 0.8493975903614459,
+   "kappa_bootstrap95": {
+    "hi": 1.0,
+    "lo": 0.603174603174603,
+    "n_boot": 2000,
+    "n_valid": 2000
+   },
+   "kappa_note": null,
+   "n": 25,
+   "value_agreement": {
+    "agree": 14,
+    "n_both_with_value": 14
+   }
+  }
+ }
+}

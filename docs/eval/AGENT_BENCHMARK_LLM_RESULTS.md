@@ -311,3 +311,31 @@ is a different run and would need its own registration; none was made.
 ## Annotation update (2026-10-05)
 
 A second annotation of the test gold now exists, but it is a **model third opinion** (executed by GPT 6 Astra, instructed and reviewed by the author, blindness self-reported and not certified); there is no human second annotator and none is planned. Agreement with the registered gold: 27 of 29 (0.931), kappa 0.866 [0.630, 1.000]; the author adjudicated the two disagreements on 2026-10-05 (RA-006.d1 and RA-023.d1: gold kept) and recorded one erratum for RA-026.d1 (`act london` to `ask`) in `bench/agent/gold_errata.md`, applied as a versioned overlay; registered results above are reported under the registered gold. The registered numbers above are unchanged. See `ANNOTATION.md`.
+
+## Gold v1.1 (erratum overlay), 2026-10-05
+
+The author adjudicated the second annotation on 2026-10-05 (`bench/agent/gold_errata.md`; machine-readable `bench/agent/gold_errata.json`, sha256 `27a1eb650f1a50bb6da1622c3e50f96bc24c09cd230feeef1fe6d0ffbdba3623`): **RA-026.d1 `act london` -> `ask`**, RA-006.d1 and RA-023.d1 kept. The correction is applied as a **versioned overlay** (`bench/agent/gold_overlay.py`): the registered scenario files, `score.py`, the adapters, the registered runs and their recorded hashes are untouched, nothing was re-run and no model was called; every stored output was re-scored offline (`python bench/agent/gold_overlay.py rescore`). The numbers above in this document are the registered ones and stay as they are.
+
+* **Scope.** RA-026 is a **dev** scenario, so **no test-split number changes under v1.1** (0 changed cells on the test split, for the symbolic runs and for the LLM runs). Re-scoring under the registered gold reproduces the 36 stored test-table cells exactly (0 mismatches), which validates the re-scoring path.
+* **Both gold profiles carried through.** The overlay changes only the point-level `gold` of RA-026.d1; RA-026.d1 has no profile-specific gold, so the corrected gold applies to the `default`, `authority_source` and `self_update_off` profiles alike, and the profile-specific golds of RA-007 (`authority_source`) and RA-023 (`self_update_off`) are carried through unchanged (tested).
+* **P0cSU is the benchmark default** and `self_update_off` is the separate condition testing the study's literal reading (RA-023.d1 adjudication; `AGENT_BENCHMARK.md`).
+* **Disclosure.** The correction was adjudicated after the systems' behaviour at RA-026.d1 was known, and it favours the system under test on dev: under the registered gold RA-026.d1 was `palimem_justified`'s only dev miss (`ask` against gold `act london`), under v1.1 it is exact. That is a reason to read the dev improvement below with suspicion and to rely on the test split, which the erratum does not touch.
+
+**LLM-in-the-loop runs, dev split** (registered -> v1.1; mean of the temperature-0.0 samples; **the six registered test runs are unchanged**):
+
+| Dev run | HAR | UDR | exact | RA-026.d1, temperature-0.0 samples (`*` = harmful under v1.1) |
+|---|---|---|---|---|
+| `dev-v1-gpt-oss-20b-lww` | 0.417 | 0.154 -> **0.083** | 0.458 -> **0.521** | ask, ask, ask, ask |
+| `dev-v1-gpt-oss-20b-palimem` | 0.146 | 0.128 -> **0.056** | 0.750 -> **0.812** | ask, ask, ask, ask |
+| `dev-v1-gpt-oss-20b-raw_log` | 0.167 -> **0.229** | 0.154 -> **0.167** | 0.708 -> **0.646** | act*, act*, act*, act* |
+| `dev-v1-ministral-14b-lww` | 0.375 | 0.154 -> **0.083** | 0.500 -> **0.562** | ask, ask, ask, ask |
+| `dev-v1-ministral-14b-palimem` | 0.062 | 0.154 -> **0.083** | 0.812 -> **0.875** | ask, ask, ask, ask |
+| `dev-v1-ministral-14b-raw_log` | 0.125 | 0.538 -> **0.500** | 0.438 | abstain, abstain, abstain, abstain |
+| `dev-v2-gpt-oss-20b-lww` | 0.438 | 0.103 -> **0.083** | 0.479 -> **0.500** | ask, act*, act*, ask |
+| `dev-v2-gpt-oss-20b-palimem` | 0.125 | 0.077 -> **0.000** | 0.812 -> **0.875** | ask, ask, ask, ask |
+| `dev-v2-gpt-oss-20b-raw_log` | 0.229 -> **0.292** | 0.103 -> **0.111** | 0.688 -> **0.625** | act*, act*, act*, act* |
+| `dev-v2-ministral-14b-lww` | 0.375 | 0.154 -> **0.083** | 0.500 -> **0.562** | ask, ask, ask, ask |
+| `dev-v2-ministral-14b-palimem` | 0.062 | 0.205 -> **0.139** | 0.771 -> **0.833** | ask, ask, ask, ask |
+| `dev-v2-ministral-14b-raw_log` | 0.188 | 0.590 -> **0.556** | 0.333 -> **0.375** | ask, abstain, ask, act* |
+
+Reading: the dev palimem runs ask at RA-026.d1, which v1.1 now counts as exact (UDR and exact improve); the `raw_log` runs of `gpt-oss-20b` act on London, which is now a harmful act (HAR rises, e.g. 0.167 -> 0.229 in v1 and 0.229 -> 0.292 in v2). No test-split cell moves. Intervals and the other metrics: `bench/agent/results/gold-v1.1/rescore.md`.

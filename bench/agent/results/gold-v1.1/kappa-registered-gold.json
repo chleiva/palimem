@@ -1,0 +1,189 @@
+{
+ "coverage": {
+  "answered": 29,
+  "expected": 29,
+  "missing": []
+ },
+ "date": "2026-10-05",
+ "disagreements": [
+  {
+   "adjudication": "",
+   "ann_action": "act",
+   "ann_reason": "The authoritative registry supports fr; a low-reliability blog cannot justify replacing its report with de.",
+   "ann_value": "fr",
+   "decision_point": "RA-006.d1",
+   "gold_action": "ask",
+   "gold_alternatives": {},
+   "gold_rationale": "A correction from a different origin withdraws nothing (A-CORR); the two values dispute each other and the stable key cannot hold both. Do not resolve by recency or by class.",
+   "gold_value": null,
+   "item": "I-6c1895",
+   "narrative": "  attributes: citizenship: one value; it does not normally change\n  source registry (trusted: a source treated as authoritative; origin group registry)\n  source blog (low: a low-reliability source; origin group blog)\n  day 1 [Report 1] registry reports that gina's citizenship is fr.\n  day 7 [Report 2] blog corrects report 1 (made by registry on day 1): gina's citizenship is de.\n  > Today is day 7.\n  > Task (required): Select the right customs form for Gina.",
+   "scenario": "RA-006",
+   "split": "test"
+  },
+  {
+   "adjudication": "",
+   "ann_action": "ask",
+   "ann_reason": "The source reports two different cities without identifying the later report as a change or correction; ask it to resolve which city is current.",
+   "ann_value": null,
+   "decision_point": "RA-023.d1",
+   "gold_action": "act",
+   "gold_alternatives": {
+    "self_update_off": {
+     "action": "ask",
+     "rationale": "With self_update off (P0c) the two reports dispute each other: unresolved."
+    }
+   },
+   "gold_rationale": "Default semantic configuration (P0cSU, self_update on): the source's later value supersedes its own earlier one.",
+   "gold_value": "porto",
+   "item": "I-ad82dd",
+   "narrative": "  attributes: home city: one value at a time; it can change over time\n  source profile_app (standard: an ordinary source; origin group profile_app)\n  day 1 [Report 1] profile_app reports that ivan's home city is lisbon.\n  day 8 [Report 2] profile_app reports that ivan's home city is porto.\n  > Today is day 8.\n  > Task (required): Send Ivan the local newsletter edition.",
+   "scenario": "RA-023",
+   "split": "test"
+  }
+ ],
+ "profile": "default",
+ "summaries": {
+  "all": {
+   "agreement": 0.9310344827586207,
+   "agreement_k": 27,
+   "agreement_wilson95": [
+    0.7803541984972431,
+    0.9808787338305667
+   ],
+   "confusion_gold_rows_by_annotator_columns": {
+    "abstain": {
+     "abstain": 2,
+     "act": 0,
+     "ask": 0,
+     "revalidate": 0
+    },
+    "act": {
+     "abstain": 0,
+     "act": 17,
+     "ask": 1,
+     "revalidate": 0
+    },
+    "ask": {
+     "abstain": 0,
+     "act": 1,
+     "ask": 8,
+     "revalidate": 0
+    },
+    "revalidate": {
+     "abstain": 0,
+     "act": 0,
+     "ask": 0,
+     "revalidate": 0
+    }
+   },
+   "kappa": 0.8657407407407406,
+   "kappa_bootstrap95": {
+    "hi": 1.0,
+    "lo": 0.6301020408163265,
+    "n_boot": 2000,
+    "n_valid": 2000
+   },
+   "kappa_note": null,
+   "n": 29,
+   "value_agreement": {
+    "agree": 17,
+    "n_both_with_value": 17
+   }
+  },
+  "ruling_items_RA-006_007_026": {
+   "agreement": 0.8,
+   "agreement_k": 4,
+   "agreement_wilson95": [
+    0.37553462976252533,
+    0.9637758913675698
+   ],
+   "confusion_gold_rows_by_annotator_columns": {
+    "abstain": {
+     "abstain": 0,
+     "act": 0,
+     "ask": 0,
+     "revalidate": 0
+    },
+    "act": {
+     "abstain": 0,
+     "act": 3,
+     "ask": 0,
+     "revalidate": 0
+    },
+    "ask": {
+     "abstain": 0,
+     "act": 1,
+     "ask": 1,
+     "revalidate": 0
+    },
+    "revalidate": {
+     "abstain": 0,
+     "act": 0,
+     "ask": 0,
+     "revalidate": 0
+    }
+   },
+   "kappa": 0.5454545454545455,
+   "kappa_bootstrap95": {
+    "hi": 1.0,
+    "lo": 0.0,
+    "n_boot": 2000,
+    "n_valid": 1855
+   },
+   "kappa_note": null,
+   "n": 5,
+   "value_agreement": {
+    "agree": 3,
+    "n_both_with_value": 3
+   }
+  },
+  "test_25": {
+   "agreement": 0.92,
+   "agreement_k": 23,
+   "agreement_wilson95": [
+    0.750338910496047,
+    0.9777795987151525
+   ],
+   "confusion_gold_rows_by_annotator_columns": {
+    "abstain": {
+     "abstain": 2,
+     "act": 0,
+     "ask": 0,
+     "revalidate": 0
+    },
+    "act": {
+     "abstain": 0,
+     "act": 14,
+     "ask": 1,
+     "revalidate": 0
+    },
+    "ask": {
+     "abstain": 0,
+     "act": 1,
+     "ask": 7,
+     "revalidate": 0
+    },
+    "revalidate": {
+     "abstain": 0,
+     "act": 0,
+     "ask": 0,
+     "revalidate": 0
+    }
+   },
+   "kappa": 0.8493975903614459,
+   "kappa_bootstrap95": {
+    "hi": 1.0,
+    "lo": 0.603174603174603,
+    "n_boot": 2000,
+    "n_valid": 2000
+   },
+   "kappa_note": null,
+   "n": 25,
+   "value_agreement": {
+    "agree": 14,
+    "n_both_with_value": 14
+   }
+  }
+ }
+}

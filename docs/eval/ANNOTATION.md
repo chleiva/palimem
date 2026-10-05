@@ -82,3 +82,28 @@ The generator builds each item from a **whitelist** of scenario fields (sources 
 ## Adjudication (author, 2026-10-05)
 
 Recorded in [`bench/agent/gold_errata.md`](../../bench/agent/gold_errata.md). **RA-006.d1:** keep gold `ask` (the kernel is reliability-neutral; ruling 1 retained). **RA-023.d1:** keep P0cSU as the benchmark default and the gold `act porto` (a source's later report supersedes its own earlier value under this profile, an assumption now documented explicitly; `self_update_off` stays as the separate condition for the study's literal reading). **RA-026.d1:** change the gold to `ask` (ruling 18 retained): an erratum, applied as a versioned overlay so the registered scenario files and hashes stay as registered.
+
+## Gold v1.1 (erratum overlay), 2026-10-05
+
+The author adjudicated the second annotation on 2026-10-05 (`bench/agent/gold_errata.md`; machine-readable `bench/agent/gold_errata.json`, sha256 `27a1eb650f1a50bb6da1622c3e50f96bc24c09cd230feeef1fe6d0ffbdba3623`): **RA-026.d1 `act london` -> `ask`**, RA-006.d1 and RA-023.d1 kept. The correction is applied as a **versioned overlay** (`bench/agent/gold_overlay.py`): the registered scenario files, `score.py`, the adapters, the registered runs and their recorded hashes are untouched, nothing was re-run and no model was called; every stored output was re-scored offline (`python bench/agent/gold_overlay.py rescore`). The numbers above in this document are the registered ones and stay as they are.
+
+* **Scope.** RA-026 is a **dev** scenario, so **no test-split number changes under v1.1** (0 changed cells on the test split, for the symbolic runs and for the LLM runs). Re-scoring under the registered gold reproduces the 36 stored test-table cells exactly (0 mismatches), which validates the re-scoring path.
+* **Both gold profiles carried through.** The overlay changes only the point-level `gold` of RA-026.d1; RA-026.d1 has no profile-specific gold, so the corrected gold applies to the `default`, `authority_source` and `self_update_off` profiles alike, and the profile-specific golds of RA-007 (`authority_source`) and RA-023 (`self_update_off`) are carried through unchanged (tested).
+* **P0cSU is the benchmark default** and `self_update_off` is the separate condition testing the study's literal reading (RA-023.d1 adjudication; `AGENT_BENCHMARK.md`).
+* **Disclosure.** The correction was adjudicated after the systems' behaviour at RA-026.d1 was known, and it favours the system under test on dev: under the registered gold RA-026.d1 was `palimem_justified`'s only dev miss (`ask` against gold `act london`), under v1.1 it is exact. That is a reason to read the dev improvement below with suspicion and to rely on the test split, which the erratum does not touch.
+
+**Agreement of the annotation (model third opinion; blindness self-reported, not certified) with the registered gold and with gold v1.1:**
+
+| Gold profile | Set | registered gold: agreement / kappa | gold v1.1: agreement / kappa |
+|---|---|---|---|
+| `default` | all 29 | 0.931 / 0.866 | 0.897 / 0.803 |
+| `default` | the 25 test points | 0.920 / 0.849 | 0.920 / 0.849 |
+| `default` | RA-006 / RA-007 / RA-026 (5) | 0.800 / 0.545 | 0.600 / 0.286 |
+| `authority_source` | all 29 | 0.931 / 0.866 | 0.897 / 0.803 |
+| `authority_source` | the 25 test points | 0.920 / 0.849 | 0.920 / 0.849 |
+| `authority_source` | RA-006 / RA-007 / RA-026 (5) | 0.800 / 0.545 | 0.600 / 0.286 |
+| `self_update_off` | all 29 | 0.966 / 0.934 | 0.931 / 0.871 |
+| `self_update_off` | the 25 test points | 0.960 / 0.926 | 0.960 / 0.926 |
+| `self_update_off` | RA-006 / RA-007 / RA-026 (5) | 0.800 / 0.545 | 0.600 / 0.286 |
+
+Under the registered gold the default-profile disagreements are: RA-006.d1 (gold ask, annotator act fr), RA-023.d1 (gold act porto, annotator ask). Under v1.1 they are: RA-026.d1 (gold ask, annotator act london), RA-006.d1 (gold ask, annotator act fr), RA-023.d1 (gold act porto, annotator ask): RA-026.d1 now disagrees (the annotator chose `act london`, the corrected gold is `ask`), the two adjudicated-and-kept items still disagree. The test-split figures do not move (RA-026 is dev). Overall under v1.1 (default profile): agreement 0.897 (26/29), Cohen's kappa 0.803 (bootstrap 95% [0.540, 1.000]); under the registered gold 0.931 (27/29), kappa 0.866 (bootstrap [0.630, 1.000]). The five-item ruling set falls to 3 of 5 (kappa 0.286, interval [0.000, 1.000]) under v1.1; with so few items the interval, not the point estimate, is what the evidence supports. Reports: `bench/agent/results/gold-v1.1/kappa-registered-gold.md` and `kappa-gold-v1.1.md`.
