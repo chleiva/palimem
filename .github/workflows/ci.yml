@@ -43,7 +43,7 @@ jobs:
           repository: chleiva/palimpsest
           ref: ${{ steps.pin.outputs.commit }}
           path: study
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .cache/frozen
           key: frozen-setting1-686cf0bbf43f   # first 12 hex of the pinned Zenodo zip SHA-256
