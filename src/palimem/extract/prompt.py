@@ -195,6 +195,32 @@ SYSTEM_TEMPLATE_V2 = _swap(
     _swap(SYSTEM_TEMPLATE_V2_PILOT, _V2_PILOT_RULE3, _RULE3_V2), _V2_PILOT_HINT_RULE, _V2_HINT_RULE
 )
 
+# Revision 3 (G3): ONE further grammar change, chosen by the declared criterion (a failure class that remains after
+# revision 2 and costs a model at least 3 claims): a list of items for a multi-valued attribute came back as one
+# `enumeration` ("these are ALL the members") instead of one `member` claim per item, on all three models. The rule
+# and two fictional examples (not drawn from the dev or test items) are inserted into revision 2; nothing else changes.
+_V3_RULE = (
+    "- Multi-valued attributes: a list of things the text names (\"speaks A, B and C\", \"allergic to A and B\") is "
+    "one \"member\" claim per item, each with a span quoting the part of the text that names that item. Use "
+    "\"enumeration\" only when the text says the list is complete (\"only\", \"all of\", \"no others\") or that "
+    "there are none (an empty list).\n\n"
+)
+_V3_EXAMPLES = (
+    'Text: Tomas Herrera is allergic to walnuts and sesame.\n'
+    '{"claims":[{"cue":"assert","entity":"Tomas Herrera","attr":"allergies","proposition":{"form":"member","v":"walnuts"},'
+    '"valid_from":null,"valid_to":null,"target_hint":null,"span":"allergic to walnuts"},'
+    '{"cue":"assert","entity":"Tomas Herrera","attr":"allergies","proposition":{"form":"member","v":"sesame"},'
+    '"valid_from":null,"valid_to":null,"target_hint":null,"span":"walnuts and sesame"}]}\n\n'
+    'Text: Wen Zhao speaks only Telugu and Sinhala.\n'
+    '{"claims":[{"cue":"assert","entity":"Wen Zhao","attr":"languages","proposition":{"form":"enumeration",'
+    '"values":["Telugu","Sinhala"]},"valid_from":null,"valid_to":null,"target_hint":null,"span":"speaks only Telugu and Sinhala"}]}\n\n'
+)
+SYSTEM_TEMPLATE_V3 = _swap(
+    _swap(SYSTEM_TEMPLATE_V2, "The cue decides how the other fields are filled:", _V3_RULE
+          + "The cue decides how the other fields are filled:"),
+    "Text: Maybe Isla Fraser will move to Rome.", _V3_EXAMPLES + "Text: Maybe Isla Fraser will move to Rome.",
+)
+
 
 def _attr_instruction(schema: Schema | None) -> str:
     if schema is None:
@@ -215,7 +241,8 @@ def _attr_instruction(schema: Schema | None) -> str:
 PROMPT_VERSION_1C = "palimem-extract/1c"
 PROMPT_VERSION_2 = "palimem-extract/2"
 PROMPT_VERSION_2_PILOT = "palimem-extract/2-pilot"
-PROMPT_VERSIONS = (PROMPT_VERSION, PROMPT_VERSION_1C, PROMPT_VERSION_2_PILOT, PROMPT_VERSION_2)
+PROMPT_VERSION_3 = "palimem-extract/3"
+PROMPT_VERSIONS = (PROMPT_VERSION, PROMPT_VERSION_1C, PROMPT_VERSION_2_PILOT, PROMPT_VERSION_2, PROMPT_VERSION_3)
 
 
 def _check_version(version: str) -> None:
@@ -225,6 +252,8 @@ def _check_version(version: str) -> None:
 
 def system_prompt(schema: Schema | None, version: str = PROMPT_VERSION) -> str:
     _check_version(version)
+    if version == PROMPT_VERSION_3:
+        return SYSTEM_TEMPLATE_V3.replace("@@ATTRS@@", _attr_instruction(schema))
     if version == PROMPT_VERSION_2:
         return SYSTEM_TEMPLATE_V2.replace("@@ATTRS@@", _attr_instruction(schema))
     if version == PROMPT_VERSION_2_PILOT:

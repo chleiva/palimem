@@ -21,8 +21,10 @@ from palimem.extract.prompt import (
     PROMPT_VERSION_1C,
     PROMPT_VERSION_2,
     PROMPT_VERSION_2_PILOT,
+    PROMPT_VERSION_3,
     PROMPT_VERSIONS,
     SYSTEM_TEMPLATE_V2,
+    SYSTEM_TEMPLATE_V3,
 )
 from tests.test_extract import MODEL, TEXT, FakeTransport, claim, ctx, out
 
@@ -45,9 +47,9 @@ def _items() -> list[dict[str, Any]]:
     return rows
 
 
-def _examples() -> list[tuple[str, str]]:
-    """(text, json-reply) pairs from the worked examples of the v2 template."""
-    block = SYSTEM_TEMPLATE_V2.split("Worked examples", 1)[1]
+def _examples(template: str = SYSTEM_TEMPLATE_V3) -> list[tuple[str, str]]:
+    """(text, json-reply) pairs from the worked examples of a template (default: the latest, a superset of v2)."""
+    block = template.split("Worked examples", 1)[1]
     pairs = re.findall(r"^Text: (.+)\n(\{.+\})$", block, flags=re.MULTILINE)
     assert len(pairs) >= 8
     return pairs
@@ -60,7 +62,9 @@ def test_v1_is_frozen_and_v2_is_a_different_deterministic_template() -> None:
     assert prompt_hash(s) == prompt_hash(s, PROMPT_VERSION) == V1_HASH
     h2 = prompt_hash(s, PROMPT_VERSION_2)
     assert h2 != V1_HASH and h2 == prompt_hash(s, PROMPT_VERSION_2) and len(h2) == 64
-    assert PROMPT_VERSIONS == (PROMPT_VERSION, PROMPT_VERSION_1C, PROMPT_VERSION_2_PILOT, PROMPT_VERSION_2)
+    assert PROMPT_VERSIONS == (PROMPT_VERSION, PROMPT_VERSION_1C, PROMPT_VERSION_2_PILOT, PROMPT_VERSION_2,
+                               PROMPT_VERSION_3)
+    assert len({prompt_hash(s, v) for v in PROMPT_VERSIONS}) == len(PROMPT_VERSIONS)
     assert build_prompt(TEXT, ctx(schema=s), PROMPT_VERSION_2).system != build_prompt(TEXT, ctx(schema=s)).system
     with pytest.raises(ValueError):
         prompt_hash(s, "palimem-extract/9")
@@ -124,6 +128,16 @@ def test_worked_examples_are_not_drawn_from_dev_or_test_items() -> None:
                 terms.update(str(hint[k]) for k in ("entity", "value") if hint.get(k))
         for term in terms:
             assert term.casefold() not in haystack, f"example term {term!r} also occurs in the item sets"
+
+
+def test_v3_adds_exactly_one_rule_and_two_examples_to_v2() -> None:
+    v2, v3 = set(_examples(SYSTEM_TEMPLATE_V2)), set(_examples(SYSTEM_TEMPLATE_V3))
+    assert v2 < v3 and len(v3 - v2) == 2
+    lines2, lines3 = SYSTEM_TEMPLATE_V2.splitlines(), SYSTEM_TEMPLATE_V3.splitlines()
+    assert [ln for ln in lines2 if ln not in lines3] == []  # nothing from v2 was removed or reworded
+    assert any("Multi-valued attributes:" in ln for ln in lines3 if ln not in lines2)
+    built = build_prompt(TEXT, ctx(schema=load_schema()), PROMPT_VERSION_3)
+    assert "@@ATTRS@@" not in built.system and "employer (single-valued" in built.system
 
 
 def test_worked_examples_cover_every_cue_and_the_granularities() -> None:
