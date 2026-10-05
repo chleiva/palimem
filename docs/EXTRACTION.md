@@ -102,3 +102,15 @@ The 7 dev items with a stated time (x075, x077, x079, x081, x083, x085, x087) we
 4. **Format and truncation:** one gpt-oss truncation (x081, `invalid_json`) and one Ministral 8B `invalid_claim` (x085). Remedies (b) and (c).
 
 Not a temporal problem and not changed: value strings such as `data team` vs the gold `data` (x087, two models). That is a gold convention about generic suffix words, and tuning to it would be tuning to an item.
+
+### 6.2 Written cost estimates (before each paid batch)
+
+Prices: `src/palimem/prices.json` (verified AWS figures): gpt-oss-20b $0.07 in / $0.30 out, Ministral 14B $0.20 / $0.20, Ministral 8B $0.15 / $0.15 per million tokens. Computed with `bench/extract/extract_estimate_cost.py --prompt-version palimem-extract/2 --dev-only` (token assumptions printed by the tool; revisions add about 15 output tokens per claim for the explicit nulls; gpt-oss reasoning assumed at 600 tokens per call, 3,000-token ceiling in the worst case).
+
+| Batch | Prompt | Repair | Expected (3 models, 69 items each) | Worst case (ledger reservations) |
+|---|---|---|---|---|
+| R1 | `palimem-extract/2`, ceiling 3,000 for gpt-oss | none | **$0.072** | **$0.150** |
+| R2 | same | `output_and_claims`, one re-prompt | **$0.072 + the repairs actually triggered** (each is a priced call) | **$0.301** |
+| R3 (only if justified by a failure class) | `palimem-extract/3` | as chosen | at most the R2 figures | at most $0.301 |
+
+Cumulative worst case for R1 + R2 + R3 is about $0.75, against the $1.50 task cap (global ledger: $0.035 spent before this task). The runs use `--cap-usd 1.5`, which the shared ledger applies to its total exposure including the earlier spend, so a batch is refused before it could take the task past the cap.

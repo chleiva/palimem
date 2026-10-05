@@ -35,11 +35,17 @@ from palimem.extract.parse import (
     parse_claims,
 )
 from palimem.extract.passthrough import PASSTHROUGH_STAMP, TypedPassthrough
-from palimem.extract.prompt import PROMPT_VERSION, Prompt, build_prompt, prompt_hash
+from palimem.extract.prompt import (
+    PROMPT_VERSION,
+    PROMPT_VERSIONS,
+    Prompt,
+    build_prompt,
+    prompt_hash,
+)
 
 __all__ = [
     "CLAIM_FIELDS", "DEFAULT_ALLOWED_CUES", "EXTRACTABLE_CUES", "IDENTITY_FIELDS", "PASSTHROUGH_STAMP",
-    "PROMPT_VERSION", "BedrockConverseTransport", "CacheMiss", "ExtractedClaim", "ExtractionContext", "ExtractionResult",
+    "PROMPT_VERSION", "PROMPT_VERSIONS", "BedrockConverseTransport", "CacheMiss", "ExtractedClaim", "ExtractionContext", "ExtractionResult",
     "Extractor", "LLMExtractor", "OpenAICompatTransport", "PaidCallsDisabled", "ParseResult", "Prompt",
     "RecordingTransport", "Rejection", "ReplayTransport", "TargetHint", "Transport", "TransportNotSent", "TransportResponse", "TypedPassthrough",
     "Usage", "build_prompt", "build_reports", "format_stated_date", "parse_claims", "parse_stated_date",

@@ -28,10 +28,12 @@ sys.path.insert(0, str(HERE.parent.parent / "src"))
 from palimem.costs import CAP_USD, CostLedger, rough_token_count
 from palimem.extract import (
     DEFAULT_ALLOWED_CUES,
+    PROMPT_VERSION,
+    PROMPT_VERSIONS,
     ExtractionContext,
     build_prompt,
 )
-from palimem.extract.llm import DEFAULT_MAX_OUTPUT_TOKENS
+from palimem.extract.llm import DEFAULT_MAX_OUTPUT_TOKENS, default_max_output_tokens
 from palimem.types import Schema
 from palimem.types.report import Source
 
@@ -55,14 +57,17 @@ def item_ctx(item: dict[str, Any], schema: Schema) -> ExtractionContext:
         subject_entity=item["context"].get("subject_entity"), schema=schema, allowed_cues=DEFAULT_ALLOWED_CUES)
 
 
-def estimate(items: list[dict[str, Any]], model: str, ledger: CostLedger, schema: Schema, repairs: int) -> dict[str, Any]:
+def estimate(items: list[dict[str, Any]], model: str, ledger: CostLedger, schema: Schema, repairs: int,
+             version: str = PROMPT_VERSION) -> dict[str, Any]:
     in_worst = in_exp = out_exp = 0
+    # revisions ask for all eight claim keys (nulls included): about 15 more output tokens per claim
+    per_claim = PER_CLAIM_OUT if version == PROMPT_VERSION else PER_CLAIM_OUT + 15
     for it in items:
-        p = build_prompt(it["text"], item_ctx(it, schema))
+        p = build_prompt(it["text"], item_ctx(it, schema), version)
         in_worst += rough_token_count(p.system) + rough_token_count(p.user)
         in_exp += (len(p.system) + len(p.user)) // 4
-        out_exp += BASE_OUT + PER_CLAIM_OUT * len(it["expected"]) + REASONING_TOKENS.get(model, 0)
-    out_worst = DEFAULT_MAX_OUTPUT_TOKENS[model] * len(items)
+        out_exp += BASE_OUT + per_claim * len(it["expected"]) + REASONING_TOKENS.get(model, 0)
+    out_worst = default_max_output_tokens(model, version) * len(items)
     calls = 1 + repairs
     return {
         "items": len(items),
@@ -78,7 +83,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--dev-passes", type=int, default=5, help="prompt-iteration passes over the dev split per model")
     ap.add_argument("--test-passes", type=int, default=1, help="the test split is single-use per prompt hash")
     ap.add_argument("--repairs", type=int, default=0, choices=[0, 1])
+    ap.add_argument("--prompt-version", choices=list(PROMPT_VERSIONS), default=PROMPT_VERSION)
+    ap.add_argument("--dev-only", action="store_true", help="price the dev split only (no test pass)")
     a = ap.parse_args(argv)
+    if a.dev_only:
+        a.test_passes = 0
     schema = load_schema()
     ledger = CostLedger(path=HERE / ".estimate-ledger-unused.jsonl", cap_usd=CAP_USD)
     splits = {s: [json.loads(x) for x in (HERE / "items" / f"{s}.jsonl").read_text(encoding="utf-8").splitlines() if x.strip()]
@@ -86,8 +95,8 @@ def main(argv: list[str] | None = None) -> int:
     per_model: dict[str, Any] = {}
     tot_exp = tot_worst = 0.0
     for m in MODELS:
-        dev = estimate(splits["dev"], m, ledger, schema, a.repairs)
-        test = estimate(splits["test"], m, ledger, schema, a.repairs)
+        dev = estimate(splits["dev"], m, ledger, schema, a.repairs, a.prompt_version)
+        test = estimate(splits["test"], m, ledger, schema, a.repairs, a.prompt_version)
         exp = dev["usd_expected_one_pass"] * a.dev_passes + test["usd_expected_one_pass"] * a.test_passes
         worst = dev["usd_worst_one_pass"] * a.dev_passes + test["usd_worst_one_pass"] * a.test_passes
         per_model[m] = {"dev_one_pass": dev, "test_one_pass": test, "plan_usd_expected": exp, "plan_usd_worst": worst}
@@ -97,6 +106,7 @@ def main(argv: list[str] | None = None) -> int:
         "assumptions": {"base_output_tokens": BASE_OUT, "per_claim_output_tokens": PER_CLAIM_OUT,
                         "reasoning_tokens": REASONING_TOKENS, "max_output_tokens": DEFAULT_MAX_OUTPUT_TOKENS,
                         "dev_passes": a.dev_passes, "test_passes": a.test_passes, "repairs": a.repairs,
+                        "prompt_version": a.prompt_version,
                         "prices_file": "src/palimem/prices.json"},
         "per_model": per_model,
         "total_usd_expected": tot_exp, "total_usd_worst_case": tot_worst,

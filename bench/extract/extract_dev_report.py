@@ -36,7 +36,7 @@ from extract_run import run_items
 from extract_score import _assign, alias_groups, load_jsonl, norm_prop, score
 
 from palimem.costs import CostLedger, load_prices
-from palimem.extract import LLMExtractor, ReplayTransport
+from palimem.extract import PROMPT_VERSION, LLMExtractor, ReplayTransport
 
 #: run-file stem -> Bedrock model id
 MODELS = {
@@ -46,11 +46,24 @@ MODELS = {
 }
 
 
-def replay_predictions(items: list[dict[str, Any]], model: str, raw_cache: Path) -> list[dict[str, Any]]:
+def load_meta(pred_file: Path) -> dict[str, Any]:
+    """The run's settings (prompt version, ceiling, repair), written next to the predictions by extract_run.py.
+    A run directory without one (the 2026-10-05 baseline) used the frozen v1 prompt, the default ceiling, no repair."""
+    meta = pred_file.with_name(pred_file.stem + ".meta.json")
+    return json.loads(meta.read_text(encoding="utf-8")) if meta.exists() else {}
+
+
+def replay_predictions(items: list[dict[str, Any]], model: str, raw_cache: Path,
+                       meta: dict[str, Any] | None = None) -> list[dict[str, Any]]:
     """Predictions rebuilt from the raw responses only. Uses a scratch ledger: free, offline, deterministic."""
+    meta = meta or {}
     with tempfile.TemporaryDirectory() as tmp:
         ledger = CostLedger(path=Path(tmp) / "scratch-ledger.jsonl")
-        ex = LLMExtractor(model, ReplayTransport(raw_cache), ledger, purpose="offline re-score")
+        ex = LLMExtractor(
+            model, ReplayTransport(raw_cache), ledger, purpose="offline re-score",
+            prompt_version=meta.get("prompt_version", PROMPT_VERSION),
+            max_output_tokens=meta.get("max_output_tokens"),
+            max_repairs=meta.get("max_repairs", 0), repair_scope=meta.get("repair_scope", "output"))
         return run_items(ex, items)
 
 
@@ -164,10 +177,13 @@ def process(run_dir: Path, split: str) -> dict[str, dict[str, Any]]:
         if not pred_file.exists() or not raw_file.exists():
             continue
         saved = load_jsonl(pred_file)
-        replayed = replay_predictions(items, model, raw_file)
+        replayed = replay_predictions(items, model, raw_file, load_meta(pred_file))
         if _core(saved) != _core(replayed):
             raise SystemExit(f"{name}: predictions rebuilt from the raw cache differ from the saved predictions")
         results = build_results(items, saved, model, raw_file, split)
+        meta = load_meta(pred_file)
+        if meta:  # revisions record their settings; the 2026-10-05 baseline has none and stays byte-identical
+            results["settings"] = meta
         (run_dir / f"results-{name}-{split}.json").write_text(
             json.dumps(results, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
         out[name] = results
