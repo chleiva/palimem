@@ -12,9 +12,12 @@ imported lazily, so the core stays standard-library only.
 
 from __future__ import annotations
 
+import hashlib
 import importlib
+import json
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Protocol
 
 from palimem.costs import CostLedger, rough_token_count
@@ -50,6 +53,7 @@ class TransportResponse:
     text: str
     input_tokens: int | None = None
     output_tokens: int | None = None
+    stop_reason: str | None = None
 
 
 class Transport(Protocol):
@@ -86,7 +90,12 @@ class BedrockConverseTransport:
         # gpt-oss returns a separate `reasoningContent` block; only text blocks are the answer.
         text = "".join(b["text"] for b in blocks if "text" in b)
         usage = resp.get("usage", {})
-        return TransportResponse(text=text, input_tokens=usage.get("inputTokens"), output_tokens=usage.get("outputTokens"))
+        return TransportResponse(
+            text=text,
+            input_tokens=usage.get("inputTokens"),
+            output_tokens=usage.get("outputTokens"),
+            stop_reason=resp.get("stopReason"),
+        )
 
 
 class OpenAICompatTransport:
@@ -118,6 +127,67 @@ class OpenAICompatTransport:
             input_tokens=getattr(usage, "prompt_tokens", None),
             output_tokens=getattr(usage, "completion_tokens", None),
         )
+
+
+def cache_key(model: str, system: str, user: str, max_output_tokens: int) -> str:
+    """Identity of one model request (everything that can change the answer)."""
+    blob = "\x1f".join([model, system, user, str(max_output_tokens)])
+    return hashlib.sha256(blob.encode("utf-8")).hexdigest()
+
+
+class CacheMiss(TransportNotSent):
+    """A :class:`ReplayTransport` was asked for a request that was never recorded."""
+
+
+class RecordingTransport:
+    """Wrap a transport and append every raw response to a JSONL cache.
+
+    One record per request: the request key, model, the response text exactly as the transport
+    returned it, token counts and the stop reason. Prompts are not stored (they are a pure function of
+    the item and the prompt template), and neither are credentials: the cache holds model output only.
+    """
+
+    def __init__(self, inner: Transport, path: str | os.PathLike[str]) -> None:
+        self.inner = inner
+        self.path = Path(path)
+
+    def complete(self, *, model: str, system: str, user: str, max_output_tokens: int) -> TransportResponse:
+        resp = self.inner.complete(model=model, system=system, user=user, max_output_tokens=max_output_tokens)
+        rec = {
+            "key": cache_key(model, system, user, max_output_tokens), "model": model, "text": resp.text,
+            "input_tokens": resp.input_tokens, "output_tokens": resp.output_tokens, "stop_reason": resp.stop_reason,
+        }
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        with self.path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(rec, sort_keys=True, ensure_ascii=False) + "\n")
+            f.flush()
+            os.fsync(f.fileno())
+        return resp
+
+
+class ReplayTransport:
+    """Serve responses from a cache written by :class:`RecordingTransport`: free, offline, deterministic.
+
+    If a request was recorded more than once (a retry), the last record wins. A request that is not in the
+    cache raises :class:`CacheMiss`; nothing is ever sent.
+    """
+
+    def __init__(self, path: str | os.PathLike[str]) -> None:
+        self.path = Path(path)
+        self._by_key: dict[str, dict[str, Any]] = {}
+        for line in self.path.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                rec = json.loads(line)
+                self._by_key[rec["key"]] = rec
+
+    def __len__(self) -> int:
+        return len(self._by_key)
+
+    def complete(self, *, model: str, system: str, user: str, max_output_tokens: int) -> TransportResponse:
+        rec = self._by_key.get(cache_key(model, system, user, max_output_tokens))
+        if rec is None:
+            raise CacheMiss("request not in the recorded cache")
+        return TransportResponse(rec["text"], rec.get("input_tokens"), rec.get("output_tokens"), rec.get("stop_reason"))
 
 
 class LLMExtractor:

@@ -18,9 +18,12 @@ from palimem.extract.claims import (
 from palimem.extract.context import DEFAULT_ALLOWED_CUES, ExtractionContext
 from palimem.extract.llm import (
     BedrockConverseTransport,
+    CacheMiss,
     LLMExtractor,
     OpenAICompatTransport,
     PaidCallsDisabled,
+    RecordingTransport,
+    ReplayTransport,
     Transport,
     TransportNotSent,
     TransportResponse,
@@ -36,9 +39,9 @@ from palimem.extract.prompt import PROMPT_VERSION, Prompt, build_prompt, prompt_
 
 __all__ = [
     "CLAIM_FIELDS", "DEFAULT_ALLOWED_CUES", "EXTRACTABLE_CUES", "IDENTITY_FIELDS", "PASSTHROUGH_STAMP",
-    "PROMPT_VERSION", "BedrockConverseTransport", "ExtractedClaim", "ExtractionContext", "ExtractionResult",
+    "PROMPT_VERSION", "BedrockConverseTransport", "CacheMiss", "ExtractedClaim", "ExtractionContext", "ExtractionResult",
     "Extractor", "LLMExtractor", "OpenAICompatTransport", "PaidCallsDisabled", "ParseResult", "Prompt",
-    "Rejection", "TargetHint", "Transport", "TransportNotSent", "TransportResponse", "TypedPassthrough",
+    "RecordingTransport", "Rejection", "ReplayTransport", "TargetHint", "Transport", "TransportNotSent", "TransportResponse", "TypedPassthrough",
     "Usage", "build_prompt", "build_reports", "format_stated_date", "parse_claims", "parse_stated_date",
     "prompt_hash",
 ]
