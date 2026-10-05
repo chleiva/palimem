@@ -48,6 +48,7 @@ this page.
 | [`research/R41_MEMO.md`](research/R41_MEMO.md) | the R4.1 spike: why enumerating interpretations is inherently exponential and what is tractable |
 | [`STORAGE.md`](STORAGE.md) | backends, tables, the salted hash chain, the generation barrier, outbox, erasure, export and import |
 | [`PIPELINE.md`](PIPELINE.md) | how `Memory`, admission, kernel, store and policy fit together; the v1 compat adapter; conformance results |
+| [`ENTITIES.md`](ENTITIES.md) | entity resolution: `find`, canonicalisation, reversible merges as marker reports, the lexical resolver, its evaluation and the false-merge policy |
 | [`EXTRACTION.md`](EXTRACTION.md) | the extractor interface, its trust rules, the cost gating and the revision protocol |
 
 ## Verification and evidence
