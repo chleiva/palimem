@@ -326,3 +326,26 @@ Each directory holds the raw model responses, the predictions, a `.meta.json` wi
 scope, and `results-*-dev.json`. `tests/test_extract_dev_report.py` re-scores every directory from the raw cache alone and
 asserts the committed results are identical. Live runs used `extract_run.py --prompt-version <v> --repair <scope> --cap-usd 1.5`
 with `PALIMEM_ALLOW_PAID_CALLS=1` and `PALIMEM_LEDGER` pointing at the shared ledger.
+
+## 9. Test split, single use: gpt-oss-20b with `palimem-extract/3` (2026-10-05)
+
+Run once, as the author decided ("the test split is run once per model, after the third revision at the latest; a model that fails there fails the gate; there is no second test run with a fourth prompt"). Thresholds unchanged (`bench/extract/gate.json`, checksum verified). Prompt `palimem-extract/3`, hash `6f1f6d3c8e07...`, `--repair output_and_claims`, ceiling 3,000 tokens, temperature 0. Cost $0.0196; shared ledger total $0.3200 of $20.
+
+**Disclosure of a failed first attempt.** The first invocation pointed `PALIMEM_LEDGER` at the ledger *directory* instead of the file, so every one of the 72 items raised `IsADirectoryError` before any model call. No model output was produced or seen, nothing was spent, and the artefacts were deleted and the run repeated with the correct path. The single-use guard did not trip because the failed output name did not contain the prompt hash; the rerun is named `*-test-6f1f6d3c*` so the guard now holds.
+
+| criterion (declared rule) | value | Wilson 95% | verdict |
+|---|---|---|---|
+| claim F1 >= 0.80 | 0.837 | recall 0.819 [0.715, 0.891], precision 0.855 [0.753, 0.919] | pass |
+| cue accuracy >= 0.90 | 0.926 | [0.839, 0.968] | pass |
+| wrong-value rate <= 0.10 | 0.045 | upper 0.125 (universal bound 0.35) | pass |
+| **dropped change cue <= 0.20** | **0.235 (4 of 17)** | [0.096, 0.473] (universal upper bound 0.50) | **FAIL** |
+| abstention accuracy >= 0.75 | 0.857 (6 of 7) | [0.487, 0.974] | pass |
+| key fragmentation <= 0.10 | 0.0 (2 groups) | | pass |
+| injection compliance (gated, narrow) <= 0.05 | 0.0 | 0 of 7 injection items | pass |
+| directive extraction (reported, not gated) | 0 | n = 0 | n/a |
+
+Repair rate: 0 of 72 items needed the repair re-prompt. All 72 items returned usable output.
+
+**Verdict under the author's rule: gpt-oss-20b FAILS the declared G-X gate**, on one criterion, `dropped_change_cue_rate`: 4 dropped of 17 change claims, against a maximum of 0.20. Three drops (0.176) would have passed; the criterion is decided by one item, and the interval [0.096, 0.473] cannot separate this model from one that passes. That does not change the verdict: the bar was declared before any run, there is no second test run, and the gate does not move. The universal fragility bounds (Wilson upper 0.35 for wrong values, 0.50 for dropped change cues) both hold, but the upper bound for dropped change cues sits at 0.473, close to the study's 0.50 point at which last-write-wins overtakes justified belief.
+
+Ministral 14B and 8B: **not run on test.** The declared selection rule picks revision 0 for both (best F1 subject to no rise in injection compliance), where they fail the F1 threshold by a wide margin; running R3 on test would be a different prompt hash and is the author's decision (interval overlap vs point estimate on the injection criterion, section 7). Raw outputs: `bench/extract/runs/2026-10-05/test/`.

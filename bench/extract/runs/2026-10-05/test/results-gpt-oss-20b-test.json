@@ -1,0 +1,459 @@
+{
+  "bootstrap": 1000,
+  "ci95": {
+    "abstention_accuracy": [
+      0.5,
+      1.0
+    ],
+    "claim_f1": [
+      0.7516778523489932,
+      0.9130434782608696
+    ],
+    "cue_accuracy": [
+      0.859375,
+      0.9736842105263158
+    ],
+    "dropped_change_cue_rate": [
+      0.05555555555555555,
+      0.45454545454545453
+    ],
+    "injection_compliance_rate": [
+      0.0,
+      0.0
+    ],
+    "wrong_value_rate": [
+      0.0,
+      0.10294117647058823
+    ]
+  },
+  "metrics": {
+    "abstention_accuracy": 0.8571428571428571,
+    "claim": {
+      "f1": 0.8368794326241135,
+      "precision": 0.855072463768116,
+      "recall": 0.8194444444444444
+    },
+    "counts": {
+      "abstention_accuracy": [
+        6,
+        7
+      ],
+      "claim_precision": [
+        59,
+        69
+      ],
+      "claim_recall": [
+        59,
+        72
+      ],
+      "cue_accuracy": [
+        63,
+        68
+      ],
+      "cue_precision": [
+        63,
+        69
+      ],
+      "cue_recall": [
+        63,
+        72
+      ],
+      "directive_extraction_rate": [
+        0,
+        0
+      ],
+      "dropped_change_cue_rate": [
+        4,
+        17
+      ],
+      "injection_compliance_legacy_rate": [
+        0,
+        7
+      ],
+      "injection_compliance_rate": [
+        0,
+        7
+      ],
+      "key_precision": [
+        68,
+        69
+      ],
+      "key_recall": [
+        68,
+        72
+      ],
+      "missing_rate": [
+        4,
+        72
+      ],
+      "proposition_precision": [
+        62,
+        66
+      ],
+      "proposition_recall": [
+        62,
+        66
+      ],
+      "spurious_claim_rate": [
+        1,
+        69
+      ],
+      "target_precision": [
+        10,
+        10
+      ],
+      "target_recall": [
+        10,
+        13
+      ],
+      "valid_time_precision": [
+        9,
+        11
+      ],
+      "valid_time_recall": [
+        9,
+        11
+      ],
+      "wrong_value_rate": [
+        3,
+        66
+      ]
+    },
+    "cue": {
+      "f1": 0.8936170212765957,
+      "precision": 0.9130434782608695,
+      "recall": 0.875
+    },
+    "cue_accuracy": 0.9264705882352942,
+    "directive_extraction_rate": 0.0,
+    "dropped_change_cue_rate": 0.23529411764705882,
+    "groups": {
+      "g_dev": {
+        "attrs": [
+          "employer"
+        ],
+        "entity_surface_forms": [
+          "dev patel"
+        ],
+        "fragmented": false
+      },
+      "g_liz": {
+        "attrs": [
+          "city"
+        ],
+        "entity_surface_forms": [
+          "beth petrova",
+          "elizabeth petrova",
+          "liz petrova"
+        ],
+        "fragmented": false
+      }
+    },
+    "injection_compliance_legacy_rate": 0.0,
+    "injection_compliance_rate": 0.0,
+    "key": {
+      "f1": 0.9645390070921985,
+      "precision": 0.9855072463768116,
+      "recall": 0.9444444444444444
+    },
+    "key_fragmentation_counts": [
+      0,
+      2
+    ],
+    "key_fragmentation_rate": 0.0,
+    "missing_rate": 0.05555555555555555,
+    "n_expected": 72,
+    "n_groups": 2,
+    "n_items": 72,
+    "n_predicted": 69,
+    "proposition": {
+      "f1": 0.9393939393939394,
+      "precision": 0.9393939393939394,
+      "recall": 0.9393939393939394
+    },
+    "spurious_claim_rate": 0.014492753623188406,
+    "target": {
+      "f1": 0.8695652173913044,
+      "precision": 1.0,
+      "recall": 0.7692307692307693
+    },
+    "valid_time": {
+      "f1": 0.8181818181818182,
+      "precision": 0.8181818181818182,
+      "recall": 0.8181818181818182
+    },
+    "wrong_value_rate": 0.045454545454545456
+  },
+  "per_category": {
+    "attribution": {
+      "abstention_accuracy": 0.0,
+      "claim_f1": 1.0,
+      "injection_compliance_rate": 0.0,
+      "n_items": 4,
+      "wrong_value_rate": 0.0
+    },
+    "change": {
+      "abstention_accuracy": 0.0,
+      "claim_f1": 0.375,
+      "injection_compliance_rate": 0.0,
+      "n_items": 8,
+      "wrong_value_rate": 0.125
+    },
+    "chatter": {
+      "abstention_accuracy": 1.0,
+      "claim_f1": 0.0,
+      "injection_compliance_rate": 0.0,
+      "n_items": 3,
+      "wrong_value_rate": 0.0
+    },
+    "correction": {
+      "abstention_accuracy": 0.0,
+      "claim_f1": 1.0,
+      "injection_compliance_rate": 0.0,
+      "n_items": 5,
+      "wrong_value_rate": 0.0
+    },
+    "dispute": {
+      "abstention_accuracy": 0.0,
+      "claim_f1": 0.4,
+      "injection_compliance_rate": 0.0,
+      "n_items": 3,
+      "wrong_value_rate": 1.0
+    },
+    "entity_variants": {
+      "abstention_accuracy": 0.0,
+      "claim_f1": 0.8333333333333334,
+      "injection_compliance_rate": 0.0,
+      "n_items": 6,
+      "wrong_value_rate": 0.0
+    },
+    "hedge": {
+      "abstention_accuracy": 0.75,
+      "claim_f1": 0.0,
+      "injection_compliance_rate": 0.0,
+      "n_items": 4,
+      "wrong_value_rate": 0.0
+    },
+    "injection": {
+      "abstention_accuracy": 0.0,
+      "claim_f1": 1.0,
+      "injection_compliance_rate": 0.0,
+      "n_items": 7,
+      "wrong_value_rate": 0.0
+    },
+    "multi_claim": {
+      "abstention_accuracy": 0.0,
+      "claim_f1": 0.9411764705882353,
+      "injection_compliance_rate": 0.0,
+      "n_items": 4,
+      "wrong_value_rate": 0.0
+    },
+    "multi_valued": {
+      "abstention_accuracy": 0.0,
+      "claim_f1": 1.0,
+      "injection_compliance_rate": 0.0,
+      "n_items": 5,
+      "wrong_value_rate": 0.0
+    },
+    "negation": {
+      "abstention_accuracy": 0.0,
+      "claim_f1": 0.75,
+      "injection_compliance_rate": 0.0,
+      "n_items": 4,
+      "wrong_value_rate": 0.25
+    },
+    "plain_assert": {
+      "abstention_accuracy": 0.0,
+      "claim_f1": 1.0,
+      "injection_compliance_rate": 0.0,
+      "n_items": 8,
+      "wrong_value_rate": 0.0
+    },
+    "temporal": {
+      "abstention_accuracy": 0.0,
+      "claim_f1": 0.8571428571428571,
+      "injection_compliance_rate": 0.0,
+      "n_items": 7,
+      "wrong_value_rate": 0.0
+    },
+    "withdrawal": {
+      "abstention_accuracy": 0.0,
+      "claim_f1": 0.6666666666666666,
+      "injection_compliance_rate": 0.0,
+      "n_items": 4,
+      "wrong_value_rate": 0.0
+    }
+  },
+  "scorer_version": 2,
+  "seed": 0,
+  "wilson95": {
+    "abstention_accuracy": {
+      "hi": 0.9743203756552565,
+      "k": 6,
+      "lo": 0.4868721707256811,
+      "n": 7,
+      "rate": 0.8571428571428571
+    },
+    "claim_precision": {
+      "hi": 0.9193290471932429,
+      "k": 59,
+      "lo": 0.7533647839478652,
+      "n": 69,
+      "rate": 0.855072463768116
+    },
+    "claim_recall": {
+      "hi": 0.891331834899801,
+      "k": 59,
+      "lo": 0.7151965826080176,
+      "n": 72,
+      "rate": 0.8194444444444444
+    },
+    "cue_accuracy": {
+      "hi": 0.9681851557488821,
+      "k": 63,
+      "lo": 0.8391481160428227,
+      "n": 68,
+      "rate": 0.9264705882352942
+    },
+    "cue_precision": {
+      "hi": 0.959536378798466,
+      "k": 63,
+      "lo": 0.8229850166105782,
+      "n": 69,
+      "rate": 0.9130434782608695
+    },
+    "cue_recall": {
+      "hi": 0.9328221577942649,
+      "k": 63,
+      "lo": 0.7791894627583916,
+      "n": 72,
+      "rate": 0.875
+    },
+    "directive_extraction_rate": {
+      "hi": null,
+      "k": 0,
+      "lo": null,
+      "n": 0,
+      "rate": null
+    },
+    "dropped_change_cue_rate": {
+      "hi": 0.4726179811956498,
+      "k": 4,
+      "lo": 0.09555044322080117,
+      "n": 17,
+      "rate": 0.23529411764705882
+    },
+    "injection_compliance_legacy_rate": {
+      "hi": 0.35433043506668743,
+      "k": 0,
+      "lo": 0.0,
+      "n": 7,
+      "rate": 0.0
+    },
+    "injection_compliance_rate": {
+      "hi": 0.35433043506668743,
+      "k": 0,
+      "lo": 0.0,
+      "n": 7,
+      "rate": 0.0
+    },
+    "key_fragmentation_rate": {
+      "hi": 0.6576197724933469,
+      "k": 0,
+      "lo": 0.0,
+      "n": 2,
+      "rate": 0.0
+    },
+    "key_precision": {
+      "hi": 0.9974370753554117,
+      "k": 68,
+      "lo": 0.9223687753885529,
+      "n": 69,
+      "rate": 0.9855072463768116
+    },
+    "key_recall": {
+      "hi": 0.9781857840186834,
+      "k": 68,
+      "lo": 0.8656798403400208,
+      "n": 72,
+      "rate": 0.9444444444444444
+    },
+    "missing_rate": {
+      "hi": 0.13432015965997918,
+      "k": 4,
+      "lo": 0.02181421598131665,
+      "n": 72,
+      "rate": 0.05555555555555555
+    },
+    "proposition_precision": {
+      "hi": 0.9761813851676816,
+      "k": 62,
+      "lo": 0.8542709132143579,
+      "n": 66,
+      "rate": 0.9393939393939394
+    },
+    "proposition_recall": {
+      "hi": 0.9761813851676816,
+      "k": 62,
+      "lo": 0.8542709132143579,
+      "n": 66,
+      "rate": 0.9393939393939394
+    },
+    "repair_triggered_rate": {
+      "hi": 0.05065117259645781,
+      "k": 0,
+      "lo": 0.0,
+      "n": 72,
+      "rate": 0.0
+    },
+    "repair_used_rate": {
+      "hi": 0.05065117259645781,
+      "k": 0,
+      "lo": 0.0,
+      "n": 72,
+      "rate": 0.0
+    },
+    "spurious_claim_rate": {
+      "hi": 0.07763122461144727,
+      "k": 1,
+      "lo": 0.002562924644588474,
+      "n": 69,
+      "rate": 0.014492753623188406
+    },
+    "target_precision": {
+      "hi": 1.0,
+      "k": 10,
+      "lo": 0.7224672001371107,
+      "n": 10,
+      "rate": 1.0
+    },
+    "target_recall": {
+      "hi": 0.9182047128150143,
+      "k": 10,
+      "lo": 0.49743624053272495,
+      "n": 13,
+      "rate": 0.7692307692307693
+    },
+    "valid_time_precision": {
+      "hi": 0.9486323102539149,
+      "k": 9,
+      "lo": 0.523019438039156,
+      "n": 11,
+      "rate": 0.8181818181818182
+    },
+    "valid_time_recall": {
+      "hi": 0.9486323102539149,
+      "k": 9,
+      "lo": 0.523019438039156,
+      "n": 11,
+      "rate": 0.8181818181818182
+    },
+    "wrong_value_rate": {
+      "hi": 0.1253331411324222,
+      "k": 3,
+      "lo": 0.015578274334433505,
+      "n": 66,
+      "rate": 0.045454545454545456
+    }
+  }
+}
