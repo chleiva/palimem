@@ -27,7 +27,7 @@ types and the schemas.
 | `Attr`, `Completeness`, `CompletenessScope`, `Interval`, `Rule`, `Schema` (`attr`) | Schema entry | `check_proposition_for_attr` is the pure form-vs-class check |
 | `Principal` helpers, `KeyScope`, `Who`, `AuthorityRule`, `AuthorityTable`, `DEFAULT_RULES`, `REVISE_STREAM_V1_RULES` (`authority`) | Schema entry (authority), Write API | see decisions below |
 | `Support`, `Segment`, `Belief`, `BeliefView`, `Pin`, `Dependency`, `InvalidatedBy`, `Versions`, `SemanticConfig`, `Inference` (`belief`) | Belief record | `Belief.lsn` added (S-05) |
-| `Query`, `ExplainQuery`, `Explanation`, `Resolved`, `ResourceLimited`, `Answer`, `Inquiry`, `PolicyInfo`, `SegmentBounds`, `LastComplete` (`answer`) | Query and answer, Read API | output contract v2 |
+| `Query`, `ExplainQuery`, `Explanation`, `Resolved`, `ResourceLimited`, `Answer`, `Inquiry`, `PolicyInfo`, `SegmentBounds`, `LastComplete` (`answer`) | Query and answer, Read API | output contract v2. **No contract change from Lane Q:** an attribution-only answer keeps `kernel_status` and its `belief_of` candidates; the policy asks and gives no `assertion` (see `docs/PIPELINE.md`). Attributions are read apart through `Memory.attributions` (a host-level `AttributedClaim`, not a contract type). |
 | enums (`enums`), limits (`limits`) | throughout | `DEFAULT_ENVIRONMENT_BUDGET = 7`, `MAX_BELIEF_NESTING = 1` |
 
 ## Decisions applied (all decided; there are no pending markers)

@@ -54,6 +54,12 @@ that is wrong looks exactly like one that is right. Only confirmation from a **s
 withdrawal or dispute by the source repairs everything downstream. Say "according to X" rather than stating it as settled.
 `single_origin: null` means it cannot be told (for example a derived key whose supports are not available).
 
+**Attribution only.** If `attribution_only` is `true`, the memory holds only what other parties are *reported to believe*
+("Dave believes the refund window is 30 days"), never the value itself. The content is **unknown**: `assertion` is empty,
+`decision` is `ask`, and the reports are listed apart in `attributions` (holder, what they believe, origin groups, report
+ids). Do not state the attributed value as a fact; ask a source that can confirm it, or say it is unconfirmed. An
+attribution corroborated by many origin groups is still only an attribution.
+
 `resource_limited` is not an answer: the memory has not finished inferring for the requested snapshot (a stale
 dependency, an over-budget key, a dirty store). It carries **no value**. Never treat an older value as current; retry later.
 An older snapshot may be attached and is explicitly labelled as older.
@@ -81,6 +87,11 @@ alice/employer: UNRESOLVED between 'Acme', 'Globex'.
 
 alice/employer: UNKNOWN (no admissible evidence). Do not guess; say it is unknown or ask.
   decision=abstain; policy=p-default.
+
+store/refund_window_days: CONTENT UNKNOWN. Only what other parties are reported to believe is established:
+  - dave is reported to believe '30' (2 origin groups).
+  That does not establish the value itself. Do not state it as a fact; ask a source that can confirm it, or say it is unconfirmed.
+  decision=ask; policy=p-default.
 ```
 
 These strings are pinned by golden tests (`tests/test_agent_render.py`): wording is a contract with the prompt.
@@ -92,6 +103,7 @@ You have a justified memory. Before relying on a fact about a person, account or
 - If kernel_status is "established", you may state it; if single_origin is true, attribute it ("the HR record says...").
 - If it is "unresolved", list the alternatives and do not pick one; if decision is "ask", ask who can settle it.
 - If it is "unknown" or the result is resource_limited, say you do not know. Do not guess and do not use older values.
+- If attribution_only is true, you only know what someone is reported to believe, not the fact: say so and ask a source that can confirm it.
 - `remember` records what you say; it is not evidence. To record what an external source said, cite the event.
 - You may `retract` only your own earlier statements.
 ```
