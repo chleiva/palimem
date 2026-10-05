@@ -10,7 +10,19 @@ Nothing here is released: the only published artefact is the 0.0.1 name reservat
 checkout. What does not exist, was not measured or was not decided is in [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md); the
 numbers and their caveats are in the README (section 7).
 
+### Changed (semantics rulings of 2026-10-05, Lane S2; the compat profile and the registered results are unchanged)
+- **Failed `correct`** (product profile): loses its effect on the *target*, but its content is admitted as an ordinary `assert` from its
+  own source (`failed_correction_is_allege` now means exactly the target part). RA-006 and RA-007 answer as registered again.
+- **`Segment` of status `unknown` may list negative candidates** (constraints); `Segment` validation, its JSON Schema and `decide()` changed
+  (no field added or removed).
+- **Rule `exceptions` are reserved**: the product profile refuses a rule that declares them (`RuleExceptionsReserved`); compat keeps the paper's
+  closed-world handling. `inertia=False` is specified (value holds only within its stated valid interval) but still refused.
+
 ### Added
+- **Source exclusion** (`palimem.admission.exclude_source` / `restore_source`): a source going bad is an admission operation, recorded,
+  reversible and repaired like a withdrawal; closes the 85-query late-assert gap (`harness.exclusion_diff`: 0 disagreements on all 30,272 queries).
+- **Negative evidence** in the open-world kernel (`palimem.kernel.polarity`; independent brute-force reference in the tests) and the
+  **kernel meaning of an authorised dispute** (the target becomes unresolved against "disputed"), with conformance families `r01`..`r07`.
 - **Registered-benchmark reproducibility** (`bench/agent/registered_product_v1.py`, `registered_render_v1.py`,
   `registered_rerun.py`, `current_main_column.py`): the registered RETRACT-ACT runs (symbolic and LLM-in-the-loop) correspond
   to the product behaviour of commit 034d520 and re-score offline to identical responses under a pin; a new run on current
