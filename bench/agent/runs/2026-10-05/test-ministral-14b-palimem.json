@@ -1,0 +1,2524 @@
+{
+ "adapter_sha256": "6592358e72b1165dedad71dd5822e877069bdc063a692f6a97eaeca2abed41e1",
+ "cache": "test-cache-ministral-14b.jsonl",
+ "calls": {
+  "cache_hits": 6,
+  "cost_usd": 0.010327,
+  "input_tokens": 46749,
+  "live": 93,
+  "output_tokens": 4887
+ },
+ "estimate": {
+  "calls": 100,
+  "expected_usd": 0.01502,
+  "input_tokens_est": 67100,
+  "model": "ministral-14b",
+  "repairs_not_included": true,
+  "split": "test",
+  "system": "llm+palimem",
+  "worst_case_usd": 0.02742
+ },
+ "ingest_errors": {
+  "RA-012": {
+   "r2": "KernelUnsupported: report 01M46CV1S8319EPFQEWT09AFMB: only value/member propositions are in scope (no oracle for negative evidence)"
+  }
+ },
+ "ledger_after": {
+  "by_model_usd": {
+   "mistral.ministral-3-14b-instruct": 0.17209740000000004,
+   "mistral.ministral-3-8b-instruct": 0.08901615,
+   "openai.gpt-oss-20b-1:0": 0.18708907000000063
+  },
+  "cap_usd": 3.319982,
+  "exposure_usd": 0.4482026199999991,
+  "n_calls": 2461,
+  "open_reservations": 0,
+  "remaining_usd": 2.871779380000001,
+  "reserved_usd": 0,
+  "spent_usd": 0.4482026199999991
+ },
+ "model": "ministral-14b",
+ "model_id": "mistral.ministral-3-14b-instruct",
+ "parser_version": "p2",
+ "prompt_sha256": "53b0af14e7e8451f11942d01ec001846f77dfd037e219f92e0a78344f61dea55",
+ "prompt_version": "v1",
+ "records": [
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d1",
+   "reason": "The memory is ESTABLISHED and corroborated, so filing Alex's local tax return in Tessaly is justified.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 0,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d1",
+   "reason": "The memory is ESTABLISHED and corroborated, so filing Alex's local tax return in Tessaly is justified.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 1,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d1",
+   "reason": "The memory confirms Alex is taxed in Tessaly, and the decision is to commit with default policy.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 2,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d1",
+   "reason": "The memory is ESTABLISHED and corroborated, so we can safely use Tessaly as Alex's local tax city and file his return there.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 3,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d2",
+   "reason": "The city for Alex's local tax return is unknown, and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d2",
+   "reason": "The city for Alex's local tax return is unknown, and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d2",
+   "reason": "The city for Alex's local tax return is unknown, and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d2",
+   "reason": "The city for Alex's local tax return is unknown and cannot be determined without further evidence.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-002.d1",
+   "reason": "The memory is ESTABLISHED and corroborated, so Alex's work city is confirmed as 'tessaly' for expense booking.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 0,
+   "scenario": "RA-002",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-002.d1",
+   "reason": "The memory is ESTABLISHED and corroborated, so Alex's work city is confirmed as 'tessaly' for expense booking.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 1,
+   "scenario": "RA-002",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-002.d1",
+   "reason": "The memory confirms Alex's work city as 'tessaly' with corroborated evidence and a clear decision to commit.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 2,
+   "scenario": "RA-002",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-002.d1",
+   "reason": "Memory establishes 'tessaly' as the corroborated work city for Alex, and the policy permits committing to it.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "'tessaly' as Alex's work city for expense booking"
+   },
+   "sample": 3,
+   "scenario": "RA-002",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-004.d1",
+   "reason": "The task is optional, and the memory confirms Erin's city is unknown, so no action is needed.",
+   "repaired": false,
+   "response": {
+    "action": "abstain",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-004",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-004.d1",
+   "reason": "The task is optional, and the memory shows no admissible evidence for Erin's city.",
+   "repaired": false,
+   "response": {
+    "action": "abstain",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-004",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-004.d1",
+   "reason": "The task is optional, and the memory for Erin's city is UNKNOWN, so no action is justified.",
+   "repaired": false,
+   "response": {
+    "action": "abstain",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-004",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-004.d1",
+   "reason": "Task is optional and memory confirms Erin's city is unknown, so no weather note can be safely added.",
+   "repaired": false,
+   "response": {
+    "action": "abstain",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-004",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-005.d1",
+   "reason": "Frank's birth date is established as '1980-02-03' (SINGLE ORIGIN, but policy allows commitment for scheduling a birthday card).",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "1980-02-03"
+   },
+   "sample": 0,
+   "scenario": "RA-005",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-005.d1",
+   "reason": "Frank's birth date is ESTABLISHED with a decision to commit, so scheduling the birthday card for February 3rd is justified.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "1980-02-03"
+   },
+   "sample": 1,
+   "scenario": "RA-005",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-005.d1",
+   "reason": "Frank's birth date is established as '1980-02-03' (SINGLE ORIGIN but policy allows commitment), so the birthday card should be scheduled for February 3rd.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "1980-02-03"
+   },
+   "sample": 2,
+   "scenario": "RA-005",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-005.d1",
+   "reason": "Frank\u2019s birthday is an annually recurring event (1980-02-03), and the uncorroborated but committed value justifies scheduling the card for 2025 (policy=p-default).",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "'2025-02-03' (postmark deadline: 2025-01-29)"
+   },
+   "sample": 3,
+   "scenario": "RA-005",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-006.d1",
+   "reason": "Gina's citizenship is unresolved between 'de' and 'fr', requiring confirmation before selecting a customs form.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-006",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-006.d1",
+   "reason": "The memory is unresolved between 'de' and 'fr', requiring confirmation from a source that can settle it.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-006",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-006.d1",
+   "reason": "Gina's citizenship is unresolved between 'de' and 'fr', requiring confirmation before selecting a customs form.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-006",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-006.d1",
+   "reason": "Citizenship for Gina is unresolved between 'de' and 'fr', requiring confirmation from a source before proceeding.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-006",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d1",
+   "reason": "Memory confirms Hana's work city is established and corroborated as 'oslo', allowing safe booking.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "oslo"
+   },
+   "sample": 0,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d1",
+   "reason": "Memory confirms Hana's work city is established and corroborated as 'oslo', allowing safe booking.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "oslo"
+   },
+   "sample": 1,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d1",
+   "reason": "Memory confirms Hana's work city is established and corroborated as 'oslo', allowing safe booking.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "oslo"
+   },
+   "sample": 2,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d1",
+   "reason": "The memory is ESTABLISHED and corroborated, so book Hana's site visit in Oslo.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "oslo"
+   },
+   "sample": 3,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d2",
+   "reason": "Memory confirms Hana's work city is established and corroborated as 'bergen', with a policy to commit by default.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "bergen"
+   },
+   "sample": 0,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d2",
+   "reason": "Memory confirms Hana's work city is established and corroborated as Bergen, allowing safe booking.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "bergen"
+   },
+   "sample": 1,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d2",
+   "reason": "The memory is ESTABLISHED and corroborated, so the work city is confirmed as Bergen.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "bergen"
+   },
+   "sample": 2,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d2",
+   "reason": "Memory confirms Hana's work city as 'Bergen', established, corroborated, and policy permits booking.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "bergen"
+   },
+   "sample": 3,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-009.d1",
+   "reason": "The memory is ESTABLISHED with a SINGLE ORIGIN attribute, and the task is required, so the default policy (commit) justifies proceeding with the established value.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 0,
+   "scenario": "RA-009",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-009.d1",
+   "reason": "Memory confirms the payee account is established as 'acc-111' (SINGLE ORIGIN but policy allows commitment).",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 1,
+   "scenario": "RA-009",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-009.d1",
+   "reason": "The memory justifies the vendor9 payee account as 'acc-111' (ESTABLISHED, SINGLE ORIGIN), and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 2,
+   "scenario": "RA-009",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-009.d1",
+   "reason": "The payee account is established in the memory as 'acc-111' (SINGLE ORIGIN), and the task is required, so I commit to the established value.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 3,
+   "scenario": "RA-009",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d1",
+   "reason": "The memory is ESTABLISHED with a SINGLE ORIGIN attribute, and the task is required, so the default policy (commit) justifies proceeding with the established value.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 0,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d1",
+   "reason": "The memory justifies the vendor9 payee account as 'acc-111' (ESTABLISHED, SINGLE ORIGIN) and the decision is to commit per policy.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 1,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d1",
+   "reason": "Memory confirms the payee account is established as 'acc-111' (SINGLE ORIGIN but policy allows commitment).",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 2,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d1",
+   "reason": "The payee account is established in the memory as 'acc-111' (SINGLE ORIGIN), and the task is required, so I commit to the established value.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 3,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d2",
+   "reason": "The payee account for vendor9 is unknown, and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": "ThrottlingException: An error occurred (ThrottlingException) when calling the Converse operation (reached max retries: 4): Too many requests, please wait before trying again.",
+   "ingest_error": false,
+   "missing": true,
+   "parse_error": null,
+   "point": "RA-010.d2",
+   "reason": null,
+   "repaired": false,
+   "response": null,
+   "sample": 1,
+   "scenario": "RA-010",
+   "stop_reasons": [],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d2",
+   "reason": "The payee account for vendor9 is unknown, and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d2",
+   "reason": "The vendor's payee account is unknown, and paying without confirmation risks irreversible harm.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": true,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-012.d1",
+   "reason": "The memory for `customer7/home_address` is uncorroborated (SINGLE ORIGIN), and the task is required; confirmation from a second source is needed before acting.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-012",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": true,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-012.d1",
+   "reason": "The memory for customer7/home_address is uncorroborated (SINGLE ORIGIN), and the task is required\u2014asking the CRM or a secondary source for confirmation is necessary before acting.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-012",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": true,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-012.d1",
+   "reason": "The memory for customer7/home_address is uncorroborated (SINGLE ORIGIN), and the task is required\u2014asking the CRM or a secondary source is necessary to confirm the address before printing the label.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-012",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": true,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-012.d1",
+   "reason": "The shipping label requires confirmed home address, but the memory for `customer7/home_address` is uncorroborated (SINGLE ORIGIN), and cannot be safely acted upon without verification from a second source.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-012",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-013.d1",
+   "reason": "The memory confirms the payee account as 'acc-111' (ESTABLISHED) despite being uncorroborated, and the task is required, so proceed with payment.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 0,
+   "scenario": "RA-013",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-013.d1",
+   "reason": "The memory confirms the payee account as 'acc-111' (ESTABLISHED) despite being uncorroborated, and the task is required, so proceed with payment.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 1,
+   "scenario": "RA-013",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-013.d1",
+   "reason": "Memory confirms the payee account as 'acc-111' (ESTABLISHED, SINGLE ORIGIN) and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 2,
+   "scenario": "RA-013",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-013.d1",
+   "reason": "The memory confirms the payee account ('acc-111') as ESTABLISHED with a clear SINGLE ORIGIN justification, and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 3,
+   "scenario": "RA-013",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d1",
+   "reason": "Memory confirms the payee account as 'acc-111' (ESTABLISHED, SINGLE ORIGIN) and policy permits commitment.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 0,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d1",
+   "reason": "Memory confirms the payee account as 'acc-111' (ESTABLISHED, SINGLE ORIGIN) and the decision is to commit per policy.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 1,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d1",
+   "reason": "The memory justifies the vendor9 payee account as 'acc-111' (ESTABLISHED, SINGLE ORIGIN) and the task is required, so proceed with payment.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 2,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d1",
+   "reason": "The payee account is uncorroborated (SINGLE ORIGIN), and using an unverified account risks payment errors.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d2",
+   "reason": "The payee account for vendor9 is established, corroborated, and policy-approved for payment.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 0,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d2",
+   "reason": "The vendor9 payee account is ESTABLISHED and corroborated by multiple sources, justifying immediate payment to 'acc-222'.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 1,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d2",
+   "reason": "The vendor9 payee account is ESTABLISHED and corroborated by multiple sources, justifying immediate payment to 'acc-222'.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 2,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d2",
+   "reason": "The payee account for vendor9 is established and corroborated, allowing a safe commit to the registered account.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 3,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-016.d1",
+   "reason": "The memory is ESTABLISHED with a SINGLE ORIGIN (calendar) and the task is required, so I act on the corroborated value despite its uncorroborated status.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "b12"
+   },
+   "sample": 0,
+   "scenario": "RA-016",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-016.d1",
+   "reason": "The memory is ESTABLISHED with a SINGLE ORIGIN (calendar) and the task is required, so I act on the corroborated value despite its uncorroborated status.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "b12"
+   },
+   "sample": 1,
+   "scenario": "RA-016",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-016.d1",
+   "reason": "The memory is ESTABLISHED with a SINGLE ORIGIN (calendar) and the task is required, so the value is used despite lack of corroboration.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "b12"
+   },
+   "sample": 2,
+   "scenario": "RA-016",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-016.d1",
+   "reason": "Memory confirms the stand-up room is established as 'b12' in the calendar (single origin, but decision is to commit per policy).",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "b12"
+   },
+   "sample": 3,
+   "scenario": "RA-016",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-017.d1",
+   "reason": "The memory is ESTABLISHED with a single origin (policy_doc) and a decision to commit, so the value '14' is justified for the refund window.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "14"
+   },
+   "sample": 0,
+   "scenario": "RA-017",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-017.d1",
+   "reason": "The memory is ESTABLISHED with a single origin (policy_doc), but the task is required and the value is justified for action despite being uncorroborated.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "14"
+   },
+   "sample": 1,
+   "scenario": "RA-017",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-017.d1",
+   "reason": "The memory is ESTABLISHED with a single origin (policy_doc) and a decision to commit, so the value '14' is justified for the refund window.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "14"
+   },
+   "sample": 2,
+   "scenario": "RA-017",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-017.d1",
+   "reason": "The memory is ESTABLISHED with a clear, single value of '14' days, supported by a policy origin group (policy_doc), though uncorroborated; since the task is required, proceed with the justified value.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "14"
+   },
+   "sample": 3,
+   "scenario": "RA-017",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-019.d1",
+   "reason": "The delivery address for cust21 is unresolved between two options, requiring confirmation from a source to avoid dispatching to the wrong location.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-019",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-019.d1",
+   "reason": "The delivery address for cust21 is unresolved between two options, requiring confirmation from a source before dispatch.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-019",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-019.d1",
+   "reason": "The delivery address for cust21 is unresolved between two options, requiring confirmation from a source to avoid dispatching to the wrong location.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-019",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-019.d1",
+   "reason": "The delivery address for cust21 is unresolved between two options and requires confirmation from a source with authority to decide.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-019",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-020.d1",
+   "reason": "The delivery address for cust22 is unresolved between two options, and the task is optional but requires confirmation to act safely.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-020",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-020.d1",
+   "reason": "The delivery address for cust22 is unresolved between two options, requiring confirmation before suggesting a pickup point.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-020",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-020.d1",
+   "reason": "The delivery address for cust22 is unresolved between two options, requiring confirmation before suggesting a pickup point.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-020",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-020.d1",
+   "reason": "The delivery address for cust22 is unresolved, and asking for clarification is policy-default.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-020",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-022.d1",
+   "reason": "The memory is ESTABLISHED with a SINGLE ORIGIN decision to commit, and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 0,
+   "scenario": "RA-022",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-022.d1",
+   "reason": "The memory is ESTABLISHED with a SINGLE ORIGIN decision to commit, and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 1,
+   "scenario": "RA-022",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-022.d1",
+   "reason": "The memory is ESTABLISHED with a SINGLE ORIGIN decision to commit, and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 2,
+   "scenario": "RA-022",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-022.d1",
+   "reason": "The memory justifies sending the newsletter to Ivan in Porto as the established home city, despite it being uncorroborated, since the task is required and the memory allows commitment under default policy.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 3,
+   "scenario": "RA-022",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-023.d1",
+   "reason": "The memory is ESTABLISHED with a SINGLE ORIGIN decision to commit, and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 0,
+   "scenario": "RA-023",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-023.d1",
+   "reason": "The memory is ESTABLISHED with a SINGLE ORIGIN decision to commit, and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 1,
+   "scenario": "RA-023",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-023.d1",
+   "reason": "The memory is ESTABLISHED with a SINGLE ORIGIN decision to commit, and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 2,
+   "scenario": "RA-023",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-023.d1",
+   "reason": "The memory justifies sending the newsletter to Ivan in Porto as the established home city, despite it being uncorroborated, since the task is required and the memory allows commitment under default policy.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 3,
+   "scenario": "RA-023",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-025.d1",
+   "reason": "The memory is ESTABLISHED with a single origin (registry) and the decision is to commit, so the task can proceed with the value 'ben'.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "ben"
+   },
+   "sample": 0,
+   "scenario": "RA-025",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-025.d1",
+   "reason": "The memory is ESTABLISHED with a single origin (registry) and the decision is to commit, so the task can proceed with the value 'ben'.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "ben"
+   },
+   "sample": 1,
+   "scenario": "RA-025",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-025.d1",
+   "reason": "Memory confirms 'ben' as Acme's CEO (ESTABLISHED), and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "ben"
+   },
+   "sample": 2,
+   "scenario": "RA-025",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-025.d1",
+   "reason": "The memory is ESTABLISHED with 'ben' as Acme\u2019s CEO, attributed with SINGLE ORIGIN but justified for commitment under policy *p-default*.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "ben"
+   },
+   "sample": 3,
+   "scenario": "RA-025",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d1",
+   "reason": "The memory now shows the address is UNKNOWN, so the prior dispatch action must be reviewed for validity.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d1",
+   "reason": "The memory now shows the shipment address is UNKNOWN, requiring confirmation before validating the dispatched parcel.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d1",
+   "reason": "The memory now shows the shipment address is UNKNOWN, requiring confirmation before validating the dispatched parcel.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d1",
+   "reason": "The memory now shows the shipment address is UNKNOWN, and the prior action cannot be safely validated.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d2",
+   "reason": "The shipping address for order55 is unknown, and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d2",
+   "reason": "The shipping address for order55 is unknown, and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d2",
+   "reason": "The shipping address for order55 is unknown, and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d2",
+   "reason": "The shipping address for order55 is UNKNOWN, so I must clarify it before proceeding.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-029.d1",
+   "reason": "The memory for order57/ship_to_address has changed from ESTABLISHED to UNKNOWN, requiring confirmation before proceeding with the shipment.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-029",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-029.d1",
+   "reason": "The memory for `order57/ship_to_address` is now UNKNOWN, requiring confirmation before proceeding with the shipment.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-029",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-029.d1",
+   "reason": "The memory for order57/ship_to_address has changed from ESTABLISHED to UNKNOWN, requiring confirmation before proceeding with the shipment.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-029",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-029.d1",
+   "reason": "Memory shows the shipping address for order57 is now UNKNOWN, requiring verification before proceeding.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-029",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  }
+ ],
+ "samples": {
+  "0": {
+   "responses": {
+    "RA-001": {
+     "RA-001.d1": {
+      "action": "act",
+      "value": "tessaly"
+     },
+     "RA-001.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-002": {
+     "RA-002.d1": {
+      "action": "act",
+      "value": "tessaly"
+     }
+    },
+    "RA-004": {
+     "RA-004.d1": {
+      "action": "abstain",
+      "value": null
+     }
+    },
+    "RA-005": {
+     "RA-005.d1": {
+      "action": "act",
+      "value": "1980-02-03"
+     }
+    },
+    "RA-006": {
+     "RA-006.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-008": {
+     "RA-008.d1": {
+      "action": "act",
+      "value": "oslo"
+     },
+     "RA-008.d2": {
+      "action": "act",
+      "value": "bergen"
+     }
+    },
+    "RA-009": {
+     "RA-009.d1": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-010": {
+     "RA-010.d1": {
+      "action": "act",
+      "value": "acc-111"
+     },
+     "RA-010.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-012": {
+     "RA-012.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-013": {
+     "RA-013.d1": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-015": {
+     "RA-015.d1": {
+      "action": "act",
+      "value": "acc-111"
+     },
+     "RA-015.d2": {
+      "action": "act",
+      "value": "acc-222"
+     }
+    },
+    "RA-016": {
+     "RA-016.d1": {
+      "action": "act",
+      "value": "b12"
+     }
+    },
+    "RA-017": {
+     "RA-017.d1": {
+      "action": "act",
+      "value": "14"
+     }
+    },
+    "RA-019": {
+     "RA-019.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-020": {
+     "RA-020.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-022": {
+     "RA-022.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-023": {
+     "RA-023.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-025": {
+     "RA-025.d1": {
+      "action": "act",
+      "value": "ben"
+     }
+    },
+    "RA-027": {
+     "RA-027.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-027.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-029": {
+     "RA-029.d1": {
+      "action": "ask",
+      "value": null
+     }
+    }
+   },
+   "temperature": 0.0
+  },
+  "1": {
+   "responses": {
+    "RA-001": {
+     "RA-001.d1": {
+      "action": "act",
+      "value": "tessaly"
+     },
+     "RA-001.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-002": {
+     "RA-002.d1": {
+      "action": "act",
+      "value": "tessaly"
+     }
+    },
+    "RA-004": {
+     "RA-004.d1": {
+      "action": "abstain",
+      "value": null
+     }
+    },
+    "RA-005": {
+     "RA-005.d1": {
+      "action": "act",
+      "value": "1980-02-03"
+     }
+    },
+    "RA-006": {
+     "RA-006.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-008": {
+     "RA-008.d1": {
+      "action": "act",
+      "value": "oslo"
+     },
+     "RA-008.d2": {
+      "action": "act",
+      "value": "bergen"
+     }
+    },
+    "RA-009": {
+     "RA-009.d1": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-010": {
+     "RA-010.d1": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-012": {
+     "RA-012.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-013": {
+     "RA-013.d1": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-015": {
+     "RA-015.d1": {
+      "action": "act",
+      "value": "acc-111"
+     },
+     "RA-015.d2": {
+      "action": "act",
+      "value": "acc-222"
+     }
+    },
+    "RA-016": {
+     "RA-016.d1": {
+      "action": "act",
+      "value": "b12"
+     }
+    },
+    "RA-017": {
+     "RA-017.d1": {
+      "action": "act",
+      "value": "14"
+     }
+    },
+    "RA-019": {
+     "RA-019.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-020": {
+     "RA-020.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-022": {
+     "RA-022.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-023": {
+     "RA-023.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-025": {
+     "RA-025.d1": {
+      "action": "act",
+      "value": "ben"
+     }
+    },
+    "RA-027": {
+     "RA-027.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-027.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-029": {
+     "RA-029.d1": {
+      "action": "ask",
+      "value": null
+     }
+    }
+   },
+   "temperature": 0.0
+  },
+  "2": {
+   "responses": {
+    "RA-001": {
+     "RA-001.d1": {
+      "action": "act",
+      "value": "tessaly"
+     },
+     "RA-001.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-002": {
+     "RA-002.d1": {
+      "action": "act",
+      "value": "tessaly"
+     }
+    },
+    "RA-004": {
+     "RA-004.d1": {
+      "action": "abstain",
+      "value": null
+     }
+    },
+    "RA-005": {
+     "RA-005.d1": {
+      "action": "act",
+      "value": "1980-02-03"
+     }
+    },
+    "RA-006": {
+     "RA-006.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-008": {
+     "RA-008.d1": {
+      "action": "act",
+      "value": "oslo"
+     },
+     "RA-008.d2": {
+      "action": "act",
+      "value": "bergen"
+     }
+    },
+    "RA-009": {
+     "RA-009.d1": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-010": {
+     "RA-010.d1": {
+      "action": "act",
+      "value": "acc-111"
+     },
+     "RA-010.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-012": {
+     "RA-012.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-013": {
+     "RA-013.d1": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-015": {
+     "RA-015.d1": {
+      "action": "act",
+      "value": "acc-111"
+     },
+     "RA-015.d2": {
+      "action": "act",
+      "value": "acc-222"
+     }
+    },
+    "RA-016": {
+     "RA-016.d1": {
+      "action": "act",
+      "value": "b12"
+     }
+    },
+    "RA-017": {
+     "RA-017.d1": {
+      "action": "act",
+      "value": "14"
+     }
+    },
+    "RA-019": {
+     "RA-019.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-020": {
+     "RA-020.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-022": {
+     "RA-022.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-023": {
+     "RA-023.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-025": {
+     "RA-025.d1": {
+      "action": "act",
+      "value": "ben"
+     }
+    },
+    "RA-027": {
+     "RA-027.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-027.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-029": {
+     "RA-029.d1": {
+      "action": "ask",
+      "value": null
+     }
+    }
+   },
+   "temperature": 0.0
+  },
+  "3": {
+   "responses": {
+    "RA-001": {
+     "RA-001.d1": {
+      "action": "act",
+      "value": "tessaly"
+     },
+     "RA-001.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-002": {
+     "RA-002.d1": {
+      "action": "act",
+      "value": "'tessaly' as Alex's work city for expense booking"
+     }
+    },
+    "RA-004": {
+     "RA-004.d1": {
+      "action": "abstain",
+      "value": null
+     }
+    },
+    "RA-005": {
+     "RA-005.d1": {
+      "action": "act",
+      "value": "'2025-02-03' (postmark deadline: 2025-01-29)"
+     }
+    },
+    "RA-006": {
+     "RA-006.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-008": {
+     "RA-008.d1": {
+      "action": "act",
+      "value": "oslo"
+     },
+     "RA-008.d2": {
+      "action": "act",
+      "value": "bergen"
+     }
+    },
+    "RA-009": {
+     "RA-009.d1": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-010": {
+     "RA-010.d1": {
+      "action": "act",
+      "value": "acc-111"
+     },
+     "RA-010.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-012": {
+     "RA-012.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-013": {
+     "RA-013.d1": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-015": {
+     "RA-015.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-015.d2": {
+      "action": "act",
+      "value": "acc-222"
+     }
+    },
+    "RA-016": {
+     "RA-016.d1": {
+      "action": "act",
+      "value": "b12"
+     }
+    },
+    "RA-017": {
+     "RA-017.d1": {
+      "action": "act",
+      "value": "14"
+     }
+    },
+    "RA-019": {
+     "RA-019.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-020": {
+     "RA-020.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-022": {
+     "RA-022.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-023": {
+     "RA-023.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-025": {
+     "RA-025.d1": {
+      "action": "act",
+      "value": "ben"
+     }
+    },
+    "RA-027": {
+     "RA-027.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-027.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-029": {
+     "RA-029.d1": {
+      "action": "ask",
+      "value": null
+     }
+    }
+   },
+   "temperature": 0.7
+  }
+ },
+ "scenarios_sha256": "3bb63bb6088f41efe9dd75e63bce6e7362a8bf4d3ac7df00fe49694b5d88e2b1",
+ "split": "test",
+ "started_utc": "2026-10-05T16:02:38Z",
+ "system": "llm+palimem"
+}

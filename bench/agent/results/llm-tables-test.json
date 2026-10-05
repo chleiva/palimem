@@ -1,0 +1,279 @@
+{
+ "gpt-oss-20b": {
+  "diffs": {
+   "llm+lww - llm+palimem": {
+    "harmful_action_rate": {
+     "B": 4000,
+     "hi": 0.8181818181818182,
+     "lo": 0.4509803921568628,
+     "point": 0.6333333333333333
+    },
+    "normalised_cost": {
+     "B": 4000,
+     "hi": 0.8794202898550726,
+     "lo": 0.41980952380952374,
+     "point": 0.6531446540880502
+    },
+    "unnecessary_deferral_rate": {
+     "B": 4000,
+     "hi": 0.0,
+     "lo": 0.0,
+     "point": 0.0
+    }
+   },
+   "llm+lww - llm+raw_log": {
+    "harmful_action_rate": {
+     "B": 4000,
+     "hi": 0.6862745098039216,
+     "lo": 0.2727272727272727,
+     "point": 0.48333333333333334
+    },
+    "normalised_cost": {
+     "B": 4000,
+     "hi": 0.829723991507431,
+     "lo": 0.21509433962264152,
+     "point": 0.529559748427673
+    },
+    "unnecessary_deferral_rate": {
+     "B": 4000,
+     "hi": 0.0,
+     "lo": -0.5,
+     "point": -0.2
+    }
+   },
+   "llm+raw_log - llm+palimem": {
+    "harmful_action_rate": {
+     "B": 4000,
+     "hi": 0.3684210526315789,
+     "lo": -0.05263157894736842,
+     "point": 0.15000000000000002
+    },
+    "normalised_cost": {
+     "B": 4000,
+     "hi": 0.3146853146853147,
+     "lo": -0.021428571428571436,
+     "point": 0.12358490566037736
+    },
+    "unnecessary_deferral_rate": {
+     "B": 4000,
+     "hi": 0.5,
+     "lo": 0.0,
+     "point": 0.2
+    }
+   }
+  },
+  "sensitivity": {
+   "llm+lww": {
+    "missing_is_harm": 0.5466666666666666,
+    "primary": 0.5466666666666666,
+    "sample_0.7": 0.52,
+    "without_ra012": 0.5277777777777778
+   },
+   "llm+palimem": {
+    "missing_is_harm": 0.04,
+    "primary": 0.04,
+    "sample_0.7": 0.04,
+    "without_ra012": 0.0
+   },
+   "llm+raw_log": {
+    "missing_is_harm": 0.16,
+    "primary": 0.16,
+    "sample_0.7": 0.12,
+    "without_ra012": 0.16666666666666666
+   }
+  },
+  "summary": {
+   "llm+lww": {
+    "ask_recall": 0.0,
+    "cost": 713.3333333333333,
+    "exact_match": 0.45333333333333337,
+    "gap_surfacing_rate": 0.0,
+    "harmful_action_rate": 0.5466666666666666,
+    "mean_cost": 28.53333333333333,
+    "missing": 0.0,
+    "n": 25.0,
+    "n_actable": 15.0,
+    "n_nonact": 10.0,
+    "normalised_cost": 0.639760837070254,
+    "safe_deferral_rate": 0.1,
+    "unnecessary_ask_rate": 0.0,
+    "unnecessary_deferral_rate": 0.0,
+    "wrong_value_rate": 0.31111111111111106
+   },
+   "llm+palimem": {
+    "ask_recall": 0.875,
+    "cost": 21.0,
+    "exact_match": 0.92,
+    "gap_surfacing_rate": 1.0,
+    "harmful_action_rate": 0.04,
+    "mean_cost": 0.84,
+    "missing": 0.0,
+    "n": 25.0,
+    "n_actable": 15.0,
+    "n_nonact": 10.0,
+    "normalised_cost": 0.01883408071748879,
+    "safe_deferral_rate": 0.9,
+    "unnecessary_ask_rate": 0.0,
+    "unnecessary_deferral_rate": 0.0,
+    "wrong_value_rate": 0.0
+   },
+   "llm+raw_log": {
+    "ask_recall": 0.75,
+    "cost": 152.0,
+    "exact_match": 0.76,
+    "gap_surfacing_rate": 1.0,
+    "harmful_action_rate": 0.16,
+    "mean_cost": 6.08,
+    "missing": 0.0,
+    "n": 25.0,
+    "n_actable": 15.0,
+    "n_nonact": 10.0,
+    "normalised_cost": 0.13632286995515694,
+    "safe_deferral_rate": 0.8,
+    "unnecessary_ask_rate": 0.13333333333333333,
+    "unnecessary_deferral_rate": 0.13333333333333333,
+    "wrong_value_rate": 0.13333333333333333
+   }
+  }
+ },
+ "ministral-14b": {
+  "diffs": {
+   "llm+lww - llm+palimem": {
+    "harmful_action_rate": {
+     "B": 4000,
+     "hi": 0.875,
+     "lo": 0.45454545454545453,
+     "point": 0.65
+    },
+    "normalised_cost": {
+     "B": 4000,
+     "hi": 0.778021978021978,
+     "lo": 0.2776068376068376,
+     "point": 0.4959119496855346
+    },
+    "unnecessary_deferral_rate": {
+     "B": 4000,
+     "hi": 0.0,
+     "lo": 0.0,
+     "point": 0.0
+    }
+   },
+   "llm+lww - llm+raw_log": {
+    "harmful_action_rate": {
+     "B": 4000,
+     "hi": 0.75,
+     "lo": 0.3636363636363636,
+     "point": 0.55
+    },
+    "normalised_cost": {
+     "B": 4000,
+     "hi": 0.70875,
+     "lo": 0.2346938775510204,
+     "point": 0.4588050314465409
+    },
+    "unnecessary_deferral_rate": {
+     "B": 4000,
+     "hi": -0.2121212121212121,
+     "lo": -0.7272727272727272,
+     "point": -0.4666666666666667
+    }
+   },
+   "llm+raw_log - llm+palimem": {
+    "harmful_action_rate": {
+     "B": 4000,
+     "hi": 0.2631578947368421,
+     "lo": 0.0,
+     "point": 0.1
+    },
+    "normalised_cost": {
+     "B": 4000,
+     "hi": 0.11419141914191419,
+     "lo": 0.007441860465116279,
+     "point": 0.037106918238993716
+    },
+    "unnecessary_deferral_rate": {
+     "B": 4000,
+     "hi": 0.7272727272727272,
+     "lo": 0.2121212121212121,
+     "point": 0.4666666666666667
+    }
+   }
+  },
+  "sensitivity": {
+   "llm+lww": {
+    "missing_is_harm": 0.56,
+    "primary": 0.52,
+    "sample_0.7": 0.56,
+    "without_ra012": 0.5
+   },
+   "llm+palimem": {
+    "missing_is_harm": 0.013333333333333332,
+    "primary": 0.0,
+    "sample_0.7": 0.08,
+    "without_ra012": 0.0
+   },
+   "llm+raw_log": {
+    "missing_is_harm": 0.1733333333333333,
+    "primary": 0.1733333333333333,
+    "sample_0.7": 0.2,
+    "without_ra012": 0.18055555555555555
+   }
+  },
+  "summary": {
+   "llm+lww": {
+    "ask_recall": 0.125,
+    "cost": 530.0,
+    "exact_match": 0.44,
+    "gap_surfacing_rate": 0.0,
+    "harmful_action_rate": 0.52,
+    "mean_cost": 21.2,
+    "missing": 1.0,
+    "n": 25.0,
+    "n_actable": 15.0,
+    "n_nonact": 10.0,
+    "normalised_cost": 0.47533632286995514,
+    "safe_deferral_rate": 0.2,
+    "unnecessary_ask_rate": 0.0,
+    "unnecessary_deferral_rate": 0.0,
+    "wrong_value_rate": 0.3333333333333333
+   },
+   "llm+palimem": {
+    "ask_recall": 0.9583333333333333,
+    "cost": 4.333333333333334,
+    "exact_match": 0.9466666666666665,
+    "gap_surfacing_rate": 1.0,
+    "harmful_action_rate": 0.0,
+    "mean_cost": 0.17333333333333337,
+    "missing": 0.3333333333333333,
+    "n": 25.0,
+    "n_actable": 15.0,
+    "n_nonact": 10.0,
+    "normalised_cost": 0.003886397608370703,
+    "safe_deferral_rate": 1.0,
+    "unnecessary_ask_rate": 0.0,
+    "unnecessary_deferral_rate": 0.0,
+    "wrong_value_rate": 0.0
+   },
+   "llm+raw_log": {
+    "ask_recall": 0.9166666666666666,
+    "cost": 71.25,
+    "exact_match": 0.46666666666666673,
+    "gap_surfacing_rate": 1.0,
+    "harmful_action_rate": 0.1733333333333333,
+    "mean_cost": 2.85,
+    "missing": 0.0,
+    "n": 25.0,
+    "n_actable": 15.0,
+    "n_nonact": 10.0,
+    "normalised_cost": 0.06390134529147982,
+    "safe_deferral_rate": 1.0,
+    "unnecessary_ask_rate": 0.3111111111111111,
+    "unnecessary_deferral_rate": 0.48888888888888893,
+    "wrong_value_rate": 0.28888888888888886
+   }
+  }
+ },
+ "n_scenarios": 20,
+ "points": 25,
+ "split": "test"
+}
