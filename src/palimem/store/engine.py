@@ -95,6 +95,7 @@ from palimem.types import (
 __all__ = ["DEFAULT_TRAVERSAL_BUDGET", "Engine"]
 
 _GENERATION = "generation"
+_VERIFY_CHECKPOINT = "verify_beliefs_checkpoint"
 _REDACTED = canonical_json({"redacted": True})
 _FAR = 2**62
 
@@ -690,7 +691,10 @@ class Engine:
             skipped += sk
             done += 1 if finished else 0
         with self._lock:
-            return CompletionReport(jobs_done=done, keys_stamped=stamped, jobs_pending=len(self._s.jobs("pending")), skipped_newer=skipped)
+            return CompletionReport(
+                jobs_done=done, keys_stamped=stamped, jobs_pending=len(self._s.jobs("pending")), skipped_newer=skipped,
+                jobs_blocked=len(self._s.jobs(barrier.JOB_BLOCKED)),
+            )
 
     def _run_job(self, job: JobRow, reviser: Reviser) -> tuple[int, int, bool]:
         s = self._s
@@ -739,7 +743,30 @@ class Engine:
         if finished:
             s.replace_job(JobRow(generation=g, state="done", payload=p.cleared().to_json(), created_us=job.created_us, updated_us=self._now_us()))
             s.clear_dirty(g, head)
+        else:
+            # never loop on a job that cannot finish: count the attempt, and give up after a few with the reason recorded
+            q = p.after_failed_run(self._unfinished_reason(remaining[0]), limit=barrier.MAX_JOB_ATTEMPTS)
+            state = barrier.JOB_BLOCKED if q.blocked is not None else "pending"
+            s.replace_job(JobRow(generation=g, state=state, payload=q.to_json(), created_us=job.created_us, updated_us=self._now_us()))
         return stamped, skipped, finished
+
+    def _unfinished_reason(self, key: Key) -> str:
+        v = self._s.current_version(key)
+        b = None if v is None else self.belief_version(key, v)
+        why = b.inference.reason if b is not None and b.inference.reason else "still marked, recomputation did not complete it"
+        return f"{key.entity}/{key.attr}: {why}"
+
+    def retry_blocked(self) -> int:
+        """Put the blocked completion jobs back to pending with their attempt count reset (after the cause was fixed,
+        e.g. the environment budget was raised). Returns how many jobs were reset."""
+        n = 0
+        with self._lock, self._s.transaction():
+            for job in self._s.jobs(barrier.JOB_BLOCKED):
+                p = JobPayload.from_json(job.payload)
+                fresh = JobPayload(kind=p.kind, lsn=p.lsn, seeds=p.seeds, keys=p.keys)
+                self._s.replace_job(JobRow(generation=job.generation, state="pending", payload=fresh.to_json(), created_us=job.created_us, updated_us=self._now_us()))
+                n += 1
+        return n
 
     # ------------------------------------------------------------------ subscriptions and the outbox (T-C5)
 
@@ -992,8 +1019,14 @@ class Engine:
                 out.append(VerifyProblem(kind="anchor_mismatch", detail=f"admission seq {anchor.admission_seq} differs from the exported head"))
         return out
 
-    def verify_beliefs(self, reviser: Reviser, *, keys: Sequence[Key] | None = None) -> VerifyResult:
+    def verify_beliefs(
+        self, reviser: Reviser, *, keys: Sequence[Key] | None = None, since_lsn: int | None = None
+    ) -> VerifyResult:
         """Recompute beliefs with ``reviser.recompute`` and compare with the stored current versions (SEC-25).
+
+        ``keys`` verifies those keys on demand; ``since_lsn`` restricts the run to the keys whose current version was
+        written after that log position (the incremental mode: what changed since the last checkpoint). With neither,
+        every current key is verified (the full mode, the only one that notices an old row edited in place).
 
         Stale keys (marked by the barrier and not yet completed) are skipped: their stored version is outdated
         by design and is never served as current. Beliefs fabricated as ``unknown`` for a key left without
@@ -1004,6 +1037,10 @@ class Engine:
             checked = 0
             for key in targets:
                 v = self._s.current_version(key)
+                if since_lsn is not None and keys is None:
+                    row = None if v is None else self._s.belief_row(key, v)
+                    if row is not None and row.lsn <= since_lsn:
+                        continue
                 if v is not None and self._s.belief_row(key, v + 1) is not None:
                     problems.append(VerifyProblem(kind="index_mismatch", key=key, version=v, detail="a newer belief version exists than the current-version index names"))
                 if self._s.required_generation(key) > self._completed_of(key):
@@ -1020,6 +1057,23 @@ class Engine:
                 if stored is None or fresh is None or _core(stored) != _core(fresh):
                     problems.append(VerifyProblem(kind="belief_mismatch", key=key, version=v, detail="stored belief differs from the one recomputed from the log"))
             return VerifyResult(ok=not problems, checked=checked, problems=tuple(problems))
+
+    def verify_beliefs_incremental(self, reviser: Reviser) -> VerifyResult:
+        """Verify only what changed since the last successful incremental run, then move the checkpoint.
+
+        The checkpoint (a log position) lives in the store's meta table. A run with problems leaves it where it was,
+        so the same keys are checked again next time. The first run (no checkpoint) is a full verification."""
+        with self._lock:
+            raw = self._s.get_meta(_VERIFY_CHECKPOINT)
+            since = int(raw) if raw is not None else None
+            head = self._head_lsn()
+            res = self.verify_beliefs(reviser, since_lsn=since)
+            if res.ok:
+                self._s.set_meta(_VERIFY_CHECKPOINT, str(head))
+            return VerifyResult(
+                ok=res.ok, checked=res.checked, problems=res.problems, rows=res.rows,
+                checkpoint_lsn=head if res.ok else since,
+            )
 
     # ------------------------------------------------------------------ recovery
 

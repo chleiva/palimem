@@ -107,16 +107,24 @@ class JobPayload:
     lsn: int
     seeds: tuple[Key, ...]
     keys: tuple[Key, ...] | None
+    attempts: int = 0
+    """Runs that ended without finishing the job; past ``MAX_JOB_ATTEMPTS`` the job is *blocked* (it is never retried
+    in a loop: a key that cannot be completed, e.g. past the environment budget, is reported, not recomputed forever)."""
+    blocked: str | None = None
+    """Why the job stopped being retried (the first key left and its incompleteness reason), for the operator."""
 
     def to_json(self) -> str:
-        return canonical_json(
-            {
-                "kind": self.kind,
-                "lsn": self.lsn,
-                "seeds": [k.to_dict() for k in self.seeds],
-                "keys": None if self.keys is None else [k.to_dict() for k in self.keys],
-            }
-        )
+        d: dict[str, Any] = {
+            "kind": self.kind,
+            "lsn": self.lsn,
+            "seeds": [k.to_dict() for k in self.seeds],
+            "keys": None if self.keys is None else [k.to_dict() for k in self.keys],
+        }
+        if self.attempts:  # absent for a job that never failed: the payload stays byte-identical to the original form
+            d["attempts"] = self.attempts
+        if self.blocked is not None:
+            d["blocked"] = self.blocked
+        return canonical_json(d)
 
     @classmethod
     def from_json(cls, text: str) -> JobPayload:
@@ -127,10 +135,25 @@ class JobPayload:
             lsn=int(d["lsn"]),
             seeds=tuple(Key.from_dict(k) for k in d["seeds"]),
             keys=None if keys is None else tuple(Key.from_dict(k) for k in keys),
+            attempts=int(d.get("attempts", 0)),
+            blocked=d.get("blocked"),
+        )
+
+    def after_failed_run(self, reason: str, *, limit: int) -> JobPayload:
+        n = self.attempts + 1
+        return JobPayload(
+            kind=self.kind, lsn=self.lsn, seeds=self.seeds, keys=self.keys, attempts=n,
+            blocked=reason if n >= limit else None,
         )
 
     def cleared(self) -> JobPayload:
         return JobPayload(kind=self.kind, lsn=self.lsn, seeds=(), keys=())
+
+
+MAX_JOB_ATTEMPTS = 3
+"""Completion attempts of one job that end with keys still unfinished before the job is marked ``blocked``."""
+
+JOB_BLOCKED = "blocked"
 
 
 def sorted_keys(keys: Sequence[Key]) -> list[Key]:

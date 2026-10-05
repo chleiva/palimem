@@ -12,6 +12,7 @@ import pytest
 from chain_fakes import ChainReviser, SchemalessReviser, chain_schema
 from fakes import FakeAdmitter, make_report
 
+from palimem.store import barrier
 from palimem.store.backend import LimitedRead
 from palimem.types import (
     Belief,
@@ -151,13 +152,24 @@ def test_an_unfinishable_key_does_not_pile_up_versions(h) -> None:  # type: igno
     add(b, employer("acme"), "k1", ChainReviser())
     add(b, employer("globex", "s2"), "k2", ChainReviser(skip={"work_city", "tax_city"}))
     stuck = ChainReviser(recompute_incomplete={"work_city"})
-    for _ in range(4):
+    for i in range(barrier.MAX_JOB_ATTEMPTS):
         rep = b.complete_pending(stuck)
-        assert rep.jobs_pending == 1  # B cannot be finished: the job stays pending, loudly
+        # B cannot be finished: the job stays pending (loudly) until the attempt cap, then it is blocked
+        assert rep.jobs_pending == (1 if i < barrier.MAX_JOB_ATTEMPTS - 1 else 0)
+    assert rep.jobs_blocked == 1
     versions = [b.belief_version(B, v) for v in (1, 2, 3, 4)]
     assert versions[0] is not None and versions[1] is not None and versions[2] is None  # one incomplete attempt, then no pile-up
     assert isinstance(b.read_belief(B), LimitedRead)
-    assert b.complete_pending(ChainReviser()).jobs_pending == 0  # a reviser that can finish it does
+    (job,) = [j for j in b.storage.jobs() if j.state == barrier.JOB_BLOCKED]
+    payload = barrier.JobPayload.from_json(job.payload)
+    assert payload.attempts == barrier.MAX_JOB_ATTEMPTS and payload.blocked is not None and "work_city" in payload.blocked
+    # the next runs do nothing: a blocked job is not retried in a loop
+    again = b.complete_pending(stuck)
+    assert again.jobs_done == 0 and again.keys_stamped == 0 and again.jobs_blocked == 1
+    assert isinstance(b.read_belief(B), LimitedRead)  # still reported as limited, never served as current
+    # after the cause is fixed an operator puts the job back; a reviser that can finish it does
+    assert b.retry_blocked() == 1
+    assert b.complete_pending(ChainReviser()).jobs_pending == 0
     assert isinstance(b.read_belief(B), Belief)
 
 

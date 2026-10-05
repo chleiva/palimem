@@ -1,0 +1,50 @@
+{
+ "report_version": 1,
+ "kind": "recovery",
+ "env": {
+  "python": "3.13.7",
+  "implementation": "CPython",
+  "sqlite": "3.50.4",
+  "os": "Darwin 25.3.0",
+  "machine": "arm64",
+  "cpu": "Apple M3",
+  "cpu_count": 8,
+  "git_commit": "d662da0"
+ },
+ "params": {
+  "preload": 1000,
+  "extra": 300,
+  "seed": 1,
+  "persons": null,
+  "verify_beliefs": true
+ },
+ "killed": true,
+ "kill_delay_s": 0.542,
+ "last_acked_lsn": 1111,
+ "head_lsn_after": 1111,
+ "acknowledged_appends_lost": 0,
+ "committed_but_unacknowledged": 0,
+ "start_to_first_correct_query_s": 0.133,
+ "probe_total_wall_s_incl_verification": 0.642,
+ "probe": {
+  "open_s": 0.0022,
+  "recover_s": 0.0256,
+  "completion_s": 0.0,
+  "completion_jobs_run": 0,
+  "completion_keys_stamped": 0,
+  "completion_jobs_still_pending": 0,
+  "first_query_s": 0.0259,
+  "in_process_total_s": 0.0538,
+  "head_lsn": 1111,
+  "recover_ok": true,
+  "recover_problems": [],
+  "answer_ok": true,
+  "verify_log_s": 0.031,
+  "verify_log_ok": true,
+  "verify_log_checked": 1111,
+  "verify_beliefs_s": 0.463,
+  "verify_beliefs_ok": true
+ },
+ "db_bytes": 14340096,
+ "integrity_ok": true
+}

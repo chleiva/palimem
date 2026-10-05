@@ -120,6 +120,34 @@ def summarize_ns(values: list[int]) -> dict[str, float | int]:
     }
 
 
+def db_bytes_checkpointed(path: str | Path) -> int | None:
+    """Size of the database file after a WAL checkpoint (TRUNCATE): what the data occupies once SQLite has folded its
+    write-ahead log back in. ``db_bytes`` (the declared T7 metric) includes the uncheckpointed WAL, so a small database
+    can look several times larger than its content; both are recorded."""
+    if str(path) == ":memory:":
+        return None
+    import sqlite3
+
+    try:
+        con = sqlite3.connect(str(path), timeout=5)
+        try:
+            con.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        finally:
+            con.close()
+    except sqlite3.Error:
+        return None
+    p = Path(str(path))
+    return p.stat().st_size if p.exists() else None
+
+
+def _checkpointed_disk(path: str | Path, n_appended: int) -> dict[str, float | int | None]:
+    cp = db_bytes_checkpointed(path)
+    return {
+        "bytes_checkpointed": cp,
+        "bytes_per_report_checkpointed": round(cp / n_appended, 1) if cp is not None and n_appended else None,
+    }
+
+
 def db_bytes(path: str | Path) -> int:
     if str(path) == ":memory:":
         return 0
@@ -254,7 +282,10 @@ def _run(
             "rss_start_bytes": rss0, "rss_end_bytes": rss_end, "rss_peak_bytes": peak_rss_bytes(),
             "slope_bytes_per_report": _rss_slope(checkpoints), "heap": heap,
         },
-        "disk": {"bytes": db_bytes(db_path), "bytes_per_report": round(db_bytes(db_path) / n_appended, 1) if n_appended else 0.0},
+        "disk": {
+            "bytes": db_bytes(db_path), "bytes_per_report": round(db_bytes(db_path) / n_appended, 1) if n_appended else 0.0,
+            **_checkpointed_disk(db_path, n_appended),
+        },
         "checkpoints": checkpoints,
     }
     return report_out, mem

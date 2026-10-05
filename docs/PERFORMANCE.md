@@ -269,3 +269,139 @@ warm-up was 5% of the target size, which swallowed every append of an early-stop
    use case, the amendment belongs in this file with its date.
 6. **Re-run on the same commands** (`bench/perf/run_all.sh`), then add the 10^4 and 10^5 scales, a second seed, and a real
    agent workload (T-J4) before any G2 claim.
+
+---
+
+## 9. After optimisation (Lane O), measured on 2026-10-05, same laptop, same commands, same seeds
+
+**Same caveats as §8: one laptop, one seed, one pass, synthetic workloads, not a load characterisation (T-J4). The declared
+targets in §3 are unchanged.** The pass is `bench/perf/run_all.sh` with the output redirected to `bench/perf/results/after/`
+(the "before" files in `bench/perf/results/` are untouched). It took about 7 minutes; the "before" pass took about 65.
+
+### 9.1 What changed in the code (no answer changed, see 9.5)
+
+1. **Targeted revision.** `justify_derived` took the breakpoints of *every* entity's keys of every base attribute; it now
+   takes them from the keys its rules can read (`relevant_base_keys`, `src/palimem/kernel/derive.py`), and the revision
+   re-justifies only the derived keys whose rules read a changed key (`src/palimem/engine/dependents.py`: reverse plans
+   derived statically from the rules, plus a value index over the attributes that bind entity variables, rebuilt lazily from
+   the store and dropped whenever a belief may change outside a revision). `Pipeline(exhaustive=True)` keeps the old
+   behaviour for audits and tests.
+2. **Bounded caches.** Admission evaluations kept: 4 instead of 512. The decision on a report's own merits is memoised for
+   the life of the log (it depends only on the report, its target and the config). Per-evaluation facts (direct entries,
+   entity universe) are computed once per evaluation instead of once per recomputed key.
+3. **Derived writes.** A derived version is written when its content, its pins or its pinned base versions change, or when the
+   store's own closure marks it. Measured on W1 at 1,000 reports: of 1,821 derived writes, **42 (2.3%) were forced by the mark
+   alone**; the rest are real changes (see R3 below: this contradicts the hypothesis of §8.4, F3).
+4. **`verify_beliefs`.** On demand per key (`keys=`), a `since_lsn` filter, and a checkpointed incremental mode
+   (`verify_beliefs_incremental`); the full mode stays and is the only one that sees an old row edited in place.
+5. **Completion jobs.** A job that ends a run with keys still unfinished is counted; after 3 such runs it is *blocked* with the
+   reason recorded and is no longer retried on every append. `retry_blocked()` puts blocked jobs back to pending.
+
+### 9.2 Before and after, same runs
+
+| run | reports reached | append p50 / p99 ms, before | append p50 / p99 ms, after | RSS slope KiB/report, before → after | disk KiB/report, before → after |
+|---|---|---|---|---|---|
+| W1, default, 300 | 300 | 23.1 / 43.3 | 1.2 / 11.6 | 99.2 → 18.5 | 21.0 → 22.0 |
+| W1, default, 1,000 | 1,000 | 178.5 / 245.8 | 1.9 / 38.5 | 175.8 → 7.6 | 18.1 → 19.4 |
+| W1, 50 people, 1,000 | 1,000 | 15.1 / 43.8 | 2.0 / 19.9 | 199.5 → 7.6 | 15.1 → 17.1 |
+| W1, 250 people, 300 | 300 | 3.7 / 206.7 | 1.1 / 3.2 | 91.6 → 13.3 | 19.2 → 18.3 |
+| W2, default, 300 | 300 | 3.8 / 32.5 | 1.2 / 5.7 | 98.7 → 17.1 | 19.7 → 20.1 |
+| W2, default, 1,000 | 1,000 | 9.5 / 232.4 | 2.0 / 4.6 | 209.7 → 5.5 | 11.2 → 12.2 |
+| W3, default, 300 | 300 | 35.6 / 61.4 | 2.5 / 50.3 | 100.9 → 26.9 | 60.1 → 72.6 |
+| W3, default, 1,000 | 1,000 | 240.0 / 359.4 | 3.7 / 156.1 | 195.5 → 15.9 | 91.6 → 118.3 |
+| **W1, default, 10,000 (20 min budget)** | **72** → **10,000** | 16,486 / 17,544 (at 72 reports) | 11.3 / 252.3 | n/a → 5.2 | 87.4 (at 72) → 50.0 |
+| W1, 250 people, 10,000 (25 min budget, supplementary) | 7,852 → **10,000** | 239.0 / 588.7 | 11.2 / 249.4 | 141.6 → 4.2 | 43.0 → 59.8 |
+
+The reference size (10⁵ reports) was still not reached, because no run asked for it; the largest run now completes 10,000
+reports in 188 s where the same run reached 72 reports in 1,205 s. Elapsed times: W1 1,000 reports 110 s → 4 s; W3 1,000
+reports 240 s → 16 s. RSS at the end of the 10,000-report run is 90 MB (before: 1,306 MB at 7,852 reports, supplementary run).
+
+Other measurements, before → after:
+
+| quantity | before | after |
+|---|---|---|
+| `verify_beliefs` after the kill, 300 preload | 1.21 s (305 reports) | 0.17 s (370 reports) |
+| `verify_beliefs` after the kill, 1,000 preload | 6.73 s (1,004 reports) | 0.46 s (1,111 reports) |
+| time to first correct query after a kill (T4) | 0.09 s / 0.13 s | 0.10 s / 0.13 s, 0 acknowledged appends lost |
+| crossover r\* against a cold replay, 1,000 reports | 3.60 | 0.10 |
+| crossover r\* against a warm replay, 1,000 reports | 272.7 | 32.3 |
+| store append mean, 1,000 reports | 110.7 ms | 3.04 ms |
+| heap traced by tracemalloc, 400 reports, 50 people | 29.1 MB (400 cached evaluations) | 1.0 MB (4 cached evaluations) |
+
+(The recovery runs differ in size between the passes because the kill lands after a fixed delay and the store is now faster:
+the counts of reports at the kill are 305 → 370 and 1,004 → 1,111. `verify_beliefs` is therefore faster for a *larger* log.)
+
+### 9.3 Verdicts against the declared targets
+
+"Holds at the size reached" is not "holds at the reference size": every extrapolation is labelled.
+
+| target | declared | measured (largest size) | holds at the size reached? | verdict |
+|---|---|---|---|---|
+| T1 query latency | p50 ≤ 5 ms, p99 ≤ 25 ms | 10,000 reports: p50 0.13, p99 4.64 ms; 250 people: p50 0.68, p99 15.5 ms | yes | **not shown at 10⁵**; the 250-people run's p99 is 15.5 ms at 10,000 reports against 0.35 ms at 300, so the trend is upward |
+| T2 append-to-visible | p50 ≤ 25 ms, p99 ≤ 100 ms | 10,000 reports: p50 11.3 ms, **p99 252 ms** | p50 yes, **p99 no** | **missed** at the size reached (p99) |
+| T3 memory | ≤ 1 KiB/report, RSS ≤ 300 MB at 10⁵ | slope 5.2 KiB/report; RSS 90 MB at 10,000 | **no** (about 5 times over; was about 175) | **missed**; linear extrapolation to 10⁵ reports gives about 0.5 GB (estimate) |
+| T4 recovery | ≤ 2 s, nothing lost | 0.13 s at 1,111 reports, 0 lost | yes | **not shown at 10⁵** |
+| T5 crossover | r\* ≤ 2 at 10⁴ reports | cold 0.10 at 1,000 reports; warm 32.3 | cold yes, warm no | **not shown at 10⁴**; the store barely beats a *warm* replay |
+| T6 append scaling | p99 ratio largest / smallest scale ≤ 4 | W1 300 → 10,000: 11.6 → 252.3 ms, ratio **21.8**; W1 300 → 1,000: 3.3; W2 300 → 1,000: 0.81 | W1 over the long range **no** | **missed** (W1, 300 to 10,000); the 300 to 1,000 ratios meet it, but that is a shorter range than the one now measured, so they are not comparable with the §8 ratios of 5.7 and 7.2 |
+| T7 disk | ≤ 5 KiB/report | 50.0 KiB/report at 10,000 (47.0 KiB after a WAL checkpoint); 19.4 KiB at 1,000 | **no** (about 10 times over at 10,000) | **missed**; per-report disk grows with scale |
+
+### 9.4 What remains, with profile evidence
+
+**R1. Append cost is still linear in log length, because every revision makes whole-log passes.** Plain appends (no derived
+fan-out) cost about 2 ms at 1,000 reports and about 10 ms at 10,000 (mean `affiliations:assert` 10.1 ms, `employer:assert`
+11.0 ms, `residence:assert` 10.0 ms). A 100-append profile window at 10,000 reports
+(`bench/perf/results/after/profile-w1-10000.json`) attributes it to `Admitter._evaluate` (1.7 s cumulative over 100 appends,
+17 ms each), `direct_entries` (1.1 s, 11 ms each) and the per-key diff in `KernelReviser.revise` (`_ids`, 0.5 s), with about
+70,000 `_rid` calls per append. The cost at 10⁵ reports on this trend is about 100 ms per plain append (linear extrapolation,
+an estimate), which would miss T2's p50. The fix is an *incremental* admission evaluation (extend the previous evaluation by one
+entry and recompute only what the new entry can change: its own decision, its target, confirmations of its key, source-wide
+withdrawals) and an incremental per-key admitted-entries index. It was not attempted here because confirmation and withdrawal
+effects reach back into earlier decisions, so it needs its own equivalence tests against the full evaluation.
+
+**R2. The p99 append tail is fan-out, by design of pinning.** At 10,000 reports `hq_city:change` appends average 107 ms (p95
+448 ms, max 780 ms) and `hq_city:withdraw` 256 ms, against 10 to 16 ms for every other kind except `hq_city:assert` (1 ms, the
+seeding of organisations). An organisation's city is read by every employee's `work_city`, and each employee's derived belief
+pins the exact version of the organisation's belief it consumed, so a new organisation version means a new derived version per
+employee (about 20 employees per organisation at this population: 2,500 people, 125 organisations). That is the declared
+behaviour (derived beliefs pin the base versions they consumed), not a bug, and it sets a floor on T2's p99 and on T6 for
+fan-out workloads unless the pinning granularity changes (a contract decision, out of scope).
+
+**R3. Disk per report grows with scale and comes from the same fan-out, not from rewriting unchanged versions.** The F3
+hypothesis of §8.4 was wrong: only 42 of 1,821 derived writes (2.3%) at 1,000 reports were forced by the store's mark alone.
+At 10,000 reports the database holds 40,096 `work_city` versions for 10,000 appends (4 per append, mean 8.6 KB of JSON each,
+346 MB of the 366 MB of belief JSON; the `beliefs` table occupies 408 MB); `belief_pins` and its two indexes add 147 MB. Each
+version is large because it carries the whole timeline with per-interval supports and the union of pinned report ids. Options,
+none implemented: compress the belief JSON column (a storage-layer change, but the tamper tests and `verify` read the JSON
+column directly, so it needs care); store pins as a separate row per report only for the current version; or amend T7 (the
+author's decision, with a dated note in this file). The WAL accounts for about 6% of the file at 10,000 reports (511.9 MB
+against 481.1 MB after a checkpoint), so the metric is not an artefact of an uncheckpointed WAL.
+
+**R4. Memory: 5.2 KiB per report remains.** At 400 reports tracemalloc shows 1.0 MB retained (2.5 KiB per report):
+0.19 MB in `admission/admitter.py` (the memoised decisions), 0.18 MB in JSON decoding, 0.14 MB in the SQLite layer, 0.08 MB in
+dataclasses and 0.07 MB in the pipeline, i.e. the decoded in-memory log plus one decision per report. The slope at 10,000
+reports (5.2 KiB per report, measured by RSS) is about twice that, and the difference was **not isolated**: it may be
+interpreter and allocator overhead, SQLite's page cache, or structures that only grow at scale. Reaching 1 KiB would need a
+windowed log or an incremental evaluation that does not hold every decision (R1).
+
+**R5. T5 against a warm replay.** The store answers a query in 0.20 ms against 0.29 ms for a replay that reuses the cached
+admission evaluation at the head, so its read advantage over a cached recomputation is small; the store's value is against a
+cold replay (29 ms) and in the barrier and provenance guarantees, not raw read speed.
+
+### 9.5 What was verified so that no answer changed
+
+All with the final code, from the worktree, `PALIMPSEST_STUDY_DIR=$HOME/palimpsest`:
+
+| gate | command | result |
+|---|---|---|
+| kernel vs frozen gold, strict provenance, all streams | `python -m harness.kernel_diff --source-retract sidetable --strict --provenance strict` | 500 streams, 30,272 queries, **0 disagreements**; provenance vs oracle 0 disagreements |
+| full pipeline vs frozen gold, in memory, strict provenance, all streams | `python -m harness.pipeline_diff --backend memory --provenance strict` | 500 streams, 30,272 queries, 65,632 appends, **0 disagreements**, 0 resource-limited; stored supports vs audit recomputation 0 mismatches of 26,182 checked |
+| full pipeline on SQLite, strict provenance, every 2nd stream | `python -m harness.pipeline_diff --stride 2 --backend sqlite --provenance strict` | 250 streams, 15,149 queries, 32,714 appends, **0 disagreements**, 0 mismatches of 13,083 supports checked |
+| gates can fail | `pipeline_diff --limit 25 --inject-bug {mutate-answer,no-source-retraction,self-update}`; `kernel_diff --limit 100 --inject-bug {self-update,ignore-corrections,mutate-answer}`; `kernel_diff --limit 100 --source-retract sidetable --provenance strict --strict --inject-bug drop-provenance` | all seven exit 1 |
+| targeted vs exhaustive revision | `tests/test_revise_targeted.py` | the same answers (head, `belief_as_of`, `valid_at`) on random operations, on both backends; with the reverse index deliberately broken the test fails on 2 of 6 seeds |
+| memoised admission vs a fresh evaluation | `tests/test_revise_targeted.py::test_memoised_admission_equals_a_fresh_evaluation` | identical decisions and withdrawals |
+
+The quadratic regression is counted in operations, never in seconds (`Pipeline.stats`): an append that changes one person's
+employer justifies the same number of derived keys and reads the same number of keys with 20, 80 or 320 entities
+(`test_a_person_append_does_a_constant_amount_of_derived_work`, `test_work_per_append_does_not_grow_with_the_entity_count`),
+and an organisation change justifies its employees and only them
+(`test_an_organisation_change_justifies_its_employees_and_only_them`).

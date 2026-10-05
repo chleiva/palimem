@@ -256,6 +256,82 @@ class DerivedJustification:
         return [value in c for c in self.candidates_at(t)]
 
 
+def _peek_fn(provider: Provider) -> Callable[[Key, int], Family]:
+    """How to look at a base key's candidates **without** recording a read: a provider may offer ``peek_candidates``
+    (the store-backed one does, because it records which keys a derivation consumed); else ``candidates``."""
+    peek = getattr(provider, "peek_candidates", None)
+    return cast(Callable[[Key, int], Family], peek) if peek is not None else provider.candidates
+
+
+def relevant_base_keys(schema: KernelSchema, key: Key, provider: Provider) -> frozenset[Key]:
+    """The base keys the derivation of ``key`` can read at **any** valid time (a superset of the keys one evaluation
+    touches), found by following the rule bodies from the head entity instead of taking every entity.
+
+    A literal ``attr(x, y)`` reads ``(x, attr)``: ``x`` is the head entity, a constant, or a variable bound to a value
+    of an earlier literal (values over all times and worlds, an over-approximation), or, for a variable bound by
+    nothing, every entity (the rule engine iterates the whole universe there, so those reads are real). Only the
+    breakpoints of these keys can change the derived value, so they are the only ones the derived segments need: the
+    result of ``build_segments`` merges neighbours with equal answers, so taking *more* breakpoints (as the
+    all-entities form did) changes the cost, never the segments."""
+    peek = _peek_fn(provider)
+    entities = tuple(schema.entities)
+    memo: dict[tuple[str, str], frozenset[Key]] = {}
+    values_memo: dict[Key, frozenset[str]] = {}
+
+    def values_of(k: Key) -> frozenset[str]:
+        """Every value the key's candidate worlds contain, at any time (the entity names it can bind)."""
+        hit = values_memo.get(k)
+        if hit is None:
+            pts = sorted(provider.breakpoints(k))
+            times = [pts[0] - 1, *pts] if pts else [0]
+            out: set[str] = set()
+            for tm in times:
+                for world in peek(k, tm):
+                    out.update(str(v) for v in world)
+            hit = values_memo[k] = frozenset(out)
+        return hit
+
+    def reads(e: str, a: str, depth: int) -> frozenset[Key]:
+        if depth > MAX_DEPTH:
+            raise RecursionError("rule recursion too deep")
+        got = memo.get((e, a))
+        if got is not None:
+            return got
+        acc: set[Key] = set()
+        for r in schema.rules_for(a):
+            binds: dict[str, set[str]] = {r.head[1]: {e}}
+
+            def who(term: str, binds: dict[str, set[str]] = binds) -> tuple[str, ...]:
+                if term in binds:
+                    return tuple(binds[term])
+                return entities if is_var(term) else (term,)
+
+            for la, lx, ly in r.body:
+                xs = who(str(lx))
+                derived = schema.spec(la).derived
+                for x in xs:
+                    if derived:
+                        acc |= reads(x, la, depth + 1)
+                    else:
+                        acc.add(Key(entity=x, attr=la))
+                if is_var(ly):
+                    if derived:
+                        vals: frozenset[str] = frozenset(entities)  # values of a derived key: every entity (safe)
+                    else:
+                        vals = frozenset().union(*(values_of(Key(entity=x, attr=la)) for x in xs)) if xs else frozenset()
+                    binds[str(ly)] = binds.get(str(ly), set()) | set(vals)
+            for xa, xe, _xv in r.exceptions:
+                for ent in who(str(xe)):
+                    if schema.spec(xa).derived:
+                        acc |= reads(ent, xa, depth + 1)
+                    else:
+                        acc.add(Key(entity=ent, attr=xa))
+        out = memo[(e, a)] = frozenset(acc)
+        return out
+
+    return reads(key.entity, key.attr, 0)
+
+
 def justify_derived(
     schema: KernelSchema,
     key: Key,
@@ -263,12 +339,22 @@ def justify_derived(
     semantic: SemanticConfig,
     *,
     profile: Profile | None = None,
+    all_entities: bool = False,
 ) -> DerivedJustification:
-    """Justify a derived key over base candidates supplied by ``provider``."""
+    """Justify a derived key over base candidates supplied by ``provider``.
+
+    The breakpoints that cut the derived segments come from the keys the derivation can read
+    (:func:`relevant_base_keys`); ``all_entities=True`` restores the earlier, exhaustive form (every entity's keys of
+    every base attribute in the closure): same segments, O(entities) more work, kept for audits and tests."""
     spec = schema.spec(key.attr)
     if not spec.derived:
         raise ValueError(f"{key.attr!r} is a base attribute: use justify_key")
-    keys = {Key(entity=e, attr=a) for e in schema.entities for a in base_attrs_closure(schema, key.attr)}
+    if all_entities:
+        keys: frozenset[Key] | set[Key] = {
+            Key(entity=e, attr=a) for e in schema.entities for a in base_attrs_closure(schema, key.attr)
+        }
+    else:
+        keys = relevant_base_keys(schema, key, provider)
     bps: set[int] = set()
     for k in keys:
         bps |= provider.breakpoints(k)

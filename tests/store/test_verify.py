@@ -171,6 +171,61 @@ def test_untampered_beliefs_verify(h) -> None:  # type: ignore[no-untyped-def]
     assert h.backend.verify_beliefs(FakeReviser()).ok
 
 
+# ---------------------------------------------------------------- incremental belief verification (Lane O)
+
+
+def _forge(h, key_entity: str, version: int) -> None:  # type: ignore[no-untyped-def]
+    cur = h.backend.belief_version(Key(entity=key_entity, attr="employer"), version)
+    assert cur is not None
+    forged = _unknown_belief_json(cur)
+    if h.kind == "sqlite":
+        h.tamper(f"UPDATE beliefs SET belief = ? WHERE entity = '{key_entity}' AND attr = 'employer' AND version = {version}", forged)
+    else:
+        def fn(st):  # type: ignore[no-untyped-def]
+            k = (key_entity, "employer", version)
+            st.beliefs[k] = replace(st.beliefs[k], belief=forged)
+
+        h.tamper(fn)
+
+
+def test_incremental_first_run_is_full_then_checks_only_what_changed(h) -> None:  # type: ignore[no-untyped-def]
+    populate(h, 3)
+    add(h, make_report("bob", "employer", "acme", source="s9"), "kb")
+    first = h.backend.verify_beliefs_incremental(FakeReviser())
+    assert first.ok and first.checked == 2  # alice and bob: no checkpoint yet, so everything
+    assert first.checkpoint_lsn == h.backend.head().lsn
+    again = h.backend.verify_beliefs_incremental(FakeReviser())
+    assert again.ok and again.checked == 0  # nothing was written since
+    add(h, make_report("alice", "employer", "globex", source="s7"), "kc")
+    third = h.backend.verify_beliefs_incremental(FakeReviser())
+    assert third.ok and third.checked == 1  # only the key the append touched
+    assert third.checkpoint_lsn == h.backend.head().lsn
+
+
+def test_incremental_failed_run_keeps_the_checkpoint_and_the_full_mode_sees_old_rows(h) -> None:  # type: ignore[no-untyped-def]
+    populate(h, 3)
+    ok = h.backend.verify_beliefs_incremental(FakeReviser())
+    assert ok.ok
+    _forge(h, "alice", 3)  # an old row, written before the checkpoint
+    skipped = h.backend.verify_beliefs_incremental(FakeReviser())
+    assert skipped.ok and skipped.checked == 0  # incremental mode does not re-read what it already vouched for
+    assert not h.backend.verify_beliefs(FakeReviser()).ok  # the full mode is the one that notices an edited old row
+    add(h, make_report("alice", "employer", "globex", source="s7"), "kd")
+    cur = h.backend.current_belief(K)
+    assert cur is not None
+    _forge(h, "alice", cur.version)  # a fresh row, written after the checkpoint
+    before = h.backend.verify_beliefs_incremental(FakeReviser())
+    assert not before.ok and before.checkpoint_lsn == ok.checkpoint_lsn  # the checkpoint did not move past a failure
+    retry = h.backend.verify_beliefs_incremental(FakeReviser())
+    assert not retry.ok and retry.checked == before.checked  # the same keys are checked again
+
+
+def test_verify_beliefs_on_demand_for_one_key(h) -> None:  # type: ignore[no-untyped-def]
+    populate(h, 3)
+    res = h.backend.verify_beliefs(FakeReviser(), keys=[K])
+    assert res.ok and res.checked == 1
+
+
 # ---------------------------------------------------------------- SEC-26: restored older copy
 
 

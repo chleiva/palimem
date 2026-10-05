@@ -9,6 +9,7 @@ from palimem.kernel.derive import (
     Provider,
     base_attrs_closure,
     justify_derived,
+    relevant_base_keys,
 )
 from palimem.kernel.evidence import (
     EPOCH,
@@ -78,5 +79,6 @@ __all__ = [
     "minimize",
     "parse_rule_fn",
     "policy_of",
+    "relevant_base_keys",
     "rule_fn",
 ]

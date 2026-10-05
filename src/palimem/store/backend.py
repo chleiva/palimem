@@ -238,6 +238,7 @@ class VerifyResult:
     checked: int
     problems: tuple[VerifyProblem, ...] = ()
     rows: tuple[RowStatus, ...] = ()
+    checkpoint_lsn: int | None = None  # incremental mode: the log head the next incremental run starts after
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -352,6 +353,7 @@ class CompletionReport:
     keys_stamped: int
     jobs_pending: int
     skipped_newer: int = 0  # keys left alone because a newer generation had already completed them
+    jobs_blocked: int = 0  # jobs given up after repeated unfinished runs (see ``Engine.retry_blocked``)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -465,6 +467,7 @@ class Backend(StoreView, Protocol):
     # generation barrier (T-C4)
     def read_belief(self, key: Key, as_of: BeliefAsOf | None = None) -> BeliefRead: ...
     def complete_pending(self, reviser: Reviser, *, limit: int | None = None) -> CompletionReport: ...
+    def retry_blocked(self) -> int: ...
 
     # notifications (T-C5)
     def subscribe(self, plan_id: str, keys: Sequence[Key]) -> None: ...
@@ -482,7 +485,10 @@ class Backend(StoreView, Protocol):
     # optional capabilities
     def verify_log(self, from_lsn: int = 1, to_lsn: int | None = None, *, anchor: Head | None = None) -> VerifyResult: ...
     def export_head(self) -> Head: ...
-    def verify_beliefs(self, reviser: Reviser, *, keys: Sequence[Key] | None = None) -> VerifyResult: ...
+    def verify_beliefs(
+        self, reviser: Reviser, *, keys: Sequence[Key] | None = None, since_lsn: int | None = None
+    ) -> VerifyResult: ...
+    def verify_beliefs_incremental(self, reviser: Reviser) -> VerifyResult: ...
 
 
 CAP_VERIFY_LOG = "verify_log"

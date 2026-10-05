@@ -19,3 +19,8 @@ ledger/*.jsonl
 .claude/
 ledger/*.lock
 .private/
+# benchmark scratch databases (bench/perf writes them here)
+.bench/
+*.db
+*.db-wal
+*.db-shm

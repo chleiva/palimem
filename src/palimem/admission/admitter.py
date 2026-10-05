@@ -153,6 +153,15 @@ class Admitter:
     def __init__(self, config: AdmissionConfig, schema: Schema | None = None) -> None:
         self.config = config
         self.authz = Authorizer(config, schema)
+        self._own_merit: dict[str, AdmissionDecision] = {}
+        """The decision on each report's own merits (before confirmation and withdrawal effects), by report id.
+        It is a pure function of the report, its target (which must precede it) and this config, never of later log
+        entries, so it is computed once for the life of the log, not once per evaluation (it was the dominant cost of an
+        append: a hash-derived record id per report, per evaluation). ``clear_cache`` after anything that rewrites what
+        a log position means (an erasure)."""
+
+    def clear_cache(self) -> None:
+        self._own_merit.clear()
 
     # ------------------------------------------------------------------ public API
 
@@ -334,7 +343,14 @@ class Admitter:
     def _evaluate(self, entries: list[LogEntry], as_of: int | None) -> Evaluation:
         entries = sorted(entries, key=lambda e: e.lsn)
         by_id = {_rid(e): e for e in entries}
-        base = {_rid(e): self._decide(e, by_id) for e in entries}
+        base: dict[str, AdmissionDecision] = {}
+        memo = self._own_merit
+        for e in entries:
+            rid = _rid(e)
+            d0 = memo.get(rid)
+            if d0 is None:
+                d0 = memo[rid] = self._decide(e, by_id)
+            base[rid] = d0
         withdrawn = self._withdrawals(entries, base)
 
         # derived confirmation: only reports admissible on their own merits, not withdrawn, confirm

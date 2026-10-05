@@ -19,11 +19,13 @@ How a revision works (docs/PIPELINE.md):
 
 from __future__ import annotations
 
-from collections import deque
+from collections import Counter, OrderedDict, deque
 from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from palimem.admission import EVIDENCE_CUES, Admitter, Attribution, Evaluation
+from palimem.engine.dependents import DependentsPlans, ValueIndex, resolve
 from palimem.engine.logview import ViewLog
 from palimem.kernel import (
     AttrSpec,
@@ -69,6 +71,11 @@ from palimem.types._codec import Value
 from palimem.types.limits import DEFAULT_ENVIRONMENT_BUDGET
 
 ChangeFrom = Callable[[Report], Value | None]
+
+EVAL_CACHE_SIZE = 4
+"""Admission evaluations kept (an append reads the one at ``lsn`` and the one at ``lsn - 1``; the rest serve the
+historical queries that re-evaluate). Each holds a decision per log entry, so the cache must stay small: the
+first version kept 512, which was ~100-200 KiB per report of heap."""
 
 
 # --------------------------------------------------------------------------- helpers
@@ -183,6 +190,16 @@ class _Incomplete(Exception):
         self.key = key
 
 
+@dataclass(frozen=True, eq=False)
+class EvalFacts:
+    """Per-evaluation facts every revision and every ``recompute`` needs: computed once per :class:`Evaluation`, not
+    once per key (``verify_beliefs`` recomputes every key, and each recomputation used to rescan the whole log)."""
+
+    direct: Mapping[Key, Sequence[LogEntry]]
+    has_attributions: bool
+    entities: tuple[str, ...]
+
+
 class Resolver:
     """Per-revision cache over "the belief of a key" (new versions of this append overlaid on the stored current
     ones) and over the breakpoints of each belief. Decoding a stored belief is the expensive step, so every derived
@@ -246,6 +263,15 @@ class _BeliefProvider:
 
     def breakpoints(self, key: Key) -> frozenset[int]:
         return self._r.breakpoints(key)
+
+    def peek_candidates(self, key: Key, t: int) -> Family:
+        """The candidates of a stored base key **without** recording a read (the kernel traces which keys a derivation
+        can reach with this; only what ``candidates`` returns becomes a dependency). An absent or incomplete key
+        looks empty here: whatever a derivation could only reach through it, it cannot reach."""
+        b = self._r.belief(key)
+        if b is None or not b.inference.complete:
+            return frozenset({frozenset()})
+        return family_of_segment(segment_at(b.segments, t))
 
     def world_envs(self, key: Key, t: int, budget: EnvBudget) -> Dist:
         b = self._stored(key)
@@ -313,6 +339,7 @@ class Pipeline:
         budget: int = DEFAULT_ENVIRONMENT_BUDGET,
         change_from_of: ChangeFrom | None = None,
         revision_budget: int | None = None,
+        exhaustive: bool = False,
     ) -> None:
         check_schema(kernel_schema)  # static exactness: refuse a schema the per-key kernel cannot justify exactly
         depths = derivation_depths(kernel_schema)
@@ -332,13 +359,49 @@ class Pipeline:
         """Maximum number of belief versions one ``revise`` call may return. Keys beyond it (derived keys, after the
         touched ones) stay marked stale and are finished by a completion job (the design's inference budget)."""
         self._log: ViewLog | None = None
-        self._evals: dict[tuple[int, str | None, int], Evaluation] = {}
+        self._evals: OrderedDict[tuple[int, str | None, int], Evaluation] = OrderedDict()
+        self._facts: OrderedDict[int, tuple[Evaluation, EvalFacts]] = OrderedDict()
+        self.exhaustive = exhaustive
+        """Audit mode: re-justify the derived keys of **every** entity on each revision, with the exhaustive
+        breakpoint gathering (the first version's behaviour). The default revises only the dependents of the changed
+        keys; the tests compare the two."""
+        self.plans = DependentsPlans.of(kernel_schema)
+        self._vi: ValueIndex | None = None
+        self._vi_lsn: int | None = None
+        self.stats: Counter[str] = Counter()
+        """Operation counters (never wall-clock): ``revisions``, ``derived_justified``, ``derived_keys_read``,
+        ``derived_written``, ``index_builds``. Used by the regression test that an append's work does not grow with the
+        entity count."""
 
     # -- binding and caches
 
     def bind(self, view: StoreView) -> None:
         self._log = ViewLog(view)
+        self.admitter.clear_cache()
         self._evals.clear()
+        self._facts.clear()
+        self.drop_index()
+
+    def drop_index(self) -> None:
+        """Forget the value index: a belief may have changed outside a revision (completion, erasure repair, a
+        rolled-back append); it is rebuilt lazily from the store."""
+        self._vi = None
+        self._vi_lsn = None
+
+    def value_index(self, view: StoreView, ks: KernelSchema, lsn: int) -> ValueIndex | None:
+        """The value index as of the store state **before** the revision of ``lsn``: reused only when the previous
+        revision (``lsn - 1``) is the one that last updated it, rebuilt from the stored beliefs otherwise."""
+        if not self.plans.binders:
+            return None
+        if self._vi is None or self._vi_lsn != lsn - 1:
+            vi = ValueIndex(self.plans.binders)
+            for attr in sorted(self.plans.binders):
+                for e in ks.entities:
+                    k = Key(entity=e, attr=attr)
+                    vi.update(k, view.current_belief(k))
+            self._vi = vi
+            self.stats["index_builds"] += 1
+        return self._vi
 
     @property
     def log(self) -> ViewLog:
@@ -348,11 +411,16 @@ class Pipeline:
     def invalidate(self) -> None:
         """The log changed under the caches (an erasure): forget decoded entries and evaluations."""
         self.log.invalidate()
+        self.admitter.clear_cache()
         self._evals.clear()
+        self._facts.clear()
+        self.drop_index()
 
     def set_admitter(self, admitter: Admitter) -> None:
         self.admitter = admitter
         self._evals.clear()
+        self._facts.clear()
+        self.drop_index()
 
     def evaluate(self, upto_lsn: int) -> Evaluation:
         """Admission over the log prefix ``<= upto_lsn`` under the current admission config (cached)."""
@@ -361,10 +429,12 @@ class Pipeline:
         ck = (upto_lsn, last, self.admitter.config.admission_version)
         hit = self._evals.get(ck)
         if hit is None:
-            if len(self._evals) > 512:
-                self._evals.clear()
             hit = self.admitter.evaluate(self.log, as_of_lsn=upto_lsn)
             self._evals[ck] = hit
+            while len(self._evals) > EVAL_CACHE_SIZE:  # an Evaluation holds a decision per log entry: keep a few
+                self._evals.popitem(last=False)
+        else:
+            self._evals.move_to_end(ck)
         return hit
 
     def attr_spec(self, attr: str) -> AttrSpec:
@@ -373,12 +443,25 @@ class Pipeline:
     def depth_of(self, attr: str) -> int:
         return self._depths.get(attr, 0)
 
+    def facts(self, ev: Evaluation) -> EvalFacts:
+        """The facts of one evaluation (cached; the cache keeps the evaluation alive, so ``id`` cannot be reused)."""
+        hit = self._facts.get(id(ev))
+        if hit is not None and hit[0] is ev:
+            self._facts.move_to_end(id(ev))
+            return hit[1]
+        f = EvalFacts(
+            direct=direct_entries(ev),
+            has_attributions=any(isinstance(e.report.proposition, BeliefOfProp) for e in ev.entries),
+            entities=tuple(sorted({e.report.key.entity for e in ev.entries})),
+        )
+        self._facts[id(ev)] = (ev, f)
+        while len(self._facts) > EVAL_CACHE_SIZE:
+            self._facts.popitem(last=False)
+        return f
+
     def kernel_schema(self, ev: Evaluation) -> KernelSchema:
         """The kernel schema with the entity universe: configured, else the entities that appear in the log."""
-        if self.entities is not None:
-            ents = self.entities
-        else:
-            ents = tuple(sorted({e.report.key.entity for e in ev.entries}))
+        ents = self.entities if self.entities is not None else self.facts(ev).entities
         ks = self._kernel_schema
         if tuple(ks.entities) == ents:
             return ks
@@ -436,7 +519,7 @@ class Pipeline:
         generation: int, inputs: Mapping[str, int], recorded_at: datetime,
     ) -> Belief:
         prov = _BeliefProvider(resolver)
-        dj: DerivedJustification = justify_derived(ks, key, prov, self.semantic)
+        dj: DerivedJustification = justify_derived(ks, key, prov, self.semantic, all_entities=self.exhaustive)
         def deps_of() -> tuple[Dependency, ...]:
             return tuple(
                 Dependency(key=k, version=b.version)
@@ -447,12 +530,16 @@ class Pipeline:
         try:
             segments = dj.segments()
         except _Incomplete as inc:
+            self.stats["derived_justified"] += 1
+            self.stats["derived_keys_read"] += len(prov.consulted)
             return Belief(
                 key=key, version=version, lsn=lsn, required_generation=generation,
                 completed_generation=max(generation - 1, 0), segments=(), pinned=(), depends_on=deps_of(),
                 invalidated_by=None, versions=self._versions(inputs),
                 inference=Inference(complete=False, reason=f"stale_dependency: {inc}"), recorded_at=recorded_at,
             )
+        self.stats["derived_justified"] += 1
+        self.stats["derived_keys_read"] += len(prov.consulted)
         pins: dict[tuple[str, int], Pin] = {}
         for b in prov.consulted.values():
             if b is not None:
@@ -490,7 +577,10 @@ class StoreAdmitter:
             for e in prev.entries:
                 r2 = e.report.id
                 assert r2 is not None
-                a, b = prev.decisions[r2].record, ev.decisions[r2].record
+                da, db = prev.decisions[r2], ev.decisions[r2]
+                if da is db:  # the memoised own-merit decision, nothing changed for this report
+                    continue
+                a, b = da.record, db.record
                 if (a.outcome, a.reason, a.confirmed_by) != (b.outcome, b.reason, b.confirmed_by):
                     records.append(b)
         return records
@@ -506,8 +596,8 @@ class KernelReviser:
         p, view = self.p, ctx.view
         lsn = ctx.entry.lsn
         ev = p.evaluate(lsn)
-        now = direct_entries(ev)
-        prev = direct_entries(p.evaluate(lsn - 1)) if lsn > 1 else {}
+        now = p.facts(ev).direct
+        prev = p.facts(p.evaluate(lsn - 1)).direct if lsn > 1 else {}
         ks = p.kernel_schema(ev)
         touched = ctx.entry.report.key
         changed = {k for k in now.keys() | prev.keys() if _ids(now.get(k)) != _ids(prev.get(k))}
@@ -518,7 +608,7 @@ class KernelReviser:
             cur = view.current_belief(k)
             return (cur.version if cur is not None else 0) + 1
 
-        has_attr = any(isinstance(e.report.proposition, BeliefOfProp) for e in ev.entries)
+        has_attr = p.facts(ev).has_attributions
         overlay: dict[Key, Belief] = {}
         for k in base_changed:
             overlay[k] = p.base_belief(
@@ -531,12 +621,28 @@ class KernelReviser:
         changed_attrs = {k.attr for k in base_changed}
         derived_attrs = [a for a, s in ks.attrs.items() if s.derived]
         affected = [a for a in derived_attrs if base_attrs_closure(ks, a) & changed_attrs]
+        p.stats["revisions"] += 1
+        index: ValueIndex | None = None
+        if not p.exhaustive:
+            index = p.value_index(view, ks, lsn)
+            if index is not None:
+                for k, b in overlay.items():
+                    index.update(k, b)
         if affected:
             marked = store_closure(view, touched)
             resolver = Resolver(view, overlay)
+            order = {e: i for i, e in enumerate(ks.entities)}
+            changed_keys: dict[Key, None] = dict.fromkeys(overlay)
             for a in sorted(affected, key=lambda x: (p.depth_of(x), x)):  # shallow first: a revision budget keeps these
-                for e in ks.entities:
-                    dk = Key(entity=e, attr=a)
+                heads = None if p.exhaustive else resolve(p.plans, a, changed_keys, index, ks.entities)
+                if heads is None:
+                    todo = [Key(entity=e, attr=a) for e in ks.entities]
+                else:
+                    # the dependents the rules and the value index name, plus every key of this attribute the store
+                    # itself marks for this append (an unreturned marked key would be stale)
+                    names = {e for e in heads if e in order} | {k.entity for k in marked if k.attr == a and k.entity in order}
+                    todo = [Key(entity=e, attr=a) for e in sorted(names, key=order.__getitem__)]
+                for dk in todo:
                     cur = view.current_belief(dk)
                     new = p.derived_belief(
                         ks, dk, resolver, version=(cur.version if cur is not None else 0) + 1, lsn=lsn,
@@ -551,13 +657,23 @@ class KernelReviser:
                     )
                     if not same or dk in marked:
                         out.append(new)
+                        p.stats["derived_written"] += 1
+                        if same:
+                            p.stats["derived_written_only_because_marked"] += 1
+                        changed_keys[dk] = None
+                        if index is not None:
+                            index.update(dk, new)
         if p.revision_budget is not None and len(out) > max(p.revision_budget, 1):
             out = out[: max(p.revision_budget, 1)]  # touched keys come first; the rest are completed later
+            p.drop_index()  # the index saw versions the store will not have until the completion job runs
+        elif index is not None:
+            p._vi_lsn = lsn  # the index now matches the store as it will be once this revision is stored
         return out
 
     def recompute(self, key: Key, view: StoreView) -> Belief | None:
         """Rebuild one key from the log alone, as of the head (verify, completion jobs, erasure repair)."""
         p = self.p
+        p.drop_index()  # its result becomes a stored belief outside a revision
         head = view.head()
         lsn = max(head.lsn, 1)
         ev = p.evaluate(head.lsn)
@@ -572,9 +688,9 @@ class KernelReviser:
                 ks, key, Resolver(view), version=version, lsn=lsn, generation=gen, inputs=inputs,
                 recorded_at=recorded_at,
             )
-        has_attr = any(isinstance(e.report.proposition, BeliefOfProp) for e in ev.entries)
+        has_attr = p.facts(ev).has_attributions
         return p.base_belief(
-            ks, key, direct_entries(ev).get(key, []), version=version, lsn=lsn, generation=gen, inputs=inputs,
+            ks, key, p.facts(ev).direct.get(key, []), version=version, lsn=lsn, generation=gen, inputs=inputs,
             recorded_at=recorded_at, attributions=p.admitter.evidence_set_of(ev, key).attributions if has_attr else (),
         )
 
