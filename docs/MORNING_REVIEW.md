@@ -161,3 +161,9 @@ Append latency (W1, 250 entities), before then after: 1,000 reports p50 1.89 -> 
 - **Memory:** retained heap is 21-24% lower than whole-log admission on the same code, but the RSS slope at 10,000 reports is higher (3.7 -> 5.0 KiB per report); not isolated (PERFORMANCE.md 10.3).
 - **Not proven:** equivalence is exhaustively tested only on 40-report streams; longer logs are covered by the 3,000-report crosscheck run; the 10,000-report runs were not compared append by append.
 - **Process finds:** the post-append completion job hid a whole-log evaluation behind the old cache (a work-count test now fails if any append runs that evaluator); the first draft still rescanned all actors on each actor append (about half this workload's appends), caught by profiling and fixed.
+
+## From the docs and release-candidate pass (Lane D2)
+
+- README rewritten to match `main` (section 7 "Measured so far, and what it does not show", including the G-X gate failure and the performance misses), plus `docs/ARCHITECTURE.md`, `docs/LIMITATIONS.md`, a docs index and a link-check test.
+- **Wheel/sdist audit (version stays 0.0.1; nothing published):** the wheel is clean (72 Python files, zero dependencies, quickstart and CLI work from a clean-venv install, `twine check` passes). The sdist had leaked the 29 MB frozen-data cache; explicit excludes fixed it (3.4 MB to 1.1 MB). The unused `mcp` and `anthropic` extras were removed. I added the `py.typed` marker. Not verified: install on Python versions other than 3.13; `release.yml` has never been run.
+- **Open for you:** the release version number and train (`docs/VERSIONING.md` section 4 still describes the old 0.1 to 0.4 plan); the `Pipeline` docstring still describes admission as the whole-log evaluation (will be updated with the next source change); the OpenAI-compatible extractor transport has never been run live.
