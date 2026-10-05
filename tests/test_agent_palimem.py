@@ -116,8 +116,11 @@ def test_a_deferral_is_ask_when_required_and_abstain_when_optional():
 
 
 def test_resource_limited_is_a_missing_response_not_a_guess():
-    srcs = {f"s{i}": {"class": "standard", "origin_group": f"g{i}"} for i in range(1, 10)}
-    s = _scn([_rep(i, f"s{i}", "assert", _val(f"c{i}"), day=i) for i in range(1, 10)], sources=srcs)
+    from palimem.types.limits import DEFAULT_ENVIRONMENT_BUDGET
+
+    n = DEFAULT_ENVIRONMENT_BUDGET + 2  # one key with more live reports than the default budget allows
+    srcs = {f"s{i}": {"class": "standard", "origin_group": f"g{i}"} for i in range(1, n + 1)}
+    s = _scn([_rep(i, f"s{i}", "assert", _val(f"c{i}"), day=i) for i in range(1, n + 1)], sources=srcs)
     run = ps.run_scenario(s, "justified")
     assert run.responses["SYN-1.d1"] is None
     assert run.traces[0].now.kind == "limited" and "environment_budget" in run.traces[0].note
