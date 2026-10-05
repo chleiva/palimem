@@ -37,10 +37,12 @@ from palimem.kernel import (
     JustificationProvider,
     KernelSchema,
     ResourceLimitedResult,
+    day_of,
     justify_derived,
 )
 from palimem.kernel.derive import Provider
-from palimem.kernel.justify import Family, classify
+from palimem.kernel.justify import Family, canonical_environment, classify
+from palimem.kernel.provenance import Dist, EnvBudget
 from palimem.policy import JUSTIFIED, DecisionContext, PolicyObject, decide
 from palimem.store import (
     AppendResult,
@@ -62,6 +64,7 @@ from palimem.types import (
     ExplainMode,
     ExplainQuery,
     Explanation,
+    ExplanationState,
     Inference,
     Key,
     LogEntry,
@@ -69,6 +72,7 @@ from palimem.types import (
     Profile,
     Query,
     Report,
+    Resolved,
     ResourceLimited,
     ResourceLimitedReason,
     Schema,
@@ -127,24 +131,51 @@ def policy_payload(policy: PolicyObject) -> dict[str, Any]:
 class _LazyProvider:
     """Audit-path provider: base keys justified on demand from the admitted evidence of one snapshot."""
 
-    def __init__(self, mem: Memory, ks: KernelSchema, direct: Mapping[Key, list[LogEntry]]) -> None:
-        self.mem, self.ks, self.direct = mem, ks, direct
-        self.cache: dict[Key, Justification] = {}
+    def __init__(self, mem: Memory, ks: KernelSchema, direct: Mapping[Key, list[LogEntry]], lsn: int) -> None:
+        self.mem, self.ks, self.direct, self.lsn = mem, ks, direct, lsn
 
     def base(self, key: Key) -> Justification:
-        hit = self.cache.get(key)
-        if hit is None:
-            j = self.mem.pipeline.justify_base(self.ks, key, self.direct.get(key, []))
-            if isinstance(j, ResourceLimitedResult):
-                raise RuntimeError(f"resource limited: {j.detail}")
-            hit = self.cache[key] = j
-        return hit
+        j = self.mem._base_justification(self.ks, key, self.direct.get(key, []), self.lsn)
+        if isinstance(j, ResourceLimitedResult):
+            raise RuntimeError(f"resource limited: {j.detail}")  # noqa: TRY004
+        return j
 
     def candidates(self, key: Key, t: int) -> Family:
         return self.base(key).candidates_at(t)
 
     def breakpoints(self, key: Key) -> frozenset[int]:
         return self.base(key).breakpoints()
+
+    # SupportProvider (explanations and the profile's flat provenance, T-B4)
+    def world_envs(self, key: Key, t: int, budget: EnvBudget) -> Dist:
+        return self.base(key).world_envs_at(t, budget=budget)
+
+    def reports(self, key: Key) -> Sequence[tuple[str, Value]]:
+        return [(e.id, e.value) for e in self.base(key).evidence]
+
+
+def cut_explanation(res: Resolved, budget: int) -> Resolved:
+    """Cut the whole response at ``explanation_budget`` supports (design v0.3, explanation truncation): both
+    ``provenance`` and the embedded ``justified`` view keep the first ``budget`` supports, in candidate-id order, and
+    the answer says ``truncated``. Nothing else changes: ``kernel_status``, ``decision``, ``assertion`` and
+    ``alternatives`` were decided on the full supports and are carried over as they are."""
+    supports = res.justified.segment.support
+    left = budget
+    kept: dict[str, tuple[Support, ...]] = {}
+    total = 0
+    for cid in sorted(supports):
+        total += len(supports[cid])
+        take = supports[cid][: max(left, 0)]
+        left -= len(take)
+        if take:
+            kept[cid] = take
+    prov = tuple(s for cid in sorted(kept) for s in kept[cid])
+    if total <= budget:
+        return res
+    seg = replace(res.justified.segment, support=kept)
+    return replace(
+        res, provenance=prov, explanation=ExplanationState.TRUNCATED, justified=replace(res.justified, segment=seg)
+    )
 
 
 class Memory:
@@ -181,6 +212,9 @@ class Memory:
         self._admitter = StoreAdmitter(self.pipeline)
         self.reviser = KernelReviser(self.pipeline)
         self._semantic_version = 1
+        self._audit_base: dict[tuple[int, int, Key], Justification | ResourceLimitedResult] = {}
+        """Audit-path cache of base justifications per (log position, admission version, key). The log is append-only,
+        so an entry stays valid until an erasure or an admission change rewrites what a position means."""
         self._ensure_inputs(admission)
 
     # ------------------------------------------------------------------ configuration (versioned inputs)
@@ -225,6 +259,7 @@ class Memory:
             raise ValueError("admission profile and semantic profile must agree")
         self._put_if_new(InputKind.ADMISSION, admission_payload(config), config.admission_version)
         self.pipeline.set_admitter(self._admitter_class(config, self.schema))
+        self._audit_base.clear()
 
     def set_policy(self, policy: PolicyObject) -> None:
         self._put_if_new(InputKind.POLICY, policy_payload(policy), policy.version)
@@ -269,10 +304,12 @@ class Memory:
         """Erase a report (GDPR-style): content, raw reference and values derived only from it, with dependency
         repair; a tombstone keeps the hash chain verifiable (S-13)."""
         self.pipeline.invalidate()
+        self._audit_base.clear()
         try:
             return self.backend.erase(report_id, reason, reviser=self.reviser)
         finally:
             self.pipeline.invalidate()
+            self._audit_base.clear()
 
     def complete(self) -> None:
         """Run pending completion jobs (cheap when there are none)."""
@@ -362,21 +399,42 @@ class Memory:
         ctx = None
         if view.segment.kernel_status.value == "unresolved":
             ctx = DecisionContext.from_entries(self.pipeline.log.entries(upto_lsn=self.lsn_of(q.belief_as_of)))
-        return decide(view, self.policy, ctx)
+        res = decide(view, self.policy, ctx)  # on the full supports: truncation must never change a decision
+        return cut_explanation(res, q.explanation_budget) if q.explanation_budget is not None else res
 
     def explain(self, q: ExplainQuery) -> Explanation:
-        """Subset-minimal environments for the answered segment (S-12). Supports are task T-B4: until they exist
-        the list is empty and the explanation says so by carrying no environments."""
+        """Subset-minimal environments over **base** reports for the answered segment (S-12).
+
+        With ``depth=None`` (the full derivation closure) they are read from the stored per-candidate supports of
+        the belief version at the snapshot. A ``depth`` limit is a different question (fewer derivation levels), which
+        a stored belief cannot answer: it is recomputed on the audit path from the admitted evidence at the snapshot.
+        ``mode=one`` is the canonical environment (lexicographically least by sorted report ids)."""
         view = self._view_for(q.key, q.valid_at, q.belief_as_of)
         if isinstance(view, ResourceLimited):
             raise StoreError(f"cannot explain: {view.reason.value}")
-        sup: tuple[Support, ...] = tuple(s for cid in sorted(view.segment.support) for s in view.segment.support[cid])
+        seg = view.segment
+        bounds = SegmentBounds(valid_from=seg.valid_from, valid_to=seg.valid_to)
+        if q.depth is not None:
+            j = self.justification(q.key, q.belief_as_of)
+            if isinstance(j, ResourceLimitedResult):
+                raise StoreError(f"cannot explain: {j.reason.value}: {j.detail}")
+            if seg.valid_from is not None:
+                day = day_of(seg.valid_from)
+            elif seg.valid_to is not None:
+                day = day_of(seg.valid_to) - 1
+            else:
+                day = 0
+            ex = j.explain(day, mode=q.mode, depth=q.depth)
+            return replace(ex, segment=bounds)
+        envs = {frozenset(s.environment) for sl in seg.support.values() for s in sl}
+        ordered = sorted((e for e in envs if e), key=lambda e: (len(e), sorted(e)))
         if q.mode is ExplainMode.ONE:
-            sup = sup[:1]
-        return Explanation(
-            key=q.key, segment=SegmentBounds(valid_from=view.segment.valid_from, valid_to=view.segment.valid_to),
-            mode=q.mode, depth=q.depth, environments=sup,
+            one = canonical_environment(ordered)
+            ordered = [] if one is None else [one]
+        sup = tuple(
+            Support(environment=tuple(sorted(e)), valid_from=seg.valid_from, valid_to=seg.valid_to) for e in ordered
         )
+        return Explanation(key=q.key, segment=bounds, mode=q.mode, depth=None, environments=sup)
 
     # ------------------------------------------------------------------ audit paths (recompute from the log)
 
@@ -397,17 +455,30 @@ class Memory:
         ev = self.evaluation(as_of)
         return self.pipeline.admitter.evidence_set_of(ev, key)
 
+    def _base_justification(
+        self, ks: KernelSchema, key: Key, entries: Sequence[LogEntry], lsn: int
+    ) -> Justification | ResourceLimitedResult:
+        ck = (lsn, self.pipeline.admitter.config.admission_version, key)
+        hit = self._audit_base.get(ck)
+        if hit is None:
+            if len(self._audit_base) > 8192:
+                self._audit_base.clear()
+            hit = self._audit_base[ck] = self.pipeline.justify_base(ks, key, entries)
+        return hit
+
     def justification(
         self, key: Key, as_of: BeliefAsOf | None = None
     ) -> Justification | DerivedJustification | ResourceLimitedResult:
         """Re-justify ``key`` from the admitted evidence at a snapshot (kernel replay: the interpretation sets
-        that yes/no questions need)."""
-        ev = self.evaluation(as_of)
+        that yes/no questions need, and the explanations of a given depth). Base justifications are cached per log
+        position, so asking many questions at one snapshot does not replay the key each time."""
+        lsn = self.lsn_of(as_of)
+        ev = self.pipeline.evaluate(lsn)
         ks = self.pipeline.kernel_schema(ev)
         direct = direct_entries(ev)
         if not ks.spec(key.attr).derived:
-            return self.pipeline.justify_base(ks, key, direct.get(key, []))
-        prov: Provider = _LazyProvider(self, ks, direct)
+            return self._base_justification(ks, key, direct.get(key, []), lsn)
+        prov: Provider = _LazyProvider(self, ks, direct, lsn)
         return justify_derived(ks, key, prov, self.semantic)
 
     # ------------------------------------------------------------------ plumbing

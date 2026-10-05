@@ -19,10 +19,19 @@ Two slots have no v2 query form and are answered from the audit paths of ``Memor
 evidence at the snapshot, not from stored segments): the yes/no slots (they need the set of admissible
 interpretations, which a belief version does not carry) and ``reported``.
 
-Provenance is informational and not yet comparable: ``Resolved.provenance`` is empty until per-candidate supports land
-(T-B4), and the frozen gold files carry ``provenance`` only for ``reported`` queries (the study's oracle computes the rest at
-scoring time). The harness therefore compares provenance where the gold has it and reports the count; the interim v1
-provenance it derives for base-key value slots has nothing to be compared with. It is not part of the pass criterion.
+Provenance (T-B4, decision S-12) has two levels. ``--provenance strict`` is the gate:
+
+  * the **profile projection** of every query (``palimem.compat.flat_provenance_v1`` and friends: the oracle's flat set
+    reproduced from the kernel's own structures on the audit path) must equal the study's own
+    ``eval.scorer.supporting_ids`` for that query, on every backend (the frozen gold files only record ``provenance`` for
+    ``reported`` queries; the scorer computes the rest);
+  * the **stored supports** a ``Resolved`` answer carries (``Resolved.provenance``: per-candidate subset-minimal
+    environments, read from the stored belief version, for derived keys the join of the stored base supports) must equal
+    the environments recomputed from the admitted evidence at that snapshot (the audit path). This is what proves a
+    derived belief's supports, built from stored base beliefs without replaying the log, are the replay's.
+
+Without ``--provenance strict`` the old interim figure (v1 provenance of base-key value slots against the gold's
+``reported`` provenance) is reported and never gates.
 
 Exit codes: 0 all agree · 1 disagreement · 2 setup error. ``--inject-bug`` is the self-test.
 """
@@ -51,14 +60,22 @@ from palimem.compat import (
     change_from_of,
     compat_admission_config,
     compat_semantic,
+    erroneous_provenance_v1,
+    flat_provenance_v1,
     kernel_schema_with_marker,
+    key_provenance_v1,
     reported_v1,
     schema_from_kernel,
     source_retraction_report,
     with_change_from,
     yesno_v1,
 )
-from palimem.kernel import DerivedJustification, Justification, dt_of_day
+from palimem.kernel import (
+    DerivedJustification,
+    Justification,
+    ResourceLimitedResult,
+    dt_of_day,
+)
 from palimem.memory import Memory
 from palimem.policy import JUSTIFIED
 from palimem.store import Backend, InMemoryBackend, SQLiteBackend
@@ -66,7 +83,7 @@ from palimem.types import Cue, Key, LogEntry, Query, Resolved, ResourceLimited
 
 STREAM_RE = re.compile(r"^s1_\d+\.json$")
 BACKENDS = ("memory", "sqlite")
-INJECTIONS = ("none", "mutate-answer", "no-source-retraction", "self-update")
+INJECTIONS = ("none", "mutate-answer", "no-source-retraction", "self-update", "drop-provenance")
 VALUE_SLOTS = ("current", "asof", "belief_asof", "downstream")
 
 
@@ -196,6 +213,62 @@ def answer_query(mem: Memory, conv: Converted, ids: Ids, q: Any, counters: Count
     return v1, prov
 
 
+def segment_target(conv: Converted, q: Any) -> tuple[int, int]:
+    """(log position, valid day) a value slot reads: the same rule ``answer_query`` uses."""
+    if q.slot == "belief_asof":
+        return conv.lsn_at_day(q.tau_prime), q.tau_prime
+    if q.slot == "asof":
+        return conv.lsn_at_day(q.tau), q.t
+    return conv.lsn_at_day(q.tau), (q.t if q.t is not None else q.tau)  # current, downstream
+
+
+def profile_provenance(mem: Memory, conv: Converted, ids: Ids, q: Any) -> set[str]:
+    """The profile's (oracle's) flat provenance of one study query, as study observation ids. Slot handling mirrors
+    ``eval.scorer.supporting_ids``: ``reported`` / ``changed`` / ``erroneous`` read the key's admitted ids, every
+    segment slot and ``holds`` read the candidate-value rule."""
+    def study(rids: Any) -> set[str]:
+        return {ids.study_of.get(i, i) for i in rids}
+
+    if q.slot == "reported":
+        return study(key_provenance_v1(mem, Key(entity=q.entity, attr=q.attr), conv.lsn_at_day(q.tau)))
+    if q.slot == "yesno":
+        p = q.prop
+        lsn = conv.lsn_at_day(q.tau)
+        if p["kind"] == "erroneous":
+            return study(erroneous_provenance_v1(mem, ids.assigned[conv.ulid_of[p["obs"]]], lsn))
+        key = Key(entity=p["entity"], attr=p["attr"])
+        if p["kind"] == "changed":
+            return study(key_provenance_v1(mem, key, lsn))
+        return study(flat_provenance_v1(mem, key, p.get("t", q.tau), lsn))
+    lsn, t = segment_target(conv, q)
+    return study(flat_provenance_v1(mem, Key(entity=q.entity, attr=q.attr), t, lsn))
+
+
+def stored_vs_audit_supports(
+    mem: Memory, conv: Converted, q: Any
+) -> tuple[dict[str, list[list[str]]], dict[str, list[list[str]]]] | None:
+    """For a value slot: the per-candidate supports (candidate id -> its environments) of the answered segment as
+    **stored** in the belief version, and those of the same segment **recomputed** by replaying the admitted evidence at
+    the same snapshot. They must be equal, candidate by candidate and environment by environment: for a derived key the
+    stored supports are joins of stored base supports, so equality proves the stored derivation is the replay's.
+    ``None`` for slots that are not about a stored segment (``reported``, yes/no) or whose key is over the budget."""
+    if q.slot not in VALUE_SLOTS:
+        return None
+    lsn, t = segment_target(conv, q)
+    key = Key(entity=q.entity, attr=q.attr)
+    ans = mem.query(Query(key=key, valid_at=dt_of_day(t), belief_as_of=lsn, profile=PROFILE))
+    if not isinstance(ans, Resolved):
+        return None
+    j = mem.justification(key, lsn)
+    if isinstance(j, ResourceLimitedResult):
+        return None
+
+    def shape(support: Any) -> dict[str, list[list[str]]]:
+        return {cid: [sorted(s.environment) for s in sl] for cid, sl in sorted(support.items())}
+
+    return shape(ans.justified.segment.support), shape(j.segment_at(t).support)
+
+
 def _mutate(ans: dict[str, Any]) -> dict[str, Any]:
     out = dict(ans)
     out["status"] = "unresolved" if ans["status"] == "established" else "established"
@@ -206,10 +279,12 @@ def _mutate(ans: dict[str, Any]) -> dict[str, Any]:
 def run(
     frozen_dir: Path, st: Any, *, limit: int | None = None, stride: int = 1, inject: str = "none",
     backends: tuple[str, ...] = BACKENDS, source_retract: str = "sidetable", manifest: dict[str, Any] | None = None,
-    max_examples: int = 10, progress: bool = False,
+    max_examples: int = 10, progress: bool = False, provenance: bool = False,
 ) -> dict[str, Any]:
     if inject not in INJECTIONS:
         raise ValueError(f"unknown injection {inject!r}")
+    if inject == "drop-provenance" and not provenance:
+        raise ValueError("--inject-bug drop-provenance only makes sense with --provenance strict")
     manifest = manifest or frozen.load_manifest()
     names = stream_names(frozen_dir, limit, stride)
     if not names:
@@ -223,6 +298,8 @@ def run(
         per_slot: dict[str, Counter[str]] = {}
         totals: Counter[str] = Counter()
         classes: Counter[str] = Counter()
+        prov_classes: Counter[str] = Counter()
+        prov_examples: list[dict[str, Any]] = []
         examples: list[dict[str, Any]] = []
         for i, name in enumerate(names):
             stream = st.load_stream(str(frozen_dir / name))
@@ -257,6 +334,36 @@ def run(
                                 "pipeline": {k: ans.get(k) for k in ("status", "assertion", "alternatives")},
                                 "gold": {k: g.get(k) for k in ("status", "assertion", "alternatives")},
                             })
+                    if provenance:
+                        prof = profile_provenance(mem, conv, ids, q)
+                        if inject == "drop-provenance" and prof and not totals["prov_mutated"]:
+                            prof, totals["prov_mutated"] = set(sorted(prof)[1:]), 1
+                        oracle = set(st.supporting_ids(stream, q, g))
+                        c["prov_queries"] += 1
+                        totals["prov_queries"] += 1
+                        if prof != oracle:
+                            c["prov_disagreements"] += 1
+                            totals["prov_disagreements"] += 1
+                            rel = "subset" if prof < oracle else "superset" if prof > oracle else "overlap" if prof & oracle else "disjoint"
+                            kind_p = "derived" if stream.attributes.get(q.attr or "") and stream.attributes[q.attr].derived else "base"
+                            prov_classes[f"profile-{rel}/{slot_key}/{kind_p}"] += 1
+                            if len(prov_examples) < max_examples:
+                                prov_examples.append({
+                                    "backend": kind, "stream": name, "query": q.id, "slot": slot_key,
+                                    "pipeline": sorted(prof), "oracle": sorted(oracle),
+                                })
+                        pair = stored_vs_audit_supports(mem, conv, q)
+                        if pair is not None:
+                            totals["stored_checked"] += 1
+                            if pair[0] != pair[1]:
+                                c["stored_support_mismatch"] += 1
+                                totals["stored_support_mismatch"] += 1
+                                prov_classes[f"stored-vs-audit/{slot_key}"] += 1
+                                if len(prov_examples) < max_examples:
+                                    prov_examples.append({
+                                        "backend": kind, "stream": name, "query": q.id, "slot": slot_key,
+                                        "stored": pair[0], "audit": pair[1],
+                                    })
                 totals["streams"] += 1
                 totals["appends"] += len(conv.arrival_ts)
             finally:
@@ -267,13 +374,21 @@ def run(
             "streams": totals["streams"], "queries": totals["queries"], "appends": totals["appends"],
             "disagreements": totals["disagreements"], "resource_limited": totals["resource_limited"],
             "provenance_compared": totals["provenance_compared"], "provenance_differs": totals["provenance_differs"],
+            "provenance": {
+                "enabled": provenance, "queries": totals["prov_queries"], "disagreements": totals["prov_disagreements"],
+                "stored_checked": totals["stored_checked"], "stored_support_mismatch": totals["stored_support_mismatch"],
+                "classes": dict(prov_classes.most_common()), "examples": prov_examples,
+            },
             "per_slot": {k: dict(v) for k, v in sorted(per_slot.items())},
             "disagreement_classes": dict(classes.most_common()), "examples": examples,
         }
-    bad = sum(b["disagreements"] + b["resource_limited"] for b in out_by_backend.values())
+    bad = sum(
+        b["disagreements"] + b["resource_limited"] + b["provenance"]["disagreements"] + b["provenance"]["stored_support_mismatch"]
+        for b in out_by_backend.values()
+    )
     return {
         "backends": out_by_backend, "inject_bug": inject, "source_retract": source_retract, "profile": "revise-stream-v1",
-        "policy": "P0c", "seconds": round(time.time() - t0, 1), "frozen_files_verified": len(needed),
+        "policy": "P0c", "provenance_strict": provenance, "seconds": round(time.time() - t0, 1), "frozen_files_verified": len(needed),
         "study_commit": st.commit, "passed": bad == 0,
     }
 
@@ -285,18 +400,24 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--inject-bug", choices=INJECTIONS, default="none")
     ap.add_argument("--backend", choices=("memory", "sqlite", "both"), default="both")
     ap.add_argument("--source-retract", choices=("sidetable", "expand"), default="sidetable")
+    ap.add_argument("--provenance", choices=("off", "strict"), default="off",
+                    help="strict: the profile's provenance must equal the study oracle's on every query, and stored "
+                         "supports must equal the audit-path recomputation (T-B4, S-12)")
     ap.add_argument("--study-dir")
     ap.add_argument("--frozen-dir")
     ap.add_argument("--fetch", action="store_true")
     ap.add_argument("--out")
     ap.add_argument("--max-examples", type=int, default=10)
     a = ap.parse_args(argv)
+    if a.inject_bug == "drop-provenance" and a.provenance != "strict":
+        ap.error("--inject-bug drop-provenance needs --provenance strict")
     try:
         st = study.load(a.study_dir)
         frozen_dir = frozen.locate_frozen(st.dir, a.frozen_dir, a.fetch)
         backends = BACKENDS if a.backend == "both" else (a.backend,)
         report = run(frozen_dir, st, limit=a.limit, stride=a.stride, inject=a.inject_bug, backends=backends,
-                     source_retract=a.source_retract, max_examples=a.max_examples, progress=True)
+                     source_retract=a.source_retract, max_examples=a.max_examples, progress=True,
+                     provenance=a.provenance == "strict")
     except (FileNotFoundError, frozen.FrozenError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 2
@@ -308,8 +429,17 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  backend {kind}: {b['streams']} streams, {b['queries']} queries, {b['appends']} appends, "
               f"{b['disagreements']} disagreements, {b['resource_limited']} resource-limited; "
               f"interim provenance differs {b['provenance_differs']}/{b['provenance_compared']}")
+        pv = b["provenance"]
+        if pv["enabled"]:
+            print(f"    provenance (profile vs study oracle): {pv['queries']} queries, {pv['disagreements']} disagreements; "
+                  f"stored supports vs audit recomputation: {pv['stored_checked']} checked, {pv['stored_support_mismatch']} mismatches")
+            for cls, n in list(pv["classes"].items())[:8]:
+                print(f"    provenance class: {cls}  x{n}")
+            for ex in pv["examples"][:3]:
+                print("    provenance e.g.", json.dumps(ex)[:300])
         for slot, c in b["per_slot"].items():
-            print(f"    {slot:18s} {c['queries']:6d} queries  {c.get('disagreements', 0):5d} disagreements")
+            prov = f"  {c.get('prov_disagreements', 0):5d} provenance disagreements" if pv["enabled"] else ""
+            print(f"    {slot:18s} {c['queries']:6d} queries  {c.get('disagreements', 0):5d} disagreements{prov}")
         for cls, n in list(b["disagreement_classes"].items())[:8]:
             print(f"    class: {cls}  x{n}")
         for ex in b["examples"][:3]:

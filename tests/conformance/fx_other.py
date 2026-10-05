@@ -197,7 +197,7 @@ def s10() -> list[dict[str, Any]]:
         [append("r1", d(2, 1), "alice", "employer", V("veltran"), source="press"),
          append("r2", d(2, 2), "veltran", "hq_city", V("tessaly")),
          op("explain", name="ex1", key=K("alice", "local_tax_city"), mode="all", depth=None,
-            expect={"state": "complete", "environments": envs(["$r1", "$r2"])}),
+            expect={"state": "complete", "_environments": envs(["$r1", "$r2"])}),
          withdraw("r3", d(2, 10), "$r1", "alice", "employer", source="press"),
          query("q1", Q("alice", "local_tax_city"), NOT_FOUND)],
         source="S-12 decision (accepted 2026-10-04)"))

@@ -95,6 +95,15 @@ jobs:
             fi
           done
       - run: pytest -q tests/test_pipeline_diff.py tests/test_pipeline.py tests/test_compat_adapter.py tests/conformance/test_impl_memory.py
+      - name: Pipeline provenance (T-B4), strict, bounded (every 25th stream) on push/PR, every 5th on the nightly schedule
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then STRIDE=5; else STRIDE=25; fi
+          python -m harness.pipeline_diff --stride $STRIDE --backend both --provenance strict --out pipeline-provenance-report.json
+      - name: Pipeline provenance self-test, the strict gate must fail on dropped provenance
+        run: |
+          if python -m harness.pipeline_diff --limit 10 --backend memory --provenance strict --inject-bug drop-provenance; then
+            echo "::error::pipeline_diff --provenance strict did not detect injected bug 'drop-provenance'"; exit 1
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -104,3 +113,4 @@ jobs:
             kernel-diff-report.json
             kernel-provenance-report.json
             pipeline-diff-report.json
+            pipeline-provenance-report.json
