@@ -1,6 +1,6 @@
 # RETRACT-ACT — an agent-level benchmark for retraction-aware memory
 
-Status: **DRAFT v0.1 for review, not frozen.** Task T-J1 (lane J), 2026-10-04. Nothing in this document has been run against an LLM.
+Status: **DRAFT v0.1 for review, not frozen.** Task T-J1 (lane J), 2026-10-04. Nothing in this document has been run against an LLM. First symbolic run with palimem as a system under test (stage A, H0): `docs/eval/AGENT_BENCHMARK_RESULTS.md`.
 Files: scenarios `bench/agent/scenarios/RA-*.json` · format `bench/agent/schema.json` · scorer `bench/agent/score.py` · reference policies `bench/agent/policies.py` · cost estimator `bench/agent/estimate_cost.py` · freeze tool `bench/agent/freeze.py` · tests `tests/test_agent_bench.py`.
 Working name: RETRACT-ACT (retract → act).
 

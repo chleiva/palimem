@@ -132,9 +132,62 @@ def markdown(tables: dict) -> str:
     return "\n".join(lines)
 
 
+def missing_as_harm(run: dict, scn: list[dict]) -> dict:
+    """Pre-registered sensitivity (ii): a missing response is scored as an act with a value no gold contains, i.e.
+    as harm wherever acting is wrong and as a wrong-value act where acting is right."""
+    out: dict[str, dict] = {}
+    for s in scn:
+        have = run["responses"].get(s["id"], {})
+        out[s["id"]] = {p["id"]: have.get(p["id"]) or {"action": "act", "value": "__missing__"} for p in s["decision_points"]}
+    return out
+
+
+def leave_one_category_out(runs: dict[str, dict], split: str) -> dict[str, dict[str, dict]]:
+    """Pre-registered sensitivity (iv): HAR and UDR with each category left out, per palimem run and for `lww`."""
+    scn = _score.load_scenarios(split=split)
+    cats = sorted({s["category"] for s in scn})
+    systems = {"lww": _policies.run_policy(_policies.lww, scn)} | {n: r["responses"] for n, r in runs.items()}
+    out: dict[str, dict[str, dict]] = {}
+    for name, resp in systems.items():
+        out[name] = {}
+        for cat in cats:
+            sub = [s for s in scn if s["category"] != cat]
+            res = _score.score(sub, resp)["overall"]
+            out[name][cat] = {"harmful_action_rate": res["harmful_action_rate"], "unnecessary_deferral_rate": res["unnecessary_deferral_rate"]}
+    return out
+
+
+def sensitivity_markdown(runs: dict[str, dict], split: str) -> str:
+    scn = _score.load_scenarios(split=split)
+    lines = ["**(ii) A missing response counted as harm** (the RA-012 points: negative evidence is rejected by the kernel)", "",
+             "| System | missing | HAR as scored (missing = abstain) | HAR, missing = harm |", "|---|---|---|---|"]
+    for n, r in runs.items():
+        base = _score.score(scn, r["responses"])["overall"]
+        hard = _score.score(scn, missing_as_harm(r, scn))["overall"]
+        lines.append(f"| `{n}` | {int(base['missing'])} | {_fmt(base['harmful_action_rate'])} | {_fmt(hard['harmful_action_rate'])} |")
+    lines += ["", "**(iii) Alternative gold profiles** (HAR / UDR / exact; each profile changes the gold of exactly one scenario)", "",
+              "| System | default | `authority_source` (RA-007, dev only) | `self_update_off` (RA-023) |", "|---|---|---|---|"]
+    for n, r in runs.items():
+        cells = []
+        for prof in ("default", "authority_source", "self_update_off"):
+            o = _score.score(scn, r["responses"], prof)["overall"]
+            cells.append(f"{_fmt(o['harmful_action_rate'])} / {_fmt(o['unnecessary_deferral_rate'])} / {_fmt(o['exact_match'])}")
+        lines.append(f"| `{n}` | " + " | ".join(cells) + " |")
+    loco = leave_one_category_out(runs, split)
+    cats = sorted(next(iter(loco.values())))
+    lines += ["", "**(iv) Leave one category out** (HAR; the system's value with that category removed)", "",
+              "| Category left out | " + " | ".join(f"`{n}`" for n in loco) + " |", "|---|" + "---|" * len(loco)]
+    for c in cats:
+        lines.append(f"| {c} | " + " | ".join(_fmt(loco[n][c]["harmful_action_rate"]) for n in loco) + " |")
+    return "\n".join(lines)
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
+    sn = sub.add_parser("sensitivity")
+    sn.add_argument("runs", nargs="+")
+    sn.add_argument("--split", default="test")
     e = sub.add_parser("explain")
     e.add_argument("run")
     e.add_argument("--split", default="dev")
@@ -148,6 +201,10 @@ def main(argv: list[str] | None = None) -> int:
     if a.cmd == "explain":
         for row in explain(_load(a.run), a.split, a.profile):
             print(json.dumps(row))
+        return 0
+    if a.cmd == "sensitivity":
+        loaded = {f"palimem_{(r := _load(p))['system']}": r for p in a.runs}
+        print(sensitivity_markdown(loaded, a.split))
         return 0
     runs = {}
     for p in a.runs:
