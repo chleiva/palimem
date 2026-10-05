@@ -98,3 +98,174 @@ All generators are seeded and deterministic (`bench/perf/workloads.py`). A run r
 A target that is missed stays declared and is reported as missed. The measured section records the bottleneck with profile
 evidence so that a later task can address it. A target is only ever changed by a dated amendment in this file that states what
 was observed and why the original number no longer fits the use case; it is never edited to match a result.
+
+---
+
+## 8. Measured on 2026-10-05, Apple M3 laptop (8 cores, 16 GB)
+
+**These are laptop numbers from one synthetic workload family, one seed, and one pass. They are not a load characterisation
+(T-J4) and nothing here extrapolates beyond the sizes actually measured.** Environment (also stored in every result file):
+Apple M3, Darwin 25.3.0, Python 3.13.7, SQLite 3.50.4, `SQLiteBackend` on a local SSD file, one process, one writer,
+open-world profile, `justified` policy. Raw results: `bench/perf/results/*.json`; the whole pass is `bench/perf/run_all.sh`
+(about 65 minutes); the tables below are `python -m bench.perf report` over those files.
+
+**The reference size (10^5 reports) was not reached by any run, and cannot be reached by the current implementation in a
+usable time (finding F1). By the rule of §5 every target judged against the reference size is therefore reported as missed,
+not extrapolated.** Each row below also says whether the target would hold at the size that *was* reached.
+
+### 8.1 What was run
+
+| Run | Purpose | Reached |
+|---|---|---|
+| W1, W2, W3 at 300 and 1,000 reports, people = reports / 4 (default scaling) | the three workloads at two scales | completed |
+| W1 at 10,000 reports, default scaling, 20 minute budget | the "largest reachable" scale (§5) | **72 reports** (stopped by the budget) |
+| W1 at 1,000 reports with 50 people; W1 at 300 reports with 250 people | separate entity count from log length | completed |
+| W1 at 10,000 reports with 250 people, 25 minute budget (*supplementary*) | log length at a fixed population | 7,852 reports (stopped by the budget) |
+| kill and recover at 300 and 1,000 preloaded reports | T4 | completed |
+| store versus replay at 300 and 1,000 reports | T5 | completed |
+| cProfile (100-append windows at 1,000 reports) and tracemalloc (400 reports) | bottleneck evidence | completed |
+
+Supplementary runs (explicit people count) never judge a target; they only explain the primary ones.
+
+### 8.2 Runs
+
+| workload | people | reports reached | stopped early | elapsed s | append p50 / p95 / p99 ms | appends/s | query p50 / p95 / p99 ms | RSS MB (end) | RSS slope KiB/report | disk KiB/report |
+|---|---|---|---|---|---|---|---|---|---|---|
+| W1 | n/4 | 72 | yes | 1205 | 16486.4 / 17319.9 / 17544.2 | 0.1 | 0.12 / 0.19 / 0.20 | 36 | n/a | 87.4 |
+| W1 | 250 | 300 | no | 30 | 3.7 / 197.6 / 206.7 | 10.1 | 0.11 / 0.32 / 0.43 | 52 | 91.6 | 19.2 |
+| W1 | n/4 | 300 | no | 5 | 23.1 / 35.2 / 43.3 | 59.8 | 0.11 / 0.31 / 0.48 | 53 | 99.2 | 21.0 |
+| W1 | 50 | 1000 | no | 18 | 15.1 / 37.7 / 43.8 | 58.7 | 0.24 / 0.84 / 1.72 | 187 | 199.5 | 15.1 |
+| W1 | n/4 | 1000 | no | 110 | 178.5 / 226.5 / 245.8 | 9.2 | 0.12 / 0.64 / 1.90 | 173 | 175.8 | 18.1 |
+| W1 (supplementary) | 250 | 7852 | yes | 1500 | 239.0 / 359.8 / 588.7 | 5.4 | 0.70 / 5.60 / 13.23 | 1306 | 141.6 | 43.0 |
+| W2 | n/4 | 300 | no | 5 | 3.8 / 31.8 / 32.5 | 68.5 | 0.12 / 0.38 / 0.58 | 53 | 98.7 | 19.7 |
+| W2 | n/4 | 1000 | no | 102 | 9.5 / 210.5 / 232.4 | 9.9 | 0.13 / 0.87 / 1.71 | 194 | 209.7 | 11.2 |
+| W3 | n/4 | 300 | no | 11 | 35.6 / 50.1 / 61.4 | 28.2 | 0.26 / 0.84 / 1.62 | 56 | 100.9 | 60.1 |
+| W3 | n/4 | 1000 | no | 240 | 240.0 / 309.6 / 359.4 | 4.2 | 0.35 / 2.60 / 5.44 | 185 | 195.5 | 91.6 |
+
+No run produced a `ResourceLimited` answer, a visibility failure after an append, or a completion job left pending
+(`integrity` in each result file). Append latency is bimodal (see F1), so p50 alone is not a safe summary.
+
+### 8.3 Verdicts against the declared targets
+
+| target | workload | declared | measured at (reports) | measured | would it hold at the size reached? | verdict |
+|---|---|---|---|---|---|---|
+| T1 | W1 | p50 ≤ 5 ms, p99 ≤ 25 ms | 1,000 | p50 0.12; p99 1.90 | yes | **missed** (reference size not reached) |
+| T1 | W2 | p50 ≤ 5 ms, p99 ≤ 25 ms | 1,000 | p50 0.13; p99 1.71 | yes | **missed** (reference size not reached) |
+| T2 | W1 | p50 ≤ 25 ms, p99 ≤ 100 ms | 1,000 | p50 178.5; p99 245.8 | **no** | **missed** |
+| T2 | W2 | p50 ≤ 25 ms, p99 ≤ 100 ms | 1,000 | p50 9.5; p99 232.4 | **no** (p99) | **missed** |
+| T3 | W1 | ≤ 1 KiB/report marginal, RSS ≤ 300 MB at 10^5 | 1,000 | slope 176 KiB/report; RSS 173 MB | **no** (about 175 times over) | **missed** |
+| T4 | — | ≤ 2 s to first correct query; nothing acknowledged lost | 1,004 | 0.13 s; 0 lost; recover, `verify_log`, `verify_beliefs` ok | yes | **missed** (reference size not reached) |
+| T5 | W1 | r\* ≤ 2.0 at 10^4 reports | 1,000 | r\* 3.60 (cold replay) | **no** | **missed** |
+| T6 | W1 | p99 append ratio, largest / smallest scale ≤ 4 | 300 → 1,000 | 43.3 → 245.8 ms, ratio 5.7 | **no** | **missed** |
+| T6 | W2 | same | 300 → 1,000 | 32.5 → 232.4 ms, ratio 7.2 | **no** | **missed** |
+| T7 | W1 | ≤ 5 KiB/report on disk | 1,000 | 18.1 KiB/report | **no** (3.6 times over) | **missed** |
+
+In words: **T1 and T4 hold at the sizes measured, but were not shown at the reference size; T2, T3, T5, T6 and T7 are missed
+outright, at 1,000 reports.** The extrapolated figure for T3 (about 168 GiB per million reports, a linear extrapolation of
+the 176 KiB/report slope) is a labelled estimate, not a measurement; the supplementary run measured 1.3 GB at 7,852 reports.
+
+### 8.4 Findings
+
+**F1. Append cost grows faster than linearly with the number of entities; log length matters little.** Appends to attributes
+that feed no derived key (`residence`, `affiliations`) cost 2 to 5 ms at every size. Appends to attributes that feed the
+derived `work_city` (`employer`, `hq_city`) cost:
+
+| run | entities | derived-affecting appends | mean ms | other appends, mean ms |
+|---|---|---|---|---|
+| 300 reports, default | 80 | 165 | 28.9 | 1.9 |
+| 1,000 reports, 50 people | 55 | 505 | 28.5 | 5.3 |
+| 300 reports, 250 people | 262 | 155 | 189.6 | 2.1 |
+| 1,000 reports, default | 262 | 513 | 207.5 | 4.8 |
+| 10,000 target, default (72 reached, all organisation `hq_city` seeds) | 2,625 | 72 | 16,486 | n/a |
+
+At a fixed 262 entities a 3.3 times longer log adds 9% (189.6 to 207.5 ms). Going from 262 to 2,625 entities multiplies the
+cost by about 80 (roughly E^1.9), although that run's log is 14 times shorter; going from 80 to 262 multiplies it by about 7
+(roughly E^1.6). The profile at 1,000 reports shows why: over 100 appends `justify_derived` is called **13,362 times
+(134 per append)** and accounts for 27.5 of 34.9 profiled seconds (79%), with 10.5 million calls to `base_attrs_closure`.
+The revision step re-justifies the derived attribute for **every entity** (`for e in ks.entities` in
+`src/palimem/engine/pipeline.py`, `KernelReviser.revise`) rather than for the entities whose inputs changed, and each
+`justify_derived` call itself gathers the breakpoints of every (entity, base attribute) key in the store
+(`src/palimem/kernel/derive.py`, lines 271 to 274). One call is therefore O(entities), one call per entity is O(entities)
+calls, and an append costs O(entities²). With 55 entities the same 100 appends call `justify_derived` 2,970 times. At the
+default population scaling the reference size means 25,000 people, and the measured trend puts a single derived-affecting
+append in the region of tens of minutes: **the reference size is out of reach by design of the current revision step, not by
+tuning.** This is an estimate from a trend over three points and is labelled as such.
+
+**F2. Resident memory per report is roughly 175 times the target, and the heap evidence points at the admission
+evaluation cache.** RSS slope is 92 to 210 KiB per report in every run (T3 asks for 1 KiB). The supplementary run reached
+1.3 GB RSS (1.6 GB peak) at 7,852 reports. A tracemalloc run at 400 reports shows 29 MB traced, of which 22.5 MB sits in
+`admission/admitter.py` and 5.4 MB in `admission/ids.py`, with 400 entries in the pipeline's evaluation cache
+(`Pipeline._evals`, capped at 512). Each cache entry holds the admission evaluation of a whole log prefix, so memory grows
+with (number of cached prefixes) times (log length) until the cap and linearly in the log afterwards. The numbers are
+consistent with that mechanism; this task did not change the cache to prove it.
+
+**F3. Disk use is 11 to 92 KiB per report (target 5), and workloads with dependency fan-out are worst.** W3 (cascades)
+writes 60 to 92 KiB per report against 11 to 21 for W1 and W2, and the supplementary run reaches 43 KiB per report at
+7,852 reports (293 MB). From the code, `revise` appends a new derived belief version for every entity whose key is in the
+dependency closure of the touched key, even when the content is unchanged (`if not same or dk in marked`). That is the
+likely cause; it was not isolated by experiment.
+
+**F4. Query latency is small at these sizes but grows with log length.** p50 is 0.11 to 0.35 ms and p99 0.4 to 5.4 ms in
+the 300 and 1,000 report runs. At a fixed population the supplementary run shows query p50 rising from 0.10 ms to 1.68 ms and
+p99 from 0.4 ms to 17.0 ms between 250 and 7,250 reports. T1's p99 limit (25 ms) was not crossed within what was measured,
+but the trend suggests it will be well before 10^5 reports; that is an observation of a trend, not a measurement at that size.
+Over the 7,852 reports the append p50 also rose from about 173 ms to 343 ms at a constant 250 people.
+
+**F5. Recovery is fast to the first answer; the integrity check is not.** Time from process start (imports included) to the
+first correct query after a SIGKILL during an append load: **0.09 s at 305 reports and 0.13 s at 1,004**, with nothing
+acknowledged lost, `recover()` ok, `verify_log` ok and `verify_beliefs` ok. `recover()` takes 11 ms and 32 ms and no completion
+job needed running in these two runs. `verify_log` takes 9 and 27 ms, but `verify_beliefs` (recomputing beliefs with the
+kernel) takes **1.2 s and 6.7 s**: 5.6 times more for 3.3 times more reports. It is not part of T4, but at that rate it
+will not be usable as a routine check on large stores.
+
+**F6. Store versus replay (T5).** Means over the measured operations:
+
+| reports | store append | store query | replay: log-only append | replay: query, cold | replay: query, warm | r\* (cold) | r\* (warm) |
+|---|---|---|---|---|---|---|---|
+| 300 | 16.7 ms | 0.147 ms | 0.25 ms | 9.0 ms | 0.39 ms | 1.87 | 68.6 |
+| 1,000 | 110.7 ms | 0.262 ms | 0.22 ms | 31.0 ms | 0.67 ms | 3.60 | 272.7 |
+
+The store answers a query about 60 to 120 times faster than a *cold* replay (which re-evaluates admission over the whole log)
+at these sizes. This is a different quantity from the study's 6 to 12 times, which compared full systems on its own
+benchmark, so the two must not be set against each other. A *warm* replay that reuses the cached admission evaluation of the
+current head is only 2.6 times slower per query than the store, which makes the store's read-side advantage over a cached
+recomputation small, while its write cost grows with scale: r\* rose from 1.87 to 3.60 between 300 and 1,000 reports. At 10^4
+reports (the declared size) it is not measured, and the trend is upward.
+
+**F7. A key over the environment budget leaves a completion job pending for ever (found by accident, behaviour as designed).**
+In an earlier run, a generator that let a key carry 8 live reports left 7 jobs pending after a clean 1,000-report run;
+reads of those keys return `ResourceLimited(environment_budget)`, as S-06 requires. Two things follow for operators.
+`complete_pending` re-attempts every pending job after each append, so a store that accumulates over-budget keys pays an
+increasing cost per append; and the pending-job count is a cheap health signal. Every run now reports
+`pending_completion_jobs_at_end`.
+
+### 8.5 Method issues found and fixed during this task
+
+Reported because the first results were discarded and re-run: (1) the generator undercounted live reports per key, because a
+correction aimed at a correction *restores* its target (S-02) and the generator did not model that; some keys exceeded the
+budget of 7, which also caused one intermittent failure of the recovery test in about 1 run in 50 (root cause found by
+keeping the failing database; the generator now never targets a correction and caps corrections per key, and two end-to-end
+tests fail if a workload pushes any key over the budget, checked by mutation); (2) the first recovery timing included
+`verify_log` and `verify_beliefs`; T4 is now time to the first correct answer, with verification reported separately; (3)
+warm-up was 5% of the target size, which swallowed every append of an early-stopped run; it is now 5% of the reached size;
+(4) a 72-report run was being used as the smallest scale for T6; scale endpoints now need at least 100 reports.
+
+### 8.6 Recommendations (nothing below was implemented in this task)
+
+1. **Revise only the dependents of the changed keys.** For the rule `work_city <- employer, hq_city`, an `employer(p)` change
+   affects only `work_city(p)`, and an `hq_city(o)` change affects only the `work_city` of entities whose `employer` is `o`.
+   The store already keeps key and attribute dependency indexes; the revision step does not use them for this. This removes the
+   superlinear term of F1 and most of F3. It is the single change that decides whether T2, T6 and the reference size are
+   attainable, and should be a task of the engine owner (`src/palimem/engine/`).
+2. **Bound the admission evaluation cache by size, or hold only the evaluations at the current and previous log position,
+   which is all `revise` reads.** Expected effect: removes the dominant term in F2.
+3. **Do not write an unchanged derived belief version**; write on a content change only, and record the closure marking
+   separately. Expected effect: disk per report in F3.
+4. **Make `verify_beliefs` incremental or sampled** (F5), and cap or batch the retries of jobs that cannot finish (F7).
+5. **Targets: no amendment is proposed yet.** The numbers were justified by the use case and T1 and T4 are consistent with the
+   measurements. T3 and T7 (1 KiB and 5 KiB per report) should be re-examined only after recommendations 1 to 3 have been
+   applied and the benchmark re-run, because with one belief version written per entity per append no plausible target
+   could be met, and relaxing them now would hide the defect. If after the fix the data still says the numbers do not fit the
+   use case, the amendment belongs in this file with its date.
+6. **Re-run on the same commands** (`bench/perf/run_all.sh`), then add the 10^4 and 10^5 scales, a second seed, and a real
+   agent workload (T-J4) before any G2 claim.

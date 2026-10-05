@@ -1,0 +1,63 @@
+name: perf
+
+# Performance benchmarks (docs/PERFORMANCE.md). Nightly and manual only: this workflow never runs on pull requests and
+# never blocks a merge. It does not assert timing thresholds either: it records the numbers (and the verdicts against the
+# declared targets) as artifacts so a regression is visible over time. Shared CI runners are noisy; compare trends, not points.
+on:
+  schedule:
+    - cron: "43 4 * * *"
+  workflow_dispatch:
+    inputs:
+      reports:
+        description: "Reports for the W1/W2/W3 runs (default scaling); the large reference size is not reachable in CI"
+        default: "1000"
+      recovery_preload:
+        description: "Reports preloaded before the kill in the recovery run"
+        default: "300"
+
+permissions:
+  contents: read
+
+jobs:
+  perf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e ".[dev]"
+      - name: Perf tests (shape and determinism, no timing thresholds)
+        run: pytest -q tests/perf
+      - name: Workloads
+        env:
+          PYTHONPATH: src:.
+          REPORTS: ${{ github.event.inputs.reports || '1000' }}
+        run: |
+          for w in w1 w2 w3; do
+            python -m bench.perf run "$w" --reports 300 --r 3 --max-seconds 600
+            python -m bench.perf run "$w" --reports "$REPORTS" --r 3 --max-seconds 1500
+          done
+      - name: Recovery and crossover
+        env:
+          PYTHONPATH: src:.
+          PRELOAD: ${{ github.event.inputs.recovery_preload || '300' }}
+        run: |
+          mkdir -p .bench
+          python -m bench.perf recovery --preload "$PRELOAD" --extra 300 --workdir .bench
+          python -m bench.perf crossover --reports 300 --r 3 --workdir .bench --max-seconds 600
+      - name: Profile
+        env:
+          PYTHONPATH: src:.
+        run: python -m bench.perf profile w1 --reports 300 --window 60
+      - name: Verdicts against the declared targets
+        env:
+          PYTHONPATH: src:.
+        run: python -m bench.perf report | tee perf-report.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: perf-results
+          path: |
+            bench/perf/results/*.json
+            perf-report.md
