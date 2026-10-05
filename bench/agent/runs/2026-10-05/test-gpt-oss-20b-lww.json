@@ -1,0 +1,2529 @@
+{
+ "adapter_sha256": "6592358e72b1165dedad71dd5822e877069bdc063a692f6a97eaeca2abed41e1",
+ "cache": "test-cache-gpt-oss-20b.jsonl",
+ "calls": {
+  "cache_hits": 3,
+  "cost_usd": 0.007211,
+  "input_tokens": 41259,
+  "live": 97,
+  "output_tokens": 14408
+ },
+ "estimate": {
+  "calls": 100,
+  "expected_usd": 0.04551,
+  "input_tokens_est": 50204,
+  "model": "gpt-oss-20b",
+  "repairs_not_included": true,
+  "split": "test",
+  "system": "llm+lww",
+  "worst_case_usd": 0.09351
+ },
+ "ingest_errors": {},
+ "ledger_after": {
+  "by_model_usd": {
+   "mistral.ministral-3-14b-instruct": 0.1534384000000002,
+   "mistral.ministral-3-8b-instruct": 0.08901615,
+   "openai.gpt-oss-20b-1:0": 0.16818225000000034
+  },
+  "cap_usd": 3.319982,
+  "exposure_usd": 0.4106367999999995,
+  "n_calls": 2073,
+  "open_reservations": 0,
+  "remaining_usd": 2.9093452000000006,
+  "reserved_usd": 0,
+  "spent_usd": 0.4106367999999995
+ },
+ "model": "gpt-oss-20b",
+ "model_id": "openai.gpt-oss-20b-1:0",
+ "parser_version": "p2",
+ "prompt_sha256": "53b0af14e7e8451f11942d01ec001846f77dfd037e219f92e0a78344f61dea55",
+ "prompt_version": "v1",
+ "records": [
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d1",
+   "reason": "Memory indicates Alex is taxed in Tessaly, so file the return for that city.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 0,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d1",
+   "reason": "Memory indicates Alex is taxed in Tessaly, so file the return for that city.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 1,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d1",
+   "reason": "Memory indicates Alex is taxed in Tessaly, so file the return for that city.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 2,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d1",
+   "reason": "Memory provides the required city for filing.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 3,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d2",
+   "reason": "Memory indicates Alex is taxed in Tessaly, so file the return for that city.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 0,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d2",
+   "reason": "Memory indicates Alex is taxed in Tessaly, so file the return for that city.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 1,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d2",
+   "reason": "Memory indicates Alex is taxed in Tessaly, so file the return for that city.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 2,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d2",
+   "reason": "Memory indicates Alex is taxed in Tessaly, so file the return for that city.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 3,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-002.d1",
+   "reason": "Memory provides Alex's work city as tessaly, so we can safely book the expenses.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 0,
+   "scenario": "RA-002",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-002.d1",
+   "reason": "Memory provides Alex's work city as 'tessaly', so we can safely book the expenses against it.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 1,
+   "scenario": "RA-002",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-002.d1",
+   "reason": "Memory provides Alex's work city as 'tessaly', so we can safely book the expenses against it.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 2,
+   "scenario": "RA-002",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-002.d1",
+   "reason": "Memory provides Alex's work city as tessaly, sufficient to book expenses.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 3,
+   "scenario": "RA-002",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-004.d1",
+   "reason": "Erin's city is known from memory.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "lisbon"
+   },
+   "sample": 0,
+   "scenario": "RA-004",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-004.d1",
+   "reason": "Erin's city is known from memory.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "lisbon"
+   },
+   "sample": 1,
+   "scenario": "RA-004",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-004.d1",
+   "reason": "Erin's city is known from memory.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "lisbon"
+   },
+   "sample": 2,
+   "scenario": "RA-004",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-004.d1",
+   "reason": "Erin's city is known, so add weather note.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "lisbon"
+   },
+   "sample": 3,
+   "scenario": "RA-004",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-005.d1",
+   "reason": "Memory provides Frank's birth date, which is sufficient to schedule his birthday card.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "1980-02-03"
+   },
+   "sample": 0,
+   "scenario": "RA-005",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-005.d1",
+   "reason": "Memory provides Frank's birth date, so we can schedule the card for his next birthday.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "2026-02-03"
+   },
+   "sample": 1,
+   "scenario": "RA-005",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-005.d1",
+   "reason": "Schedule the card for Frank\u2019s next birthday on 2026-02-03.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "2026-02-03"
+   },
+   "sample": 2,
+   "scenario": "RA-005",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-005.d1",
+   "reason": "The card should be scheduled to arrive by Frank\u2019s birthday on 2024\u201102\u201103.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "2024-02-02"
+   },
+   "sample": 3,
+   "scenario": "RA-005",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-006.d1",
+   "reason": "Memory indicates Gina is German, so the appropriate US customs form is 6059B.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Form 6059B"
+   },
+   "sample": 0,
+   "scenario": "RA-006",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-006.d1",
+   "reason": "Gina\u2019s citizenship is German, so the appropriate U.S. customs declaration form is 6059B.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Form 6059B"
+   },
+   "sample": 1,
+   "scenario": "RA-006",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-006.d1",
+   "reason": "Memory indicates Gina is German, so the standard US customs form for travelers is selected.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Form 6059B"
+   },
+   "sample": 2,
+   "scenario": "RA-006",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-006.d1",
+   "reason": "Need mapping from citizenship to customs form, which is not provided",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-006",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d1",
+   "reason": "Memory indicates Hana's work city is Oslo, so book the site visit there.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "oslo"
+   },
+   "sample": 0,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d1",
+   "reason": "Memory indicates Hana's work city is Oslo, so we can book the site visit there.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "oslo"
+   },
+   "sample": 1,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d1",
+   "reason": "Memory indicates Hana's work city is Oslo, so booking the site visit there is justified.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "oslo"
+   },
+   "sample": 2,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d1",
+   "reason": "Memory provides Hana's work city as Oslo, which is sufficient to book her site visit.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "oslo"
+   },
+   "sample": 3,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d2",
+   "reason": "Memory indicates Hana's work city is Bergen, so we can book the site visit there.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "bergen"
+   },
+   "sample": 0,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d2",
+   "reason": "Memory indicates Hana's work city is Bergen, so we can book the site visit there.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "bergen"
+   },
+   "sample": 1,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d2",
+   "reason": "Memory indicates Hana's work city is Bergen, so we can book the site visit there.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "bergen"
+   },
+   "sample": 2,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d2",
+   "reason": "Insufficient details to safely book a site visit; need additional info.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-009.d1",
+   "reason": "Memory provides the registered account for vendor9.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 0,
+   "scenario": "RA-009",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-009.d1",
+   "reason": "Memory provides the registered account for vendor9.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 1,
+   "scenario": "RA-009",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-009.d1",
+   "reason": "Memory provides the registered account for vendor9, so the payment can be processed safely.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 2,
+   "scenario": "RA-009",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-009.d1",
+   "reason": "The memory provides the payee account for vendor9, so we can proceed with payment.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 3,
+   "scenario": "RA-009",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d1",
+   "reason": "Memory provides the registered account for vendor9.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 0,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d1",
+   "reason": "Memory provides the registered account for vendor9.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 1,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d1",
+   "reason": "Memory provides the registered account for vendor9.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 2,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d1",
+   "reason": "Memory provides vendor9's payee account.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 3,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d2",
+   "reason": "Memory provides the vendor's payee account, so the payment can be processed safely.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 0,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d2",
+   "reason": "Memory provides the vendor's registered account.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 1,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d2",
+   "reason": "Memory provides the registered account for vendor9, so the payment can be processed safely.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 2,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d2",
+   "reason": "Memory provides the vendor's registered account, enabling safe payment.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 3,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-012.d1",
+   "reason": "Memory provides the home address for customer7.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "12 elm st"
+   },
+   "sample": 0,
+   "scenario": "RA-012",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-012.d1",
+   "reason": "Memory provides the required home address for customer7.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "12 elm st"
+   },
+   "sample": 1,
+   "scenario": "RA-012",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-012.d1",
+   "reason": "Memory provides the required home address for customer7.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "12 elm st"
+   },
+   "sample": 2,
+   "scenario": "RA-012",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-012.d1",
+   "reason": "Memory provides the home address for customer7, sufficient to print the shipping label.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "12 elm st"
+   },
+   "sample": 3,
+   "scenario": "RA-012",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-013.d1",
+   "reason": "Memory provides the vendor's registered account.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-999"
+   },
+   "sample": 0,
+   "scenario": "RA-013",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-013.d1",
+   "reason": "Memory provides the vendor's registered account.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-999"
+   },
+   "sample": 1,
+   "scenario": "RA-013",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-013.d1",
+   "reason": "Memory provides the vendor's registered account.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-999"
+   },
+   "sample": 2,
+   "scenario": "RA-013",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-013.d1",
+   "reason": "Memory provides the correct payee account for vendor9.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-999"
+   },
+   "sample": 3,
+   "scenario": "RA-013",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d1",
+   "reason": "Memory provides the vendor's registered account.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 0,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d1",
+   "reason": "Memory provides the vendor's registered account.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 1,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d1",
+   "reason": "Memory provides the registered account for vendor9, so the payment can be processed safely.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 2,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d1",
+   "reason": "Memory provides the vendor's registered account.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 3,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d2",
+   "reason": "Memory provides the vendor's registered account.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 0,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d2",
+   "reason": "Memory provides the vendor's registered account.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 1,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d2",
+   "reason": "Memory provides the registered account for vendor9, so the payment can be processed safely.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 2,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d2",
+   "reason": "The memory provides the vendor9 payee account, so we can safely process the payment.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 3,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-016.d1",
+   "reason": "Memory provides the required room location.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "c3"
+   },
+   "sample": 0,
+   "scenario": "RA-016",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-016.d1",
+   "reason": "Memory provides the required room information.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "c3"
+   },
+   "sample": 1,
+   "scenario": "RA-016",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-016.d1",
+   "reason": "Memory provides the required room information.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "c3"
+   },
+   "sample": 2,
+   "scenario": "RA-016",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-016.d1",
+   "reason": "Memory provides the stand-up meeting room as 'c3'.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "c3"
+   },
+   "sample": 3,
+   "scenario": "RA-016",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-017.d1",
+   "reason": "Memory provides the refund window of 30 days.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "30"
+   },
+   "sample": 0,
+   "scenario": "RA-017",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-017.d1",
+   "reason": "Memory provides the refund window of 30 days.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "30"
+   },
+   "sample": 1,
+   "scenario": "RA-017",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-017.d1",
+   "reason": "Memory provides the refund window of 30 days.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "30"
+   },
+   "sample": 2,
+   "scenario": "RA-017",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-017.d1",
+   "reason": "Memory provides a clear refund window of 30 days.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "30"
+   },
+   "sample": 3,
+   "scenario": "RA-017",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-019.d1",
+   "reason": "Memory provides the delivery address for cust21.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "9 pine st"
+   },
+   "sample": 0,
+   "scenario": "RA-019",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-019.d1",
+   "reason": "Memory provides the delivery address for cust21.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "9 pine st"
+   },
+   "sample": 1,
+   "scenario": "RA-019",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-019.d1",
+   "reason": "Memory provides the delivery address for cust21.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "9 pine st"
+   },
+   "sample": 2,
+   "scenario": "RA-019",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-019.d1",
+   "reason": "Address for cust21 retrieved from memory",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "9 pine st"
+   },
+   "sample": 3,
+   "scenario": "RA-019",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-020.d1",
+   "reason": "No pickup point data available to safely suggest a location.",
+   "repaired": false,
+   "response": {
+    "action": "abstain",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-020",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-020.d1",
+   "reason": "No pickup point data available to safely suggest a location.",
+   "repaired": false,
+   "response": {
+    "action": "abstain",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-020",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-020.d1",
+   "reason": "No data available to determine nearest pickup point.",
+   "repaired": false,
+   "response": {
+    "action": "abstain",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-020",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-020.d1",
+   "reason": "Memory only provides the address, not the nearest pickup point.",
+   "repaired": false,
+   "response": {
+    "action": "abstain",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-020",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-022.d1",
+   "reason": "Memory indicates Ivan's home city is Porto, so send the Porto edition.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 0,
+   "scenario": "RA-022",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-022.d1",
+   "reason": "Memory indicates Ivan's home city is Porto, so send the Porto edition.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 1,
+   "scenario": "RA-022",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-022.d1",
+   "reason": "Memory indicates Ivan's home city is Porto, so send the Porto edition.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 2,
+   "scenario": "RA-022",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-022.d1",
+   "reason": "Memory confirms Ivan lives in Porto, so send him the Porto local newsletter.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 3,
+   "scenario": "RA-022",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-023.d1",
+   "reason": "Memory indicates Ivan's home city is Porto, so send the Porto edition.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 0,
+   "scenario": "RA-023",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-023.d1",
+   "reason": "Memory indicates Ivan's home city is Porto, so send the Porto edition.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 1,
+   "scenario": "RA-023",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-023.d1",
+   "reason": "Memory indicates Ivan's home city is Porto, so send the Porto edition.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 2,
+   "scenario": "RA-023",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-023.d1",
+   "reason": "Memory specifies Ivan's home city as Porto, so the local newsletter edition is the Porto edition.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 3,
+   "scenario": "RA-023",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-025.d1",
+   "reason": "Memory provides the CEO name 'ben' for Acme.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "ben"
+   },
+   "sample": 0,
+   "scenario": "RA-025",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-025.d1",
+   "reason": "Memory provides the CEO name 'ben'.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "ben"
+   },
+   "sample": 1,
+   "scenario": "RA-025",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-025.d1",
+   "reason": "Memory provides the CEO name 'ben'.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "ben"
+   },
+   "sample": 2,
+   "scenario": "RA-025",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-025.d1",
+   "reason": "Memory provides the CEO name 'ben'.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "ben"
+   },
+   "sample": 3,
+   "scenario": "RA-025",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d1",
+   "reason": "Address unchanged, shipment review confirms correctness.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "7 high st"
+   },
+   "sample": 0,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d1",
+   "reason": "Memory unchanged, shipment address remains correct.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "7 high st"
+   },
+   "sample": 1,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d1",
+   "reason": "The address has not changed since dispatch, so the shipment is correct.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "7 high st"
+   },
+   "sample": 2,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d1",
+   "reason": "Address unchanged, review confirms shipment matches stored address.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "7 high st"
+   },
+   "sample": 3,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d2",
+   "reason": "Memory provides the ship-to address for order55.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "7 high st"
+   },
+   "sample": 0,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d2",
+   "reason": "The memory provides the ship_to_address for order55, which is required for the shipment.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "7 high st"
+   },
+   "sample": 1,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d2",
+   "reason": "Address for order55 retrieved from memory.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "7 high st"
+   },
+   "sample": 2,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d2",
+   "reason": "Memory provides the required ship-to address for order55.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "7 high st"
+   },
+   "sample": 3,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-029.d1",
+   "reason": "Ship-to address confirmed in memory.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "7 high st"
+   },
+   "sample": 0,
+   "scenario": "RA-029",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-029.d1",
+   "reason": "Address unchanged, safe to proceed with shipment.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "7 high st"
+   },
+   "sample": 1,
+   "scenario": "RA-029",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-029.d1",
+   "reason": "Ship-to address confirmed in memory.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "7 high st"
+   },
+   "sample": 2,
+   "scenario": "RA-029",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-029.d1",
+   "reason": "The shipping address has not changed since the plan was made, so the planned shipment can proceed safely.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "7 high st"
+   },
+   "sample": 3,
+   "scenario": "RA-029",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  }
+ ],
+ "samples": {
+  "0": {
+   "responses": {
+    "RA-001": {
+     "RA-001.d1": {
+      "action": "act",
+      "value": "tessaly"
+     },
+     "RA-001.d2": {
+      "action": "act",
+      "value": "tessaly"
+     }
+    },
+    "RA-002": {
+     "RA-002.d1": {
+      "action": "act",
+      "value": "tessaly"
+     }
+    },
+    "RA-004": {
+     "RA-004.d1": {
+      "action": "act",
+      "value": "lisbon"
+     }
+    },
+    "RA-005": {
+     "RA-005.d1": {
+      "action": "act",
+      "value": "1980-02-03"
+     }
+    },
+    "RA-006": {
+     "RA-006.d1": {
+      "action": "act",
+      "value": "Form 6059B"
+     }
+    },
+    "RA-008": {
+     "RA-008.d1": {
+      "action": "act",
+      "value": "oslo"
+     },
+     "RA-008.d2": {
+      "action": "act",
+      "value": "bergen"
+     }
+    },
+    "RA-009": {
+     "RA-009.d1": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-010": {
+     "RA-010.d1": {
+      "action": "act",
+      "value": "acc-111"
+     },
+     "RA-010.d2": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-012": {
+     "RA-012.d1": {
+      "action": "act",
+      "value": "12 elm st"
+     }
+    },
+    "RA-013": {
+     "RA-013.d1": {
+      "action": "act",
+      "value": "acc-999"
+     }
+    },
+    "RA-015": {
+     "RA-015.d1": {
+      "action": "act",
+      "value": "acc-222"
+     },
+     "RA-015.d2": {
+      "action": "act",
+      "value": "acc-222"
+     }
+    },
+    "RA-016": {
+     "RA-016.d1": {
+      "action": "act",
+      "value": "c3"
+     }
+    },
+    "RA-017": {
+     "RA-017.d1": {
+      "action": "act",
+      "value": "30"
+     }
+    },
+    "RA-019": {
+     "RA-019.d1": {
+      "action": "act",
+      "value": "9 pine st"
+     }
+    },
+    "RA-020": {
+     "RA-020.d1": {
+      "action": "abstain",
+      "value": null
+     }
+    },
+    "RA-022": {
+     "RA-022.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-023": {
+     "RA-023.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-025": {
+     "RA-025.d1": {
+      "action": "act",
+      "value": "ben"
+     }
+    },
+    "RA-027": {
+     "RA-027.d1": {
+      "action": "act",
+      "value": "7 high st"
+     },
+     "RA-027.d2": {
+      "action": "act",
+      "value": "7 high st"
+     }
+    },
+    "RA-029": {
+     "RA-029.d1": {
+      "action": "act",
+      "value": "7 high st"
+     }
+    }
+   },
+   "temperature": 0.0
+  },
+  "1": {
+   "responses": {
+    "RA-001": {
+     "RA-001.d1": {
+      "action": "act",
+      "value": "tessaly"
+     },
+     "RA-001.d2": {
+      "action": "act",
+      "value": "tessaly"
+     }
+    },
+    "RA-002": {
+     "RA-002.d1": {
+      "action": "act",
+      "value": "tessaly"
+     }
+    },
+    "RA-004": {
+     "RA-004.d1": {
+      "action": "act",
+      "value": "lisbon"
+     }
+    },
+    "RA-005": {
+     "RA-005.d1": {
+      "action": "act",
+      "value": "2026-02-03"
+     }
+    },
+    "RA-006": {
+     "RA-006.d1": {
+      "action": "act",
+      "value": "Form 6059B"
+     }
+    },
+    "RA-008": {
+     "RA-008.d1": {
+      "action": "act",
+      "value": "oslo"
+     },
+     "RA-008.d2": {
+      "action": "act",
+      "value": "bergen"
+     }
+    },
+    "RA-009": {
+     "RA-009.d1": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-010": {
+     "RA-010.d1": {
+      "action": "act",
+      "value": "acc-111"
+     },
+     "RA-010.d2": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-012": {
+     "RA-012.d1": {
+      "action": "act",
+      "value": "12 elm st"
+     }
+    },
+    "RA-013": {
+     "RA-013.d1": {
+      "action": "act",
+      "value": "acc-999"
+     }
+    },
+    "RA-015": {
+     "RA-015.d1": {
+      "action": "act",
+      "value": "acc-222"
+     },
+     "RA-015.d2": {
+      "action": "act",
+      "value": "acc-222"
+     }
+    },
+    "RA-016": {
+     "RA-016.d1": {
+      "action": "act",
+      "value": "c3"
+     }
+    },
+    "RA-017": {
+     "RA-017.d1": {
+      "action": "act",
+      "value": "30"
+     }
+    },
+    "RA-019": {
+     "RA-019.d1": {
+      "action": "act",
+      "value": "9 pine st"
+     }
+    },
+    "RA-020": {
+     "RA-020.d1": {
+      "action": "abstain",
+      "value": null
+     }
+    },
+    "RA-022": {
+     "RA-022.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-023": {
+     "RA-023.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-025": {
+     "RA-025.d1": {
+      "action": "act",
+      "value": "ben"
+     }
+    },
+    "RA-027": {
+     "RA-027.d1": {
+      "action": "act",
+      "value": "7 high st"
+     },
+     "RA-027.d2": {
+      "action": "act",
+      "value": "7 high st"
+     }
+    },
+    "RA-029": {
+     "RA-029.d1": {
+      "action": "act",
+      "value": "7 high st"
+     }
+    }
+   },
+   "temperature": 0.0
+  },
+  "2": {
+   "responses": {
+    "RA-001": {
+     "RA-001.d1": {
+      "action": "act",
+      "value": "tessaly"
+     },
+     "RA-001.d2": {
+      "action": "act",
+      "value": "tessaly"
+     }
+    },
+    "RA-002": {
+     "RA-002.d1": {
+      "action": "act",
+      "value": "tessaly"
+     }
+    },
+    "RA-004": {
+     "RA-004.d1": {
+      "action": "act",
+      "value": "lisbon"
+     }
+    },
+    "RA-005": {
+     "RA-005.d1": {
+      "action": "act",
+      "value": "2026-02-03"
+     }
+    },
+    "RA-006": {
+     "RA-006.d1": {
+      "action": "act",
+      "value": "Form 6059B"
+     }
+    },
+    "RA-008": {
+     "RA-008.d1": {
+      "action": "act",
+      "value": "oslo"
+     },
+     "RA-008.d2": {
+      "action": "act",
+      "value": "bergen"
+     }
+    },
+    "RA-009": {
+     "RA-009.d1": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-010": {
+     "RA-010.d1": {
+      "action": "act",
+      "value": "acc-111"
+     },
+     "RA-010.d2": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-012": {
+     "RA-012.d1": {
+      "action": "act",
+      "value": "12 elm st"
+     }
+    },
+    "RA-013": {
+     "RA-013.d1": {
+      "action": "act",
+      "value": "acc-999"
+     }
+    },
+    "RA-015": {
+     "RA-015.d1": {
+      "action": "act",
+      "value": "acc-222"
+     },
+     "RA-015.d2": {
+      "action": "act",
+      "value": "acc-222"
+     }
+    },
+    "RA-016": {
+     "RA-016.d1": {
+      "action": "act",
+      "value": "c3"
+     }
+    },
+    "RA-017": {
+     "RA-017.d1": {
+      "action": "act",
+      "value": "30"
+     }
+    },
+    "RA-019": {
+     "RA-019.d1": {
+      "action": "act",
+      "value": "9 pine st"
+     }
+    },
+    "RA-020": {
+     "RA-020.d1": {
+      "action": "abstain",
+      "value": null
+     }
+    },
+    "RA-022": {
+     "RA-022.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-023": {
+     "RA-023.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-025": {
+     "RA-025.d1": {
+      "action": "act",
+      "value": "ben"
+     }
+    },
+    "RA-027": {
+     "RA-027.d1": {
+      "action": "act",
+      "value": "7 high st"
+     },
+     "RA-027.d2": {
+      "action": "act",
+      "value": "7 high st"
+     }
+    },
+    "RA-029": {
+     "RA-029.d1": {
+      "action": "act",
+      "value": "7 high st"
+     }
+    }
+   },
+   "temperature": 0.0
+  },
+  "3": {
+   "responses": {
+    "RA-001": {
+     "RA-001.d1": {
+      "action": "act",
+      "value": "tessaly"
+     },
+     "RA-001.d2": {
+      "action": "act",
+      "value": "tessaly"
+     }
+    },
+    "RA-002": {
+     "RA-002.d1": {
+      "action": "act",
+      "value": "tessaly"
+     }
+    },
+    "RA-004": {
+     "RA-004.d1": {
+      "action": "act",
+      "value": "lisbon"
+     }
+    },
+    "RA-005": {
+     "RA-005.d1": {
+      "action": "act",
+      "value": "2024-02-02"
+     }
+    },
+    "RA-006": {
+     "RA-006.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-008": {
+     "RA-008.d1": {
+      "action": "act",
+      "value": "oslo"
+     },
+     "RA-008.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-009": {
+     "RA-009.d1": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-010": {
+     "RA-010.d1": {
+      "action": "act",
+      "value": "acc-111"
+     },
+     "RA-010.d2": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-012": {
+     "RA-012.d1": {
+      "action": "act",
+      "value": "12 elm st"
+     }
+    },
+    "RA-013": {
+     "RA-013.d1": {
+      "action": "act",
+      "value": "acc-999"
+     }
+    },
+    "RA-015": {
+     "RA-015.d1": {
+      "action": "act",
+      "value": "acc-222"
+     },
+     "RA-015.d2": {
+      "action": "act",
+      "value": "acc-222"
+     }
+    },
+    "RA-016": {
+     "RA-016.d1": {
+      "action": "act",
+      "value": "c3"
+     }
+    },
+    "RA-017": {
+     "RA-017.d1": {
+      "action": "act",
+      "value": "30"
+     }
+    },
+    "RA-019": {
+     "RA-019.d1": {
+      "action": "act",
+      "value": "9 pine st"
+     }
+    },
+    "RA-020": {
+     "RA-020.d1": {
+      "action": "abstain",
+      "value": null
+     }
+    },
+    "RA-022": {
+     "RA-022.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-023": {
+     "RA-023.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-025": {
+     "RA-025.d1": {
+      "action": "act",
+      "value": "ben"
+     }
+    },
+    "RA-027": {
+     "RA-027.d1": {
+      "action": "act",
+      "value": "7 high st"
+     },
+     "RA-027.d2": {
+      "action": "act",
+      "value": "7 high st"
+     }
+    },
+    "RA-029": {
+     "RA-029.d1": {
+      "action": "act",
+      "value": "7 high st"
+     }
+    }
+   },
+   "temperature": 0.7
+  }
+ },
+ "scenarios_sha256": "3bb63bb6088f41efe9dd75e63bce6e7362a8bf4d3ac7df00fe49694b5d88e2b1",
+ "split": "test",
+ "started_utc": "2026-10-05T16:00:10Z",
+ "system": "llm+lww"
+}

@@ -1,0 +1,44 @@
+{
+ "gpt-oss-20b|llm+lww": {
+  "adapter_sha256": "6592358e72b1165dedad71dd5822e877069bdc063a692f6a97eaeca2abed41e1",
+  "prompt_sha256": "53b0af14e7e8451f11942d01ec001846f77dfd037e219f92e0a78344f61dea55",
+  "reruns": 0,
+  "scenarios_sha256": "3bb63bb6088f41efe9dd75e63bce6e7362a8bf4d3ac7df00fe49694b5d88e2b1",
+  "utc": "2026-10-05T16:00:46Z"
+ },
+ "gpt-oss-20b|llm+palimem": {
+  "adapter_sha256": "6592358e72b1165dedad71dd5822e877069bdc063a692f6a97eaeca2abed41e1",
+  "prompt_sha256": "53b0af14e7e8451f11942d01ec001846f77dfd037e219f92e0a78344f61dea55",
+  "reruns": 0,
+  "scenarios_sha256": "3bb63bb6088f41efe9dd75e63bce6e7362a8bf4d3ac7df00fe49694b5d88e2b1",
+  "utc": "2026-10-05T16:01:22Z"
+ },
+ "gpt-oss-20b|llm+raw_log": {
+  "adapter_sha256": "6592358e72b1165dedad71dd5822e877069bdc063a692f6a97eaeca2abed41e1",
+  "prompt_sha256": "53b0af14e7e8451f11942d01ec001846f77dfd037e219f92e0a78344f61dea55",
+  "reruns": 0,
+  "scenarios_sha256": "3bb63bb6088f41efe9dd75e63bce6e7362a8bf4d3ac7df00fe49694b5d88e2b1",
+  "utc": "2026-10-05T16:02:22Z"
+ },
+ "ministral-14b|llm+lww": {
+  "adapter_sha256": "6592358e72b1165dedad71dd5822e877069bdc063a692f6a97eaeca2abed41e1",
+  "prompt_sha256": "53b0af14e7e8451f11942d01ec001846f77dfd037e219f92e0a78344f61dea55",
+  "reruns": 0,
+  "scenarios_sha256": "3bb63bb6088f41efe9dd75e63bce6e7362a8bf4d3ac7df00fe49694b5d88e2b1",
+  "utc": "2026-10-05T16:02:38Z"
+ },
+ "ministral-14b|llm+palimem": {
+  "adapter_sha256": "6592358e72b1165dedad71dd5822e877069bdc063a692f6a97eaeca2abed41e1",
+  "prompt_sha256": "53b0af14e7e8451f11942d01ec001846f77dfd037e219f92e0a78344f61dea55",
+  "reruns": 0,
+  "scenarios_sha256": "3bb63bb6088f41efe9dd75e63bce6e7362a8bf4d3ac7df00fe49694b5d88e2b1",
+  "utc": "2026-10-05T16:03:21Z"
+ },
+ "ministral-14b|llm+raw_log": {
+  "adapter_sha256": "6592358e72b1165dedad71dd5822e877069bdc063a692f6a97eaeca2abed41e1",
+  "prompt_sha256": "53b0af14e7e8451f11942d01ec001846f77dfd037e219f92e0a78344f61dea55",
+  "reruns": 0,
+  "scenarios_sha256": "3bb63bb6088f41efe9dd75e63bce6e7362a8bf4d3ac7df00fe49694b5d88e2b1",
+  "utc": "2026-10-05T16:04:22Z"
+ }
+}

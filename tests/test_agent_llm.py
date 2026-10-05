@@ -326,6 +326,19 @@ def test_committed_runs_rescore_offline_to_the_same_responses(path: Path) -> Non
     g = la.LedgerGate(None, la.ReplyCache(cache), None, "rescore")
     samples = tuple((int(s), v["temperature"]) for s, v in old["samples"].items())
     new = la.run(old["split"], old["model"], old["system"], old["prompt_version"], samples, g, workers=1)
-    assert new["samples"] == old["samples"]
+    # A memory-error notice embeds a log-assigned report id (a known, disclosed flaw of the registered adapter, which
+    # is not edited after the test run): the prompts of those points differ on every replay, so only they may miss.
+    skip = {(r["scenario"], r["point"]) for r in old["records"] if r["ingest_error"]}
+    # a call that failed in the original run (Bedrock throttling) has no reply in the cache and is a missing response
+    failed = {(r["scenario"], r["point"], str(r["sample"])) for r in old["records"] if r["error"]}
+
+    def strip(samples_: dict) -> dict:
+        return {s: {"temperature": v["temperature"],
+                    "responses": {sc: {p: x for p, x in pts.items() if (sc, p) not in skip} for sc, pts in v["responses"].items()}}
+                for s, v in samples_.items()}
+
+    assert strip(new["samples"]) == strip(old["samples"])
+    misses = {(r["scenario"], r["point"], str(r["sample"])) for r in new["records"] if r["error"] == "CacheMiss"}
+    assert all((sc, p) in skip or (sc, p, s) in failed for sc, p, s in misses)
     assert new["prompt_sha256"] == old["prompt_sha256"]
     assert new["calls"]["live"] == 0

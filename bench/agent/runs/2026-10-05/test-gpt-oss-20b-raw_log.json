@@ -1,0 +1,2529 @@
+{
+ "adapter_sha256": "6592358e72b1165dedad71dd5822e877069bdc063a692f6a97eaeca2abed41e1",
+ "cache": "test-cache-gpt-oss-20b.jsonl",
+ "calls": {
+  "cache_hits": 2,
+  "cost_usd": 0.010819,
+  "input_tokens": 48116,
+  "live": 98,
+  "output_tokens": 24837
+ },
+ "estimate": {
+  "calls": 100,
+  "expected_usd": 0.04622,
+  "input_tokens_est": 60252,
+  "model": "gpt-oss-20b",
+  "repairs_not_included": true,
+  "split": "test",
+  "system": "llm+raw_log",
+  "worst_case_usd": 0.09422
+ },
+ "ingest_errors": {},
+ "ledger_after": {
+  "by_model_usd": {
+   "mistral.ministral-3-14b-instruct": 0.1534384000000002,
+   "mistral.ministral-3-8b-instruct": 0.08901615,
+   "openai.gpt-oss-20b-1:0": 0.18708907000000063
+  },
+  "cap_usd": 3.319982,
+  "exposure_usd": 0.4295436199999994,
+  "n_calls": 2267,
+  "open_reservations": 0,
+  "remaining_usd": 2.8904383800000004,
+  "reserved_usd": 0,
+  "spent_usd": 0.4295436199999994
+ },
+ "model": "gpt-oss-20b",
+ "model_id": "openai.gpt-oss-20b-1:0",
+ "parser_version": "p2",
+ "prompt_sha256": "53b0af14e7e8451f11942d01ec001846f77dfd037e219f92e0a78344f61dea55",
+ "prompt_version": "v1",
+ "records": [
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d1",
+   "reason": "Registry reports Veltran's HQ city is Tessaly, and press confirms Alex works for Veltran, so the city for filing is Tessaly.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Tessaly"
+   },
+   "sample": 0,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d1",
+   "reason": "Memory confirms Alex works for Veltran and Veltran\u2019s HQ city is Tessaly, so the tax return should be filed for Tessaly.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Tessaly"
+   },
+   "sample": 1,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d1",
+   "reason": "Memory confirms Alex works for Veltran and Veltran\u2019s HQ city is Tessaly, so the tax return should be filed for Tessaly.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Tessaly"
+   },
+   "sample": 2,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d1",
+   "reason": "The memory does not provide sufficient evidence to determine the city where Alex is taxed.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d2",
+   "reason": "The only source indicating Alex\u2019s employer (and thus the city) was withdrawn, leaving the city unknown.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d2",
+   "reason": "The only source indicating Alex\u2019s employer (and thus the city) was withdrawn, leaving the city unknown.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d2",
+   "reason": "The employer report was withdrawn, leaving no evidence for Alex's city of taxation.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-001.d2",
+   "reason": "The press report identifying Alex's employer has been withdrawn, leaving no reliable evidence to determine his tax city.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-001",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-002.d1",
+   "reason": "Conflicting reports about Alex's employer; memory does not clearly support a single value.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-002",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-002.d1",
+   "reason": "Conflicting reports about Alex's employer; cannot safely determine work city.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-002",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-002.d1",
+   "reason": "Conflicting reports about Alex's employer; cannot safely determine work city.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-002",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-002.d1",
+   "reason": "HR feed confirms employer as Veltran; registry lists Veltran\u2019s HQ city as Tessaly, and press withdrawal does not affect HR feed.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "sample": 3,
+   "scenario": "RA-002",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-004.d1",
+   "reason": "Erin's city info was withdrawn, so we cannot safely add a weather note.",
+   "repaired": false,
+   "response": {
+    "action": "abstain",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-004",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-004.d1",
+   "reason": "Erin's city was withdrawn, so it is not known.",
+   "repaired": false,
+   "response": {
+    "action": "abstain",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-004",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-004.d1",
+   "reason": "Erin's city is not known after withdrawal, so no weather note should be added.",
+   "repaired": false,
+   "response": {
+    "action": "abstain",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-004",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-004.d1",
+   "reason": "Erin's city was withdrawn, so we cannot add a weather note.",
+   "repaired": false,
+   "response": {
+    "action": "abstain",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-004",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-005.d1",
+   "reason": "The most recent report (day 5) corrects the earlier birth date, so 1980-02-03 is the current justified value.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "1980-02-03"
+   },
+   "sample": 0,
+   "scenario": "RA-005",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-005.d1",
+   "reason": "The latest report from day 5 confirms Frank's birth date as 1980-02-03, overriding the earlier day 2 report.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "1980-02-03"
+   },
+   "sample": 1,
+   "scenario": "RA-005",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-005.d1",
+   "reason": "The latest press report on day 5 provides the correct birth date.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "1980-02-03"
+   },
+   "sample": 2,
+   "scenario": "RA-005",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-005.d1",
+   "reason": "Latest press report corrects Frank's birth date to 1980-02-03",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "1980-02-03"
+   },
+   "sample": 3,
+   "scenario": "RA-005",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-006.d1",
+   "reason": "The latest report from day 7 corrects the earlier citizenship to de, so the current justified value is de.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "de"
+   },
+   "sample": 0,
+   "scenario": "RA-006",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-006.d1",
+   "reason": "The latest report from day 7 corrects the earlier citizenship to de, so the current justified value is de.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "de"
+   },
+   "sample": 1,
+   "scenario": "RA-006",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-006.d1",
+   "reason": "The most recent report states Gina\u2019s citizenship is de, so the appropriate customs form for a German citizen should be selected.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "de"
+   },
+   "sample": 2,
+   "scenario": "RA-006",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-006.d1",
+   "reason": "Blog corrected the earlier registry report, so Gina's citizenship is de.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "de"
+   },
+   "sample": 3,
+   "scenario": "RA-006",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d1",
+   "reason": "The memory confirms Hana works for Orbit and Orbit\u2019s HQ city is Oslo, so her work city is Oslo.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Oslo"
+   },
+   "sample": 0,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d1",
+   "reason": "The memory shows Hana works for Orbit, whose HQ city is Oslo, so her work city is Oslo.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Oslo"
+   },
+   "sample": 1,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d1",
+   "reason": "The memory confirms Hana works for Orbit, whose HQ city is Oslo, so her work city is Oslo.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Oslo"
+   },
+   "sample": 2,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d1",
+   "reason": "Memory confirms Hana\u2019s employer is Orbit and Orbit\u2019s HQ city is Oslo, so booking the site visit in Oslo is justified.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Oslo"
+   },
+   "sample": 3,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d2",
+   "reason": "Registry\u2019s latest correction states orbit\u2019s HQ city is Bergen, which is Hana\u2019s work city.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Bergen"
+   },
+   "sample": 0,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d2",
+   "reason": "Registry\u2019s latest correction states orbit\u2019s HQ city is Bergen, which is Hana\u2019s work city.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Bergen"
+   },
+   "sample": 1,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d2",
+   "reason": "The latest registry report (day 8) corrects orbit's HQ city to Bergen, which is Hana's work city.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Bergen"
+   },
+   "sample": 2,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-008.d2",
+   "reason": "Registry report on day 8 confirms Orbit's HQ city is Bergen, which is Hana's work city.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Bergen"
+   },
+   "sample": 3,
+   "scenario": "RA-008",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-009.d1",
+   "reason": "Registry report remains the only valid source for vendor9's account.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 0,
+   "scenario": "RA-009",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-009.d1",
+   "reason": "Registry report remains the only valid source for vendor9's account.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 1,
+   "scenario": "RA-009",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-009.d1",
+   "reason": "The registry report is the only current evidence for vendor9's account, and the forum's withdrawal does not contradict it.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 2,
+   "scenario": "RA-009",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-009.d1",
+   "reason": "Registry reports vendor9's payee account as acc-111 and no contradictory evidence remains after forum withdrew its report.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 3,
+   "scenario": "RA-009",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d1",
+   "reason": "Registry's report of vendor9's account remains valid and no conflicting evidence exists.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 0,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d1",
+   "reason": "Registry report remains the only valid source for vendor9's account.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 1,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d1",
+   "reason": "The registry report is the only current evidence for vendor9's account, and the forum's withdrawal does not contradict it.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 2,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d1",
+   "reason": "Registry report provides a clear value for vendor9's account.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "sample": 3,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d2",
+   "reason": "The registry withdrew its earlier report, so no current payee account is known.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d2",
+   "reason": "Registry withdrew its earlier report, leaving no current account for vendor9.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d2",
+   "reason": "No current report of vendor9's payee account is available after withdrawals.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-010.d2",
+   "reason": "The registry withdrew its earlier report, so the vendor\u2019s registered account is no longer confirmed.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-010",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-012.d1",
+   "reason": "Conflicting reports about the address; cannot determine correct value.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-012",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-012.d1",
+   "reason": "Conflicting reports about the address; cannot determine correct value.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-012",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-012.d1",
+   "reason": "Conflicting reports about the address; cannot determine correct value.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-012",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-012.d1",
+   "reason": "Memory contains contradictory addresses; the correct home address for customer7 is unclear.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-012",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-013.d1",
+   "reason": "Conflicting reports: registry says acc-111, unknown_email says acc-999; need clarification before payment.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-013",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-013.d1",
+   "reason": "Registry and unknown_email reports conflict; need clarification before payment.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-013",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-013.d1",
+   "reason": "Conflicting reports about vendor9's payee account; need confirmation before payment.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-013",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-013.d1",
+   "reason": "The registry states vendor9's payee account is acc-111, while an unknown source claims it changed to acc-999; we cannot act safely without confirmation.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-013",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d1",
+   "reason": "The latest report from the mailer indicates vendor9\u2019s payee account has changed to acc-222, overriding the earlier registry entry.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 0,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d1",
+   "reason": "The latest report from the mailer indicates vendor9\u2019s payee account has changed to acc-222, superseding the earlier registry entry.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 1,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d1",
+   "reason": "The latest mailer report indicates vendor9\u2019s payee account has changed to acc-222, superseding the older registry entry.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 2,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d1",
+   "reason": "Conflicting reports exist: registry says acc-111 while mailer says acc-222, so clarification is needed before making a payment.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d2",
+   "reason": "Latest reports confirm vendor9's payee account has changed to acc-222.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 0,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d2",
+   "reason": "Latest reports from mailer and vendor_portal confirm vendor9's payee account is acc-222.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 1,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d2",
+   "reason": "Latest reports from mailer and vendor_portal confirm vendor9's payee account is acc-222, overriding the earlier registry entry.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 2,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-015.d2",
+   "reason": "Recent mailer and vendor_portal reports confirm the account change to acc-222, overriding the older registry entry.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-222"
+   },
+   "sample": 3,
+   "scenario": "RA-015",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-016.d1",
+   "reason": "The most recent agent note confirms the stand\u2011up is in room C3.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "C3"
+   },
+   "sample": 0,
+   "scenario": "RA-016",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-016.d1",
+   "reason": "The latest confirmed report states the stand-up is in C3.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "C3"
+   },
+   "sample": 1,
+   "scenario": "RA-016",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-016.d1",
+   "reason": "The most recent report (day 5) confirms the stand-up is in C3, overriding earlier calendar information.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "C3"
+   },
+   "sample": 2,
+   "scenario": "RA-016",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-016.d1",
+   "reason": "The latest agent note confirms the stand\u2011up is in C3.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "C3"
+   },
+   "sample": 3,
+   "scenario": "RA-016",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-017.d1",
+   "reason": "policy_doc states the refund window is 14 days, which is the authoritative source.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "14"
+   },
+   "sample": 0,
+   "scenario": "RA-017",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-017.d1",
+   "reason": "The policy document states the refund window is 14 days, which is the authoritative source for the customer.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "14"
+   },
+   "sample": 1,
+   "scenario": "RA-017",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-017.d1",
+   "reason": "The policy document states the refund window is 14 days, which is authoritative over Dave\u2019s beliefs.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "14"
+   },
+   "sample": 2,
+   "scenario": "RA-017",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-017.d1",
+   "reason": "The policy document states the refund window is 14 days, which is the authoritative source.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "14"
+   },
+   "sample": 3,
+   "scenario": "RA-017",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-019.d1",
+   "reason": "The shop report on day 3 is more recent than the crm report on day 2, so it is the current justified address.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "9 pine st"
+   },
+   "sample": 0,
+   "scenario": "RA-019",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-019.d1",
+   "reason": "The most recent report from shop on day 3 provides the current delivery address.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "9 pine st"
+   },
+   "sample": 1,
+   "scenario": "RA-019",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-019.d1",
+   "reason": "The shop report on day 3 is more recent than the crm report on day 2, so the address 9 pine st is justified.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "9 pine st"
+   },
+   "sample": 2,
+   "scenario": "RA-019",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-019.d1",
+   "reason": "The most recent report from the shop on day 3 overrides the earlier CRM report.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "9 pine st"
+   },
+   "sample": 3,
+   "scenario": "RA-019",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-020.d1",
+   "reason": "No pickup point information available to safely suggest a location.",
+   "repaired": false,
+   "response": {
+    "action": "abstain",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-020",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-020.d1",
+   "reason": "Insufficient information to determine nearest pickup point.",
+   "repaired": false,
+   "response": {
+    "action": "abstain",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-020",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-020.d1",
+   "reason": "Insufficient data to safely suggest a pickup point.",
+   "repaired": false,
+   "response": {
+    "action": "abstain",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-020",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-020.d1",
+   "reason": "Memory contains conflicting addresses for cust22, so the correct pickup point cannot be determined safely.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-020",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-022.d1",
+   "reason": "The latest profile_app report indicates Ivan's home city is now Porto.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 0,
+   "scenario": "RA-022",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-022.d1",
+   "reason": "The latest report indicates Ivan's home city is Porto, so the Porto edition should be sent.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 1,
+   "scenario": "RA-022",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-022.d1",
+   "reason": "The latest report indicates Ivan\u2019s home city is now Porto, so the Porto edition should be sent.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 2,
+   "scenario": "RA-022",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-022.d1",
+   "reason": "The latest profile_app report confirms Ivan's home city is Porto.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 3,
+   "scenario": "RA-022",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-023.d1",
+   "reason": "The latest report from profile_app on day 8 indicates Ivan's home city is Porto, overriding the earlier Lisbon report.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 0,
+   "scenario": "RA-023",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-023.d1",
+   "reason": "Latest report indicates Ivan's home city is Porto.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 1,
+   "scenario": "RA-023",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-023.d1",
+   "reason": "The most recent report states Ivan's home city is Porto, overriding the earlier Lisbon report.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 2,
+   "scenario": "RA-023",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-023.d1",
+   "reason": "The latest profile_app report indicates Ivan's home city is Porto.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "porto"
+   },
+   "sample": 3,
+   "scenario": "RA-023",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-025.d1",
+   "reason": "Registry update on day 6 overrides earlier blog report, indicating the current CEO is Ben.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Ben"
+   },
+   "sample": 0,
+   "scenario": "RA-025",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-025.d1",
+   "reason": "Registry update on day 6 overrides earlier blog report, indicating the current CEO is Ben.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Ben"
+   },
+   "sample": 1,
+   "scenario": "RA-025",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-025.d1",
+   "reason": "Registry report on day 6 supersedes earlier blog, indicating the current CEO is Ben.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Ben"
+   },
+   "sample": 2,
+   "scenario": "RA-025",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-025.d1",
+   "reason": "Registry report on day 6 indicates the CEO changed to Ben, which supersedes earlier blog info.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "Ben"
+   },
+   "sample": 3,
+   "scenario": "RA-025",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d1",
+   "reason": "The portal withdrew its earlier address report, so the dispatched shipment rests on invalid information.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d1",
+   "reason": "The portal withdrew its earlier address report, so the dispatch to 7 high st. may no longer be justified and requires clarification.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d1",
+   "reason": "The portal withdrew its earlier address report, leaving the current shipping address unknown.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d1",
+   "reason": "The portal withdrew its earlier report, so we lack current shipping address info to review the shipment safely.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d2",
+   "reason": "The only address report was withdrawn, leaving no valid address to ship to.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d2",
+   "reason": "The only address report was withdrawn, leaving the ship-to address unknown.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d2",
+   "reason": "The only address report was withdrawn, leaving no valid address for order55.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-027.d2",
+   "reason": "Portal withdrew its earlier address report, leaving no confirmed shipping address for order55.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-027",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-029.d1",
+   "reason": "The portal withdrew its earlier address report, leaving no confirmed shipping address for order57.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-029",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-029.d1",
+   "reason": "The address for order57 is no longer confirmed after the portal withdrew its report, so we cannot safely execute the shipment.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-029",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-029.d1",
+   "reason": "The address for order57 is no longer confirmed after the portal withdrew its report, so we cannot safely execute the shipment.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-029",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-029.d1",
+   "reason": "The only source for the shipment address withdrew its report, leaving no confirmed address to ship to.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-029",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  }
+ ],
+ "samples": {
+  "0": {
+   "responses": {
+    "RA-001": {
+     "RA-001.d1": {
+      "action": "act",
+      "value": "Tessaly"
+     },
+     "RA-001.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-002": {
+     "RA-002.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-004": {
+     "RA-004.d1": {
+      "action": "abstain",
+      "value": null
+     }
+    },
+    "RA-005": {
+     "RA-005.d1": {
+      "action": "act",
+      "value": "1980-02-03"
+     }
+    },
+    "RA-006": {
+     "RA-006.d1": {
+      "action": "act",
+      "value": "de"
+     }
+    },
+    "RA-008": {
+     "RA-008.d1": {
+      "action": "act",
+      "value": "Oslo"
+     },
+     "RA-008.d2": {
+      "action": "act",
+      "value": "Bergen"
+     }
+    },
+    "RA-009": {
+     "RA-009.d1": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-010": {
+     "RA-010.d1": {
+      "action": "act",
+      "value": "acc-111"
+     },
+     "RA-010.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-012": {
+     "RA-012.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-013": {
+     "RA-013.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-015": {
+     "RA-015.d1": {
+      "action": "act",
+      "value": "acc-222"
+     },
+     "RA-015.d2": {
+      "action": "act",
+      "value": "acc-222"
+     }
+    },
+    "RA-016": {
+     "RA-016.d1": {
+      "action": "act",
+      "value": "C3"
+     }
+    },
+    "RA-017": {
+     "RA-017.d1": {
+      "action": "act",
+      "value": "14"
+     }
+    },
+    "RA-019": {
+     "RA-019.d1": {
+      "action": "act",
+      "value": "9 pine st"
+     }
+    },
+    "RA-020": {
+     "RA-020.d1": {
+      "action": "abstain",
+      "value": null
+     }
+    },
+    "RA-022": {
+     "RA-022.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-023": {
+     "RA-023.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-025": {
+     "RA-025.d1": {
+      "action": "act",
+      "value": "Ben"
+     }
+    },
+    "RA-027": {
+     "RA-027.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-027.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-029": {
+     "RA-029.d1": {
+      "action": "ask",
+      "value": null
+     }
+    }
+   },
+   "temperature": 0.0
+  },
+  "1": {
+   "responses": {
+    "RA-001": {
+     "RA-001.d1": {
+      "action": "act",
+      "value": "Tessaly"
+     },
+     "RA-001.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-002": {
+     "RA-002.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-004": {
+     "RA-004.d1": {
+      "action": "abstain",
+      "value": null
+     }
+    },
+    "RA-005": {
+     "RA-005.d1": {
+      "action": "act",
+      "value": "1980-02-03"
+     }
+    },
+    "RA-006": {
+     "RA-006.d1": {
+      "action": "act",
+      "value": "de"
+     }
+    },
+    "RA-008": {
+     "RA-008.d1": {
+      "action": "act",
+      "value": "Oslo"
+     },
+     "RA-008.d2": {
+      "action": "act",
+      "value": "Bergen"
+     }
+    },
+    "RA-009": {
+     "RA-009.d1": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-010": {
+     "RA-010.d1": {
+      "action": "act",
+      "value": "acc-111"
+     },
+     "RA-010.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-012": {
+     "RA-012.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-013": {
+     "RA-013.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-015": {
+     "RA-015.d1": {
+      "action": "act",
+      "value": "acc-222"
+     },
+     "RA-015.d2": {
+      "action": "act",
+      "value": "acc-222"
+     }
+    },
+    "RA-016": {
+     "RA-016.d1": {
+      "action": "act",
+      "value": "C3"
+     }
+    },
+    "RA-017": {
+     "RA-017.d1": {
+      "action": "act",
+      "value": "14"
+     }
+    },
+    "RA-019": {
+     "RA-019.d1": {
+      "action": "act",
+      "value": "9 pine st"
+     }
+    },
+    "RA-020": {
+     "RA-020.d1": {
+      "action": "abstain",
+      "value": null
+     }
+    },
+    "RA-022": {
+     "RA-022.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-023": {
+     "RA-023.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-025": {
+     "RA-025.d1": {
+      "action": "act",
+      "value": "Ben"
+     }
+    },
+    "RA-027": {
+     "RA-027.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-027.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-029": {
+     "RA-029.d1": {
+      "action": "ask",
+      "value": null
+     }
+    }
+   },
+   "temperature": 0.0
+  },
+  "2": {
+   "responses": {
+    "RA-001": {
+     "RA-001.d1": {
+      "action": "act",
+      "value": "Tessaly"
+     },
+     "RA-001.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-002": {
+     "RA-002.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-004": {
+     "RA-004.d1": {
+      "action": "abstain",
+      "value": null
+     }
+    },
+    "RA-005": {
+     "RA-005.d1": {
+      "action": "act",
+      "value": "1980-02-03"
+     }
+    },
+    "RA-006": {
+     "RA-006.d1": {
+      "action": "act",
+      "value": "de"
+     }
+    },
+    "RA-008": {
+     "RA-008.d1": {
+      "action": "act",
+      "value": "Oslo"
+     },
+     "RA-008.d2": {
+      "action": "act",
+      "value": "Bergen"
+     }
+    },
+    "RA-009": {
+     "RA-009.d1": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-010": {
+     "RA-010.d1": {
+      "action": "act",
+      "value": "acc-111"
+     },
+     "RA-010.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-012": {
+     "RA-012.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-013": {
+     "RA-013.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-015": {
+     "RA-015.d1": {
+      "action": "act",
+      "value": "acc-222"
+     },
+     "RA-015.d2": {
+      "action": "act",
+      "value": "acc-222"
+     }
+    },
+    "RA-016": {
+     "RA-016.d1": {
+      "action": "act",
+      "value": "C3"
+     }
+    },
+    "RA-017": {
+     "RA-017.d1": {
+      "action": "act",
+      "value": "14"
+     }
+    },
+    "RA-019": {
+     "RA-019.d1": {
+      "action": "act",
+      "value": "9 pine st"
+     }
+    },
+    "RA-020": {
+     "RA-020.d1": {
+      "action": "abstain",
+      "value": null
+     }
+    },
+    "RA-022": {
+     "RA-022.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-023": {
+     "RA-023.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-025": {
+     "RA-025.d1": {
+      "action": "act",
+      "value": "Ben"
+     }
+    },
+    "RA-027": {
+     "RA-027.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-027.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-029": {
+     "RA-029.d1": {
+      "action": "ask",
+      "value": null
+     }
+    }
+   },
+   "temperature": 0.0
+  },
+  "3": {
+   "responses": {
+    "RA-001": {
+     "RA-001.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-001.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-002": {
+     "RA-002.d1": {
+      "action": "act",
+      "value": "tessaly"
+     }
+    },
+    "RA-004": {
+     "RA-004.d1": {
+      "action": "abstain",
+      "value": null
+     }
+    },
+    "RA-005": {
+     "RA-005.d1": {
+      "action": "act",
+      "value": "1980-02-03"
+     }
+    },
+    "RA-006": {
+     "RA-006.d1": {
+      "action": "act",
+      "value": "de"
+     }
+    },
+    "RA-008": {
+     "RA-008.d1": {
+      "action": "act",
+      "value": "Oslo"
+     },
+     "RA-008.d2": {
+      "action": "act",
+      "value": "Bergen"
+     }
+    },
+    "RA-009": {
+     "RA-009.d1": {
+      "action": "act",
+      "value": "acc-111"
+     }
+    },
+    "RA-010": {
+     "RA-010.d1": {
+      "action": "act",
+      "value": "acc-111"
+     },
+     "RA-010.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-012": {
+     "RA-012.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-013": {
+     "RA-013.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-015": {
+     "RA-015.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-015.d2": {
+      "action": "act",
+      "value": "acc-222"
+     }
+    },
+    "RA-016": {
+     "RA-016.d1": {
+      "action": "act",
+      "value": "C3"
+     }
+    },
+    "RA-017": {
+     "RA-017.d1": {
+      "action": "act",
+      "value": "14"
+     }
+    },
+    "RA-019": {
+     "RA-019.d1": {
+      "action": "act",
+      "value": "9 pine st"
+     }
+    },
+    "RA-020": {
+     "RA-020.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-022": {
+     "RA-022.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-023": {
+     "RA-023.d1": {
+      "action": "act",
+      "value": "porto"
+     }
+    },
+    "RA-025": {
+     "RA-025.d1": {
+      "action": "act",
+      "value": "Ben"
+     }
+    },
+    "RA-027": {
+     "RA-027.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-027.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-029": {
+     "RA-029.d1": {
+      "action": "ask",
+      "value": null
+     }
+    }
+   },
+   "temperature": 0.7
+  }
+ },
+ "scenarios_sha256": "3bb63bb6088f41efe9dd75e63bce6e7362a8bf4d3ac7df00fe49694b5d88e2b1",
+ "split": "test",
+ "started_utc": "2026-10-05T16:01:22Z",
+ "system": "llm+raw_log"
+}
