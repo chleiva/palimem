@@ -19,11 +19,18 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Callable, Mapping, Sequence
+from dataclasses import replace
 from datetime import datetime
 from typing import Any
 
 from palimem.admission import AdmissionConfig, Admitter, Evaluation, EvidenceSet
-from palimem.engine import KernelReviser, Pipeline, StoreAdmitter, direct_entries
+from palimem.engine import (
+    KernelReviser,
+    Pipeline,
+    StoreAdmitter,
+    direct_entries,
+    family_of_segment,
+)
 from palimem.kernel import (
     DerivedJustification,
     Justification,
@@ -33,7 +40,7 @@ from palimem.kernel import (
     justify_derived,
 )
 from palimem.kernel.derive import Provider
-from palimem.kernel.justify import Family
+from palimem.kernel.justify import Family, classify
 from palimem.policy import JUSTIFIED, DecisionContext, PolicyObject, decide
 from palimem.store import (
     AppendResult,
@@ -49,6 +56,7 @@ from palimem.store.views import belief_view, select_segment
 from palimem.types import (
     Answer,
     BeliefAsOf,
+    BeliefOfForm,
     BeliefView,
     Cue,
     ExplainMode,
@@ -58,6 +66,7 @@ from palimem.types import (
     Key,
     LogEntry,
     Origin,
+    Profile,
     Query,
     Report,
     ResourceLimited,
@@ -153,6 +162,7 @@ class Memory:
         entities: Sequence[str] | None = None,
         budget: int = DEFAULT_ENVIRONMENT_BUDGET,
         change_from_of: ChangeFrom | None = None,
+        revision_budget: int | None = None,
         admitter_class: type[Admitter] = Admitter,
     ) -> None:
         if admission.profile is not semantic.profile:
@@ -165,7 +175,7 @@ class Memory:
         ks = kernel_schema if kernel_schema is not None else KernelSchema.from_schema(schema, profile=semantic.profile)
         self.pipeline = Pipeline(
             schema=schema, kernel_schema=ks, semantic=semantic, admitter=admitter_class(admission, schema),
-            entities=entities, budget=budget, change_from_of=change_from_of,
+            entities=entities, budget=budget, change_from_of=change_from_of, revision_budget=revision_budget,
         )
         self.pipeline.bind(backend)
         self._admitter = StoreAdmitter(self.pipeline)
@@ -230,14 +240,15 @@ class Memory:
         if attr.attr_class.value == "derived" and report.cue in (Cue.ASSERT, Cue.CHANGE, Cue.CORRECT):
             raise ValueError(f"attribute {attr.name!r} is derived: it is never asserted directly")
 
-    def append(self, report: Report, *, idempotency_key: str | None = None) -> AppendResult:
+    def append(self, report: Report, *, idempotency_key: str | None = None, complete: bool = True) -> AppendResult:
         """Append one report (host API). Give an ``idempotency_key`` to make a retry after a crash safe; without
         one every call is a new report. Unfinished completion jobs are run afterwards, so a read never sees a
-        stale key that the host could have repaired."""
+        stale key that the host could have repaired (``complete=False`` leaves that to the caller)."""
         self._check_report(report)
         key = idempotency_key or uuid.uuid4().hex
         res = self.backend.append(report, idempotency_key=key, admitter=self._admitter, reviser=self.reviser)
-        self.complete()
+        if complete:
+            self.complete()
         return res
 
     def withdraw(
@@ -325,13 +336,29 @@ class Memory:
         assert v is not None
         return v
 
+    def _project(self, view: BeliefView, profile: Profile) -> BeliefView:
+        """Re-read a stored segment under another profile. The profile only decides how a candidate family is classified
+        (per-slot-type closed-world conventions, S-04), so the stored family is reclassified, not recomputed."""
+        if profile is self.semantic.profile:
+            return view
+        seg = view.segment
+        if any(isinstance(c.form, BeliefOfForm) for c in ([seg.established] if seg.established else []) + list(seg.alternatives)):
+            return view  # an attribution is not a value family: the profile has nothing to reclassify
+        spec = self.pipeline.attr_spec(view.key.attr)
+        st, est, alts = classify(view.key, spec, profile, family_of_segment(seg))
+        ids = {c.id for c in ([est] if est is not None else []) + list(alts)}
+        new = PSegment(
+            valid_from=seg.valid_from, valid_to=seg.valid_to, kernel_status=st, established=est, alternatives=alts,
+            support={cid: s for cid, s in seg.support.items() if cid in ids},
+        )
+        return replace(view, segment=new)
+
     def query(self, q: Query) -> Answer:
         """``query(key, valid_at, belief_as_of) -> Resolved | ResourceLimited`` (output contract v2)."""
-        if q.profile is not self.semantic.profile:
-            raise ValueError(f"query profile {q.profile.value!r} does not match the memory's {self.semantic.profile.value!r}")
         view = self._view_for(q.key, q.valid_at, q.belief_as_of)
         if isinstance(view, ResourceLimited):
             return view
+        view = self._project(view, q.profile)
         ctx = None
         if view.segment.kernel_status.value == "unresolved":
             ctx = DecisionContext.from_entries(self.pipeline.log.entries(upto_lsn=self.lsn_of(q.belief_as_of)))

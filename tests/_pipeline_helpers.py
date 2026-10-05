@@ -36,6 +36,7 @@ def toy_kernel_schema() -> KernelSchema:
             "employer": AttrSpec("employer", "single", True),
             "hq_city": AttrSpec("hq_city", "single", False),
             "work_city": AttrSpec("work_city", "single", True, error_allowed=False, derived=True),
+            "affiliations": AttrSpec("affiliations", "multi", False, competing_values=False),
         },
         rules=(
             RuleSpec(
