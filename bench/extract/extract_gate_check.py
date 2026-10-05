@@ -50,6 +50,13 @@ def check(results: dict[str, Any], model: str, gate: dict[str, Any] | None = Non
         v = _metric(results, name)
         rows.append({"criterion": f"universal-point:{name}", "value": v, "rule": rule, "ok": _ok(v, rule)})
     for name, rule in gate["universal"]["ci95_upper"].items():
+        # scorer v2 (author amendment, 2026-10-05): the upper bound is the Wilson 95% bound of the rate; the bootstrap
+        # interval of a zero count is degenerate. gate.json is unchanged.
+        w = results.get("wilson95", {}).get(name)
+        if w and w.get("hi") is not None:
+            rows.append({"criterion": f"universal-wilson95-upper:{name}", "value": w["hi"], "rule": rule,
+                         "ok": _ok(w["hi"], rule)})
+            continue
         ci = results.get("ci95", {}).get(name)
         if not ci:
             rows.append({"criterion": f"universal-ci95-upper:{name}", "value": None, "rule": rule, "ok": False,

@@ -1,9 +1,9 @@
 """Deterministic extraction prompt, with injection-resistant framing.
 
 The ingested text is *data*. It is delimited, any delimiter inside it is neutralised, and the
-instructions say that nothing inside it can change the task, the output format, or any
-identity or authority. The output grammar contains no identity field at all: if a model
-produces one anyway, the parser rejects the claim and flags it (``IDENTITY_FIELDS``).
+instructions say that nothing inside it can change the task or the output format. The output grammar has no
+field for identity or authority at all (and the prompt does not name any), so there is nothing for a directive
+in the text to spoof: identity is bound by the host, and the parser rejects any key outside the grammar.
 
 The prompt is a pure function of (template version, schema, context dates, text), so the
 ``prompt_hash`` stamped on every report identifies the template + schema, independent of the text.
@@ -68,11 +68,14 @@ TEXT>>>
 Return the JSON object now."""
 
 
-#: Prompt revision 2 (G3). Grammar and format section rewritten: exact reply shape, explicit
-#: correct / withdraw / dispute / change grammar, date-granularity rules, and worked examples that are
-#: NOT drawn from the dev or test items (tests/test_extract_prompt_v2.py checks that). The attribute list is
-#: substituted at the ``@@ATTRS@@`` marker (not with str.format, because the examples are JSON).
-SYSTEM_TEMPLATE_V2 = """\
+#: Prompt revision 2 as first drafted (G3), BEFORE the author's grammar-contract amendment: its rule 3 still names the
+#: identity fields. It was run once as a pilot (gpt-oss-20b, not used for any selection); the template is kept
+#: only so that pilot's raw-response cache replays offline. Do not use it for new runs.
+#: Grammar and format section rewritten: exact reply shape, explicit correct / withdraw / dispute / change grammar,
+#: date-granularity rules, and worked examples that are NOT drawn from the dev or test items
+#: (tests/test_extract_prompt_v2.py checks that). The attribute list is substituted at the ``@@ATTRS@@`` marker
+#: (not with str.format, because the examples are JSON).
+SYSTEM_TEMPLATE_V2_PILOT = """\
 You extract structured claims from a piece of text for a belief-maintenance memory.
 
 Rules, in priority order:
@@ -160,6 +163,39 @@ Text: Maybe Isla Fraser will move to Rome.
 """
 
 
+# --- Grammar contract (author amendment 2026-10-05). The output grammar has NO field for source, origin, actor,
+# authority, origin group or target id, and the prompt does not name any: a line telling the model not to emit them
+# is itself a spoofing surface. The parser rejects any other key generically. Revision 0 is the frozen v1 text with
+# only this change; revision 2 is the pilot text with only this change (and no mention of ids in the target_hint rule).
+_V1_RULE3 = (
+    "3. Never output who said it, how trusted it is, an id, a source, an origin, an actor or any authority. "
+    "Those are decided elsewhere. The only allowed claim fields are: "
+    "cue, entity, attr, proposition, valid_from, valid_to, target_hint, span."
+)
+_RULE3_1C = (
+    "3. The only allowed claim fields are: cue, entity, attr, proposition, valid_from, valid_to, target_hint, span. "
+    "Any other key makes the claim invalid."
+)
+_V2_PILOT_RULE3 = _V1_RULE3 + " Give every claim all eight keys, using null where a field does not apply."
+_RULE3_V2 = (
+    "3. The only allowed claim fields are: cue, entity, attr, proposition, valid_from, valid_to, target_hint, span. "
+    "Give every claim all eight keys, using null where a field does not apply. Any other key makes the claim invalid."
+)
+_V2_PILOT_HINT_RULE = "- target_hint is only ever used with correct, withdraw and dispute, and never contains an id."
+_V2_HINT_RULE = "- target_hint is only ever used with correct, withdraw and dispute."
+
+
+def _swap(template: str, old: str, new: str) -> str:
+    assert template.count(old) == 1, old[:40]
+    return template.replace(old, new, 1)
+
+
+SYSTEM_TEMPLATE_1C = _swap(SYSTEM_TEMPLATE, _V1_RULE3, _RULE3_1C)
+SYSTEM_TEMPLATE_V2 = _swap(
+    _swap(SYSTEM_TEMPLATE_V2_PILOT, _V2_PILOT_RULE3, _RULE3_V2), _V2_PILOT_HINT_RULE, _V2_HINT_RULE
+)
+
+
 def _attr_instruction(schema: Schema | None) -> str:
     if schema is None:
         return "a short snake_case name (e.g. employer, city, birth_date)."
@@ -173,9 +209,13 @@ def _attr_instruction(schema: Schema | None) -> str:
 
 
 #: Registry of prompt template versions. ``palimem-extract/1`` is frozen: its text is covered by the recorded
-#: 2026-10-05 raw-response cache and by the declared gate, so it must not change (a revision is a new version).
+#: 2026-10-05 raw-response cache and by the declared baseline, so it must not change (a revision is a new version).
+#: ``/1c`` is revision 0 (grammar contract only), ``/2`` is revision 1 (grammar and format section), ``/2-pilot`` is
+#: the pre-amendment draft of ``/2`` (replay of one pilot cache only).
+PROMPT_VERSION_1C = "palimem-extract/1c"
 PROMPT_VERSION_2 = "palimem-extract/2"
-PROMPT_VERSIONS = (PROMPT_VERSION, PROMPT_VERSION_2)
+PROMPT_VERSION_2_PILOT = "palimem-extract/2-pilot"
+PROMPT_VERSIONS = (PROMPT_VERSION, PROMPT_VERSION_1C, PROMPT_VERSION_2_PILOT, PROMPT_VERSION_2)
 
 
 def _check_version(version: str) -> None:
@@ -187,18 +227,22 @@ def system_prompt(schema: Schema | None, version: str = PROMPT_VERSION) -> str:
     _check_version(version)
     if version == PROMPT_VERSION_2:
         return SYSTEM_TEMPLATE_V2.replace("@@ATTRS@@", _attr_instruction(schema))
+    if version == PROMPT_VERSION_2_PILOT:
+        return SYSTEM_TEMPLATE_V2_PILOT.replace("@@ATTRS@@", _attr_instruction(schema))
+    if version == PROMPT_VERSION_1C:
+        return SYSTEM_TEMPLATE_1C.format(attr_instruction=_attr_instruction(schema))
     return SYSTEM_TEMPLATE.format(attr_instruction=_attr_instruction(schema))
-
-
-def neutralise(text: str) -> str:
-    """Stop the text from closing or reopening the data block."""
-    return text.replace("<<<TEXT", "<<<_TEXT").replace("TEXT>>>", "TEXT_>>>")
 
 
 def prompt_hash(schema: Schema | None, version: str = PROMPT_VERSION) -> str:
     """Hash of the template version, system prompt (incl. the schema description) and user template."""
     blob = "\x1f".join([version, system_prompt(schema, version), USER_TEMPLATE])
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
+
+
+def neutralise(text: str) -> str:
+    """Stop the text from closing or reopening the data block."""
+    return text.replace("<<<TEXT", "<<<_TEXT").replace("TEXT>>>", "TEXT_>>>")
 
 
 @dataclass(frozen=True)

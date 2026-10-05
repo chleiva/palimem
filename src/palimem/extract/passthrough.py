@@ -24,13 +24,13 @@ class TypedPassthrough:
     """For users who already produce typed propositions.
 
     Accepts ``ExtractedClaim`` objects, claim dicts, or a JSON text ``{"claims": [...]}``. It is the
-    same strict grammar as the LLM path (identity fields are rejected; no coercion), only without
+    same strict grammar as the LLM path (a key outside the grammar is rejected; no coercion), only without
     the model and without a required ``span``. Identity is bound by the host from ``ctx``.
     """
 
     def extract(self, text: str, ctx: ExtractionContext) -> ExtractionResult:
         pr = parse_claims(text, text=None, require_span=False)
-        return self._finish(pr.claims, pr.rejections, pr.identity_fields_seen, ctx)
+        return self._finish(pr.claims, pr.rejections, pr.identity_fields_seen, ctx, pr.unexpected_fields)
 
     def extract_claims(
         self, claims: Sequence[ExtractedClaim | Mapping[str, Any]], ctx: ExtractionContext
@@ -49,10 +49,11 @@ class TypedPassthrough:
 
     @staticmethod
     def _finish(
-        claims: tuple[ExtractedClaim, ...], rejections: tuple[Rejection, ...], ident: bool, ctx: ExtractionContext
+        claims: tuple[ExtractedClaim, ...], rejections: tuple[Rejection, ...], ident: bool, ctx: ExtractionContext,
+        unexpected: tuple[str, ...] = (),
     ) -> ExtractionResult:
         reports, rej2, notes = build_reports(claims, ctx, PASSTHROUGH_STAMP)
         return ExtractionResult(
             reports=reports, rejections=rejections + rej2, notes=notes, claims=claims,
-            identity_fields_seen=ident, stamp=PASSTHROUGH_STAMP, usage=None, calls=0,
+            identity_fields_seen=ident, stamp=PASSTHROUGH_STAMP, usage=None, calls=0, unexpected_fields=unexpected,
         )

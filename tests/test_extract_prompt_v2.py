@@ -18,7 +18,9 @@ from palimem.extract.llm import (
 )
 from palimem.extract.prompt import (
     PROMPT_VERSION,
+    PROMPT_VERSION_1C,
     PROMPT_VERSION_2,
+    PROMPT_VERSION_2_PILOT,
     PROMPT_VERSIONS,
     SYSTEM_TEMPLATE_V2,
 )
@@ -58,7 +60,7 @@ def test_v1_is_frozen_and_v2_is_a_different_deterministic_template() -> None:
     assert prompt_hash(s) == prompt_hash(s, PROMPT_VERSION) == V1_HASH
     h2 = prompt_hash(s, PROMPT_VERSION_2)
     assert h2 != V1_HASH and h2 == prompt_hash(s, PROMPT_VERSION_2) and len(h2) == 64
-    assert PROMPT_VERSIONS == (PROMPT_VERSION, PROMPT_VERSION_2)
+    assert PROMPT_VERSIONS == (PROMPT_VERSION, PROMPT_VERSION_1C, PROMPT_VERSION_2_PILOT, PROMPT_VERSION_2)
     assert build_prompt(TEXT, ctx(schema=s), PROMPT_VERSION_2).system != build_prompt(TEXT, ctx(schema=s)).system
     with pytest.raises(ValueError):
         prompt_hash(s, "palimem-extract/9")

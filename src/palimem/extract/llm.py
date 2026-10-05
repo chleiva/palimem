@@ -46,6 +46,8 @@ FALLBACK_MAX_OUTPUT_TOKENS = 800
 #: Prompt revision 2: gpt-oss ran out of tokens while reasoning on 3 of 69 dev requests at 1,500 (empty answers),
 #: so its ceiling is doubled for the revisions; the Ministral ceilings are unchanged. The frozen v1 keeps its own.
 REVISION_MAX_OUTPUT_TOKENS = {"openai.gpt-oss-20b-1:0": 3000}
+#: Versions that carry the higher gpt-oss ceiling (revision 0, ``/1c``, is a contract change only and keeps v1's).
+HIGHER_CEILING_VERSIONS = frozenset({"palimem-extract/2-pilot", "palimem-extract/2", "palimem-extract/3"})
 
 #: Repair scopes and the rejection reasons that count as *format* errors (never span or identity errors).
 REPAIR_SCOPES = ("output", "output_and_claims")
@@ -53,7 +55,7 @@ FORMAT_REASONS = frozenset({"invalid_json", "invalid_shape", "invalid_claim"})
 
 
 def default_max_output_tokens(model: str, prompt_version: str = PROMPT_VERSION) -> int:
-    if prompt_version != PROMPT_VERSION and model in REVISION_MAX_OUTPUT_TOKENS:
+    if prompt_version in HIGHER_CEILING_VERSIONS and model in REVISION_MAX_OUTPUT_TOKENS:
         return REVISION_MAX_OUTPUT_TOKENS[model]
     return DEFAULT_MAX_OUTPUT_TOKENS.get(model, FALLBACK_MAX_OUTPUT_TOKENS)
 
@@ -300,17 +302,22 @@ class LLMExtractor:
         resp, cost, i, o = self._call(prompt.system, prompt.user)
         tot_in, tot_out, tot_cost, calls = i, o, cost, 1
         parsed = parse_claims(resp.text, text=text, require_span=True)
+        unexpected = set(parsed.unexpected_fields)
+        triggered = used = False
         if self.max_repairs and self._needs_repair(parsed):
+            triggered = True
             resp2, cost2, i2, o2 = self._call(prompt.system, prompt.user + self._repair_message(parsed))
             tot_in, tot_out, tot_cost, calls = tot_in + i2, tot_out + o2, tot_cost + cost2, calls + 1
             second = parse_claims(resp2.text, text=text, require_span=True)
+            unexpected |= set(second.unexpected_fields)  # a key outside the grammar on any reply is still a signal
             if _format_errors(second) < _format_errors(parsed):  # never replace a reply with a worse one
-                parsed = second
+                parsed, used = second, True
         stamp = self.stamp(ctx)
         reports, rej2, notes = build_reports(parsed.claims, ctx, stamp)
         rejections: tuple[Rejection, ...] = parsed.rejections + rej2
         return ExtractionResult(
             reports=reports, rejections=rejections, notes=notes, claims=parsed.claims,
-            identity_fields_seen=parsed.identity_fields_seen, stamp=stamp,
+            identity_fields_seen=parsed.identity_fields_seen or bool(unexpected), stamp=stamp,
             usage=Usage(tot_in, tot_out, tot_cost), calls=calls,
+            unexpected_fields=tuple(sorted(unexpected)), repair_triggered=triggered, repair_used=used,
         )

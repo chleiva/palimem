@@ -69,6 +69,12 @@ def run_items(extractor: Extractor, items: list[dict[str, Any]], *, retry_once: 
         }
         if res.rejections:
             pred["rejections"] = [r.reason for r in res.rejections]
+        if res.unexpected_fields:
+            pred["unexpected_fields"] = list(res.unexpected_fields)
+        if res.repair_triggered:
+            pred["repair_triggered"] = True
+        if res.repair_used:
+            pred["repair_used"] = True
         if res.usage is not None:  # a fake extractor in tests may not report usage
             pred["usage"] = {"input_tokens": res.usage.input_tokens, "output_tokens": res.usage.output_tokens,
                              "cost_usd": res.usage.cost_usd}

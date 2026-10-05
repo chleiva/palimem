@@ -30,7 +30,6 @@ from palimem.extract.llm import (
 )
 from palimem.extract.parse import (
     CLAIM_FIELDS,
-    IDENTITY_FIELDS,
     ParseResult,
     parse_claims,
 )
@@ -44,7 +43,7 @@ from palimem.extract.prompt import (
 )
 
 __all__ = [
-    "CLAIM_FIELDS", "DEFAULT_ALLOWED_CUES", "EXTRACTABLE_CUES", "IDENTITY_FIELDS", "PASSTHROUGH_STAMP",
+    "CLAIM_FIELDS", "DEFAULT_ALLOWED_CUES", "EXTRACTABLE_CUES", "PASSTHROUGH_STAMP",
     "PROMPT_VERSION", "PROMPT_VERSIONS", "BedrockConverseTransport", "CacheMiss", "ExtractedClaim", "ExtractionContext", "ExtractionResult",
     "Extractor", "LLMExtractor", "OpenAICompatTransport", "PaidCallsDisabled", "ParseResult", "Prompt",
     "RecordingTransport", "Rejection", "ReplayTransport", "TargetHint", "Transport", "TransportNotSent", "TransportResponse", "TypedPassthrough",

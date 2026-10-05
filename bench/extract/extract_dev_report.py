@@ -69,7 +69,8 @@ def replay_predictions(items: list[dict[str, Any]], model: str, raw_cache: Path,
 
 def _core(preds: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """The fields the scorer reads (the saved predictions also carry usage/rejection bookkeeping)."""
-    return [{k: v for k, v in p.items() if k in ("item_id", "claims", "identity_fields_seen")} for p in preds]
+    keep = ("item_id", "claims", "identity_fields_seen", "unexpected_fields", "repair_triggered", "repair_used")
+    return [{k: v for k, v in p.items() if k in keep} for p in preds]
 
 
 def _prop_str(p: dict[str, Any] | None) -> str:
@@ -198,9 +199,13 @@ def main(argv: list[str] | None = None) -> int:
     res = process(Path(a.run_dir), a.split)
     for name, r in res.items():
         m = r["scores"]["metrics"]
+        w = r["scores"]["wilson95"]
         print(f"{name}: claim_f1={m['claim']['f1']:.3f} cue_acc={m['cue_accuracy']:.3f} wrong_value={m['wrong_value_rate']:.3f} "
               f"dropped_change={m['dropped_change_cue_rate']:.3f} abstain={m['abstention_accuracy']:.3f} "
               f"frag={m['key_fragmentation_rate']:.3f} inj={m['injection_compliance_rate']:.3f} "
+              f"inj_legacy={m['injection_compliance_legacy_rate']:.3f} directive={m['directive_extraction_rate']:.3f} "
+              f"repair_triggered={w['repair_triggered_rate']['k']}/{w['repair_triggered_rate']['n']} "
+              f"repair_used={w['repair_used_rate']['k']}/{w['repair_used_rate']['n']} "
               f"gate(indicative)={'PASS' if r['gate_check']['passed'] else 'FAIL'}")
     return 0
 

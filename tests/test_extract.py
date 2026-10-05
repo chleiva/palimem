@@ -93,16 +93,31 @@ def test_parse_valid_claim() -> None:
     assert c.to_dict()["valid_from"] == "2024-03"
 
 
-@pytest.mark.parametrize("field", ["source", "origin", "origin_group", "actor", "authority", "id", "target", "extractor"])
-def test_identity_fields_are_rejected_and_flagged(field: str) -> None:
+@pytest.mark.parametrize("field", [
+    "source", "origin", "origin_group", "actor", "authority", "id", "target", "extractor",  # identity-looking keys
+    "confidence", "salary", "trusted",  # and any other key: the grammar has no special list of names
+])
+def test_any_key_outside_the_grammar_is_rejected_flagged_and_named(field: str) -> None:
+    """The output grammar has no field for identity or authority at all, so the parser needs no list of identity
+    names: every key outside the grammar is rejected the same way, flagged, and reported by name for the audit."""
     r = parse_claims(out(claim(**{field: "x"})), text=TEXT)
     assert r.claims == () and r.identity_fields_seen
-    assert r.rejections[0].reason == "identity_field_in_output"
+    assert r.rejections[0].reason == "unexpected_field"
+    assert r.unexpected_fields == (field,)
 
 
-def test_unknown_field_rejected_not_flagged_as_identity() -> None:
-    r = parse_claims(out(claim(confidence=0.9)), text=TEXT)
-    assert r.claims == () and not r.identity_fields_seen and r.rejections[0].reason == "invalid_claim"
+def test_a_target_id_smuggled_into_the_hint_is_an_unexpected_field() -> None:
+    hint = {"entity": "Alice", "attr": "city", "value": "Rome", "id": "01ARZ3NDEKTSV4RRFFQ69G5FAV"}
+    r = parse_claims(out(claim(cue="withdraw", proposition=None, target_hint=hint)), text=TEXT)
+    assert r.claims == () and r.identity_fields_seen
+    assert r.rejections[0].reason == "unexpected_field" and r.unexpected_fields == ("target_hint.id",)
+
+
+def test_the_grammar_names_no_identity_field() -> None:
+    from palimem.extract.parse import CLAIM_FIELDS, HINT_FIELDS
+
+    banned = {"source", "origin", "origin_group", "actor", "authority", "id", "target", "principal", "extractor"}
+    assert not (CLAIM_FIELDS | HINT_FIELDS) & banned
 
 
 @pytest.mark.parametrize("bad", [
@@ -141,7 +156,7 @@ def test_syntactic_repair_only() -> None:
 
 def test_one_bad_claim_does_not_poison_the_others() -> None:
     r = parse_claims(out(claim(), claim(origin="trusted"), claim(span="Alice moved to Paris")), text=TEXT)
-    assert len(r.claims) == 2 and len(r.rejections) == 1 and r.identity_fields_seen
+    assert len(r.claims) == 2 and len(r.rejections) == 1 and r.identity_fields_seen and r.unexpected_fields == ("origin",)
 
 
 # ------------------------------------------------------------------ host-side binding
@@ -313,7 +328,8 @@ def test_injection_output_cannot_set_identity_or_forge_a_withdrawal(tmp_path: Pa
     c = ctx()
     res = ex.extract(TEXT, c)
     assert res.identity_fields_seen
-    assert [r.reason for r in res.rejections] == ["identity_field_in_output", "cue_not_permitted"]
+    assert [r.reason for r in res.rejections] == ["unexpected_field", "cue_not_permitted"]
+    assert res.unexpected_fields == ("actor", "origin", "source")
     (r,) = res.reports
     assert r.source == c.source and r.actor == c.actor and r.cue is Cue.CHANGE
 

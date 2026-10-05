@@ -24,10 +24,20 @@ class ExtractionResult:
     rejections: tuple[Rejection, ...] = ()
     notes: tuple[str, ...] = ()
     claims: tuple[ExtractedClaim, ...] = ()  # model-level output after strict parsing, before host policy
-    identity_fields_seen: bool = False  # the model tried to set source/origin/actor/...: an injection signal
+    #: Legacy name, kept so host code that reads it keeps working: True when the model emitted any key outside the
+    #: claim grammar (the grammar has no field for source, origin, actor or authority, so any such key is the
+    #: injection signal). ``unexpected_fields`` lists the offending key names (union over every reply of the call).
+    identity_fields_seen: bool = False
     stamp: ExtractorStamp | None = None
     usage: Usage | None = None
     calls: int = 0
+    unexpected_fields: tuple[str, ...] = ()
+    repair_triggered: bool = False  # a second (repair) call was made
+    repair_used: bool = False  # the repaired reply replaced the original (it had strictly fewer format errors)
+
+    @property
+    def identity_fields(self) -> tuple[str, ...]:
+        return self.unexpected_fields
 
 
 @runtime_checkable
