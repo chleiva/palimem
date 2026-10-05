@@ -26,6 +26,8 @@ Work in progress on the way to 0.1 ; nothing here is released.
   contract is not changed). The agent tool API says the content is unknown.
 - **Product-profile authority (default, pending author confirmation).** In the `open-world` profile a `correct` that
   fails the authority check is recorded as an `allege` with no effect (design v0.3). `revise-stream-v1` is unchanged.
+  New `AdmissionConfig.failed_correction_is_allege` reverses the default in one line (`False` = the paper's competing
+  assertion); it changes RETRACT-ACT RA-006 (test) and RA-007 (dev), see `docs/decisions/S-02.md`.
 
 ## [0.0.1] - 2026-10-04
 

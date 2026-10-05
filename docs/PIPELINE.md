@@ -90,7 +90,11 @@ agent tool API binds them itself and is a separate task (T-F2). The three-call f
 * **Authority in the product profile (Lane Q; default pending author confirmation, S-02).** In `open-world`, a `correct`
   whose actor fails the authority check is recorded as an `allege` (excluded, `authority_failed`) with no effect: it does
   not withdraw its target and its claimed value is not a rival report. `revise-stream-v1` keeps the paper's behaviour (a
-  cross-origin correction stays a competing assertion carrying a correction cue). See `docs/decisions/S-02.md`.
+  cross-origin correction stays a competing assertion carrying a correction cue). The switch is
+  `AdmissionConfig.failed_correction_is_allege` (`None` = profile default; `False` = the paper's behaviour in the
+  product profile; ignored by `revise-stream-v1`). Setting it to `False` reproduces every stored RETRACT-ACT run; the
+  default changes RA-006 (test) and RA-007 (dev), whose golds disagree on this one situation. See
+  `docs/decisions/S-02.md`.
 * **`recompute`** (verify, completion jobs, erasure repair) is the same code path reading the head's log and the base keys'
   current beliefs from the view.
 

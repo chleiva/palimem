@@ -60,7 +60,6 @@ from palimem.types import (
     LogEntry,
     Origin,
     Power,
-    Profile,
     Schema,
     Targets,
 )
@@ -307,7 +306,7 @@ class Admitter:
             auth = None
             if status is SourceStatus.NORMAL and r.origin in _ACTING_ORIGINS:
                 auth = self.authz.check(r, Power.CORRECT, target_entry.report)
-            if auth is not None and not auth.allowed and self.config.profile is Profile.OPEN_WORLD:
+            if auth is not None and not auth.allowed and self.config.failed_correction_allege:
                 # Product profile (design v0.3 §Write API; S-02 implementation note): a correction that fails the
                 # authority check is recorded as an ``allege`` with no effect on admissibility or the kernel, exactly
                 # like a failed withdraw or dispute. The paper's behaviour (a cross-origin correction stays a
