@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Generate the BLIND second-annotation pack for RETRACT-ACT (ruling 22).
 
     python bench/agent/annotation/make_pack.py                 # writes bench/agent/annotation/out/
@@ -26,29 +25,37 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-import narrative as nv  # noqa: E402
+import narrative as nv
 
 OUT = HERE / "out"
 DEFAULT_SEED = 20261005
 HTML_NAME = "annotation-pack.html"
 
 INSTRUCTIONS = [
-    "You will see {n} decision points from small business scenarios. For each one, decide what the agent should do next, "
-    "using ONLY the information shown (the timeline up to that moment). Work blind: do not look at any system output, "
-    "any existing answer key, the benchmark documents or the mapping file before you finish.",
+    (
+        "You will see {n} decision points from small business scenarios. For each one, decide what the agent should do next, "
+        "using ONLY the information shown (the timeline up to that moment). Work blind: do not look at any system output, "
+        "any existing answer key, the benchmark documents or the mapping file before you finish."
+    ),
     "Choose exactly one action per item:",
     "act: carry out the task now using the value the evidence justifies. Type that value.",
     "ask: do not act; ask the source or person who can supply the missing or deciding evidence.",
     "abstain: do not act and do not interrupt anyone.",
     "revalidate: you formed a plan earlier and the evidence has changed since; re-read it and act on the current value. Type that value.",
-    "A required task must be completed: if you cannot act safely, ask. An optional task can be dropped: if you cannot act "
-    "safely, abstain. When asked to review an action that has already been taken, 'act' means let it stand and 'ask' means "
-    "raise a problem with the people who must decide because it rests on something no longer justified.",
-    "A mistaken action causes harm that is expensive to undo; asking costs a little; do not ask when the evidence clearly "
-    "supports a value. Sources in the same origin group share an upstream origin (for example sister desks of one "
-    "publisher), so they are not independent of each other.",
-    "Items are independent: ignore similarities between items. Save often (the Save button downloads a JSON file; that "
-    "file is the record). You can reload a partial session with Load. Add a one-line reason whenever you hesitate.",
+    (
+        "A required task must be completed: if you cannot act safely, ask. An optional task can be dropped: if you cannot act "
+        "safely, abstain. When asked to review an action that has already been taken, 'act' means let it stand and 'ask' means "
+        "raise a problem with the people who must decide because it rests on something no longer justified."
+    ),
+    (
+        "A mistaken action causes harm that is expensive to undo; asking costs a little; do not ask when the evidence clearly "
+        "supports a value. Sources in the same origin group share an upstream origin (for example sister desks of one "
+        "publisher), so they are not independent of each other."
+    ),
+    (
+        "Items are independent: ignore similarities between items. Save often (the Save button downloads a JSON file; that "
+        "file is the record). You can reload a partial session with Load. Add a one-line reason whenever you hesitate."
+    ),
 ]
 
 
@@ -173,7 +180,7 @@ FORBIDDEN_KEYS = {"gold", "gold_by_profile", "rationale", "resolvers", "slug", "
 def leak_report(html: str, raw: dict[str, dict]) -> list[str]:
     """Every way a gold/system/identifying field could appear in the HTML; empty list = blind."""
     problems: list[str] = []
-    m = re.search(r'<script type="application/json" id="pack-data">(.*?)</script>', html, re.S)
+    m = re.search(r'<script type="application/json" id="pack-data">(.*?)</script>', html, re.DOTALL)
     if not m:
         return ["pack data block not found"]
     data = json.loads(m.group(1).replace("<\\/", "</"))
