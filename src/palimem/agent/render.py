@@ -26,6 +26,7 @@ from palimem.types import (
     Resolved,
     ResourceLimited,
     SetForm,
+    Support,
     ValueForm,
 )
 from palimem.types._codec import ts_to_str
@@ -185,9 +186,8 @@ def answer_text(d: Mapping[str, Any]) -> str:
         lines.append(f"  SINGLE ORIGIN: rests on one origin group ({g}); uncorroborated. Corroboration from a second origin group is what raises it.")
     elif d.get("single_origin") is False:
         lines.append(f"  Corroborated by {len(d['origin_groups'])} origin groups.")
-    if d.get("inquiry"):
-        res = ", ".join(d["inquiry"]["resolvers"]) or "none named"
-        lines.append(f"  Resolvers that could decide: {res}.")
+    if d.get("inquiry") and d["inquiry"]["resolvers"]:
+        lines.append(f"  Resolvers that could decide: {', '.join(d['inquiry']['resolvers'])}.")
     lines.append(f"  decision={decision}; policy={d['policy']['version']}.")
     return "\n".join(lines)
 
@@ -209,42 +209,66 @@ def _alt_text(a: Mapping[str, Any]) -> str:
     return _assertion_text(a)
 
 
-def explanation_json(
-    exp: Explanation, *, host: Host, depth_applied: int, notices: Sequence[Notice] = (), key: Key
-) -> dict[str, Any]:
-    """Environments as lists of report ids with who said each (source id, origin group, origin), capped."""
-    envs: list[dict[str, Any]] = []
-    backend = host.mem.backend
-    for s in exp.environments:
-        reports = []
-        for rid in s.environment:
-            e = backend.get_entry(rid)
-            if isinstance(e, LogEntry):
-                reports.append({
-                    "id": rid, "source": e.report.source.id, "origin_group": e.report.origin_group,
-                    "origin": e.report.origin.value,
-                })
-            else:
-                reports.append({"id": rid})
-        envs.append({
-            "reports": reports,
-            "valid_from": None if s.valid_from is None else ts_to_str(s.valid_from),
-            "valid_to": None if s.valid_to is None else ts_to_str(s.valid_to),
-        })
+def _environment_json(host: Host, s: Support) -> dict[str, Any]:
+    reports = []
+    for rid in s.environment:
+        e = host.mem.backend.get_entry(rid)
+        if isinstance(e, LogEntry):
+            reports.append({
+                "id": rid, "source": e.report.source.id, "origin_group": e.report.origin_group,
+                "origin": e.report.origin.value,
+            })
+        else:
+            reports.append({"id": rid})
     return {
+        "reports": reports,
+        "valid_from": None if s.valid_from is None else ts_to_str(s.valid_from),
+        "valid_to": None if s.valid_to is None else ts_to_str(s.valid_to),
+    }
+
+
+def explanation_json(
+    exp: Explanation, *, host: Host, depth_applied: int, notices: Sequence[Notice] = (), key: Key,
+    answer: Answer | None = None,
+) -> dict[str, Any]:
+    """Environments as lists of reports with who said each (source id, origin group, origin), capped.
+
+    When the answered ``Resolved`` is given, the environments are also grouped by the candidate they support
+    (``by_candidate``), so an unresolved key shows which reports back which alternative."""
+    out: dict[str, Any] = {
         "kind": "explanation", "key": {"entity": key.entity, "attr": key.attr}, "mode": exp.mode.value,
-        "depth_applied": depth_applied, "state": exp.state.value, "environments": envs,
+        "depth_applied": depth_applied, "state": exp.state.value,
+        "environments": [_environment_json(host, s) for s in exp.environments],
         "notices": [n.to_dict() for n in notices],
     }
+    if isinstance(answer, Resolved):
+        seg = answer.justified.segment
+        cands = ([seg.established] if seg.established is not None else []) + list(seg.alternatives)
+        groups = []
+        for c in cands:
+            sups = seg.support.get(c.id, ())
+            if exp.mode.value == "one":
+                sups = sups[:1]
+            groups.append({"candidate": candidate_json(c), "environments": [_environment_json(host, s) for s in sups]})
+        out["by_candidate"] = groups
+    return out
 
 
 def explanation_text(d: Mapping[str, Any]) -> str:
     k = d["key"]
     head = f"{k['entity']}/{k['attr']}"
-    if not d["environments"]:
+    groups = d.get("by_candidate") or []
+    if not d["environments"] and not any(g["environments"] for g in groups):
         return f"{head}: no supporting reports in the explained segment (depth {d['depth_applied']})."
-    lines = [f"{head}: {len(d['environments'])} justification(s) (depth {d['depth_applied']}):"]
-    for i, env in enumerate(d["environments"], 1):
-        who = "; ".join(f"{r['id']} from {r.get('source', '?')} ({r.get('origin_group', '?')})" for r in env["reports"])
-        lines.append(f"  {i}. {who}")
+    lines = [f"{head}: justification (depth {d['depth_applied']}):"]
+
+    def who(env: Mapping[str, Any]) -> str:
+        return "; ".join(f"{r['id']} from {r.get('source', '?')} ({r.get('origin_group', '?')})" for r in env["reports"])
+
+    if groups:
+        for g in groups:
+            lines.append(f"  {_assertion_text(g['candidate'])}:")
+            lines.extend(f"    - {who(env)}" for env in g["environments"]) if g["environments"] else lines.append("    - (no supporting reports)")
+    else:
+        lines.extend(f"  {i}. {who(env)}" for i, env in enumerate(d["environments"], 1))
     return "\n".join(lines)

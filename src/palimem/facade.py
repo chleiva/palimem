@@ -154,7 +154,7 @@ class Memory:
         self.host.rebind(core)
 
     def _declare_default(self, name: str) -> None:
-        """Zero-config: declare an unseen attribute as multi-valued, open-world, no inertia."""
+        """Zero-config: declare an unseen attribute as a multi-valued, open-world stable set."""
         if self._zero_config:
             self.declare(name, AttrClass.MULTI_SET)
 
@@ -263,6 +263,8 @@ class Memory:
         """What the evidence justifies about ``entity``'s ``attr``: an output-contract-v2 ``Answer``.
 
         ``kernel_status`` (what the evidence warrants) and ``decision`` (commit | abstain | ask) are separate fields."""
+        if self._zero_config:
+            self.host.ensure_declared(attr)  # asking about an unseen attribute is `unknown`, not an error
         q = Query(
             key=Key(entity=entity, attr=attr), valid_at=valid_at, belief_as_of=belief_as_of,
             profile=profile or self._core.semantic.profile,

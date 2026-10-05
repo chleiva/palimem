@@ -240,6 +240,7 @@ class KeyRef:
     entity: str
     attr: str
     kernel_status: str | None = None
+    score: int = 0  # lexical match strength; only the ordering and ties matter
 
     def to_dict(self) -> dict[str, Any]:
         return {"entity": self.entity, "attr": self.attr, "kernel_status": self.kernel_status}
@@ -517,21 +518,22 @@ class Host:
             return []
         entities = {e.report.key.entity for e in self.mem.backend.scan() if isinstance(e, LogEntry)}
         attrs = [a.name for a in self.mem.schema.attrs]
+        named = [a for a in attrs if want & _tokens(a)]
+        if named:  # the text names an attribute: only those attributes are candidates
+            attrs = named
         scored: list[tuple[int, str, str]] = []
         for ent in sorted(entities):
             et = _tokens(ent)
             for attr in attrs:
-                at = _tokens(attr)
-                hit = len(want & et) * 2 + len(want & at)
-                if hit and (want & et or not et):
+                hit = len(want & et) * 2 + len(want & _tokens(attr))
+                if hit and (want & et or not et or named):
                     scored.append((hit, ent, attr))
-        # an attribute-only query matches every entity; keep it only when the text names an entity or is attribute-only
         scored.sort(key=lambda t: (-t[0], t[1], t[2]))
         out: list[KeyRef] = []
-        for _, ent, attr in scored[:limit]:
+        for hit, ent, attr in scored[:limit]:
             ans = self.mem.query(Query(key=Key(entity=ent, attr=attr), profile=self.mem.semantic.profile))
             status = getattr(ans, "kernel_status", None)
-            out.append(KeyRef(ent, attr, status.value if status is not None else None))
+            out.append(KeyRef(ent, attr, status.value if status is not None else None, hit))
         return out
 
     def subscribe(self, plan_id: str, keys: Sequence[Key]) -> None:

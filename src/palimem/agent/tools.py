@@ -227,6 +227,9 @@ class AgentTools:
         if entity is not None or attr is not None or value is not None:
             if entity is None or attr is None or value is None:
                 raise ToolError("a typed fact needs entity, attr and value together", code="invalid_arguments")
+            if not ctx.in_scope(attr):  # check scope before anything can declare an attribute on the agent's say-so
+                return {"report_ids": [], "origin": origin.value, "admitted": False,
+                        "_notices": [Notice("scope_denied", "attr", attr)]}
             reports = [self._typed(entity, attr, value, origin, source)]
         else:
             if text is None or not text.strip():
@@ -302,12 +305,10 @@ class AgentTools:
         found = self.host.find(q)
         if not found:
             return None, []
-        top = found[0]
-        ties = [f for f in found if (f.entity, f.attr) != (top.entity, top.attr)]
-        # a clear single best match resolves; several plausible keys are returned for the caller to choose
-        if ties and len(found) > 1 and found[0].entity == found[1].entity and found[0].attr != found[1].attr:
+        # a clear best match resolves; a tie between several plausible keys is returned for the caller to choose
+        if len(found) > 1 and found[0].score == found[1].score:
             return None, found
-        return Key(entity=top.entity, attr=top.attr), found
+        return Key(entity=found[0].entity, attr=found[0].attr), found
 
     def recall(
         self, query: str | Mapping[str, Any], *, valid_at: str | None = None, belief_as_of: int | str | None = None,
@@ -357,7 +358,10 @@ class AgentTools:
         exp = host.explain(ExplainQuery(
             key=key, valid_at=va, belief_as_of=as_of, mode=ExplainMode(mode), depth=applied,
         ))
-        out = explanation_json(exp, host=host, depth_applied=applied, key=key)
+        ans = host.query(
+            Query(key=key, valid_at=va, belief_as_of=as_of, profile=host.mem.semantic.profile), policy=ctx.policy_version
+        )
+        out = explanation_json(exp, host=host, depth_applied=applied, key=key, answer=ans)
         out["_notices"] = notices
         return out
 

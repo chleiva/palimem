@@ -26,6 +26,9 @@ anthropic = ["anthropic>=0.40"]
 mcp = ["mcp>=1.0"]
 dev = ["pytest>=8", "jsonschema>=4", "ruff>=0.5", "mypy>=1.10"]
 
+[project.scripts]
+palimem = "palimem.cli:main"
+
 [project.urls]
 Repository = "https://github.com/chleiva/palimem"
 Study = "https://doi.org/10.5281/zenodo.23127764"
