@@ -19,9 +19,10 @@ Two slots have no v2 query form and are answered from the audit paths of ``Memor
 evidence at the snapshot, not from stored segments): the yes/no slots (they need the set of admissible
 interpretations, which a belief version does not carry) and ``reported``.
 
-Provenance is informational: ``Resolved.provenance`` is empty until per-candidate supports land (T-B4), so the interim
-v1 provenance is derived from the admitted evidence by the paper's rule for base-key value slots and compared with the
-gold, and is not part of the pass criterion.
+Provenance is informational and not yet comparable: ``Resolved.provenance`` is empty until per-candidate supports land
+(T-B4), and the frozen gold files carry ``provenance`` only for ``reported`` queries (the study's oracle computes the rest at
+scoring time). The harness therefore compares provenance where the gold has it and reports the count; the interim v1
+provenance it derives for base-key value slots has nothing to be compared with. It is not part of the pass criterion.
 
 Exit codes: 0 all agree · 1 disagreement · 2 setup error. ``--inject-bug`` is the self-test.
 """
