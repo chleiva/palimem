@@ -47,8 +47,10 @@ def chain_schema(persons: int, orgs: int) -> KernelSchema:
         rules=(
             RuleSpec(
                 id="r1", head=("work_city", "?e", "?c"),
-                body=(("employer", "?e", "?x"), ("hq_city", "?x", "?c")),
-                exceptions=(("remote", "?e", "yes"),),
+                # `remote` used to be a defeasible exception; exceptions are reserved in 0.x (S-10 narrows to
+                # strict rules), so the blocking condition is modelled as a body premise: the rule still reads
+                # the `remote` key, which is what these work-count and equivalence tests exercise.
+                body=(("employer", "?e", "?x"), ("hq_city", "?x", "?c"), ("remote", "?e", "no")),
             ),
             RuleSpec(id="r2", head=("tax_city", "?e", "?c"), body=(("work_city", "?e", "?c"),)),
         ),
