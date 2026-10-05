@@ -11,6 +11,7 @@ checkout. What does not exist, was not measured or was not decided is in [`docs/
 numbers and their caveats are in the README (section 7).
 
 ### Added
+- **Settings 2 and 3 replay**: replay of the study's Settings 2 and 3 through the pipeline from the published deposit's cached extracted claims (`harness/studydata.py`, `harness/replay_s23.py`, pinned manifest of 565 files, `docs/SETTINGS23.md`): 0 disagreements with the study's store on 100 Setting 2 streams (6,737 queries), 15 stronger-backbone streams (994) and 29 of 30 Setting 3 streams (690 of 714); the authority-coincidence check on all three; a bounded CI step.
 - **Registered-benchmark reproducibility** (`bench/agent/registered_product_v1.py`, `registered_render_v1.py`,
   `registered_rerun.py`, `current_main_column.py`): the registered RETRACT-ACT runs (symbolic and LLM-in-the-loop) correspond
   to the product behaviour of commit 034d520 and re-score offline to identical responses under a pin; a new run on current
