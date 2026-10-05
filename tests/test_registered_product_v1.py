@@ -32,7 +32,10 @@ SYSTEMS = ("justified", "recency", "lww", "justified_su_off")
 # proposition is admitted as an assert from its own source, so for these two scenarios current main answers exactly as
 # the registered product did (RA-006 `ask`, RA-007 `act manchester`). The remaining difference is in the gold, not the
 # response (RA-007's `authority_source` gold; see docs/eval/RA-007_TRACE.md). Any further drift must be documented here.
-EXPECTED_DIFFERENCES: dict[str, set[tuple[str, str]]] = {"dev": set(), "test": set()}
+# Ruling 4 (negative evidence in the product kernel) answers RA-012, which no palimem system answered when the runs were
+# registered (the kernel refused the denial, a recorded gap): current main answers `ask`, which is RA-012's gold. The pin
+# restores the refusal, so the registered runs still reproduce.
+EXPECTED_DIFFERENCES: dict[str, set[tuple[str, str]]] = {"dev": set(), "test": {("RA-012", "RA-012.d1")}}
 
 
 def _registered(split: str, system: str) -> dict:

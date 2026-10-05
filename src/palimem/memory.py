@@ -139,6 +139,7 @@ def admission_payload(config: AdmissionConfig) -> dict[str, Any]:
         "source_status": {k: v.value for k, v in sorted(config.source_status.items())},
         "acting_reports_must_be_live": config.acting_reports_must_be_live,
         "failed_correction_is_allege": config.failed_correction_is_allege,
+        "dispute_is_denial": config.dispute_is_denial,
     }
 
 

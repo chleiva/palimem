@@ -195,13 +195,18 @@ def test_raw_log_shows_text_day_and_source_but_not_cues_or_origins() -> None:
 
 
 def test_a_report_the_kernel_refuses_is_shown_as_a_memory_error_not_hidden() -> None:
+    # RA-012 carries a denial. Since the 2026-10-05 ruling the product answers it, so the registered behaviour (the kernel
+    # refuses the report and the harness shows a memory error) is exercised under the registered-product pin
+    from registered_product_v1 import registered_product_v1
+
     s = scn("RA-012")
-    m = ls.PalimemTools(s)
-    errs = [m.ingest(r) for r in s["reports"]]
-    assert any(e and "KernelUnsupported" in e for e in errs)
-    ctx = m.context(s["decision_points"][0])
-    assert "memory error:" in ctx
-    m.close()
+    with registered_product_v1():
+        m = ls.PalimemTools(s)
+        errs = [m.ingest(r) for r in s["reports"]]
+        assert any(e and "KernelUnsupported" in e for e in errs)
+        ctx = m.context(s["decision_points"][0])
+        assert "memory error:" in ctx
+        m.close()
 
 
 def test_plan_and_review_points_show_two_memories() -> None:

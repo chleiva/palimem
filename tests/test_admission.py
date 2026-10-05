@@ -378,7 +378,12 @@ def test_agent_dispute_needs_an_explicit_named_grant():
     assert (d.effective_cue, d.record.outcome) == (Cue.DISPUTE, Out.ADMISSIBLE)
     es = Admitter(grant).evidence_set(log.list, KEY)
     assert [e.report.id for e in es.disputes] == [log.id("d")]
-    assert [e.report.id for e in es.direct] == [log.id("a")]  # a dispute does not remove evidence or quarantine the source
+    # a dispute does not remove evidence or quarantine the source: the target stays; since ruling 3 of 2026-10-05 the kernel
+    # also reads the dispute as a denial of it (a view carrying the dispute's own id), so the key is unresolved, not asserted
+    assert [e.report.id for e in es.direct] == [log.id("a"), log.id("d")] and not es.withdrawn
+    assert [type(e.report.proposition).__name__ for e in es.direct] == ["ValueProp", "NotValueProp"]
+    off = Admitter(AdmissionConfig(rules=grant.rules, dispute_is_denial=False)).evidence_set(log.list, KEY)
+    assert [e.report.id for e in off.direct] == [log.id("a")]  # the switch off: the paper's reading, no kernel effect
 
     log.add("a2", source="press", attr="salary")
     log.add("d2", Cue.DISPUTE, origin=Origin.AGENT_STATEMENT, actor="agent:a1", source="agent:a1", target="a2")

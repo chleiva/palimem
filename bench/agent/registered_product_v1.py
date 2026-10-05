@@ -1,7 +1,7 @@
 """Pin the REGISTERED product behaviour (commit 034d520) for the RETRACT-ACT benchmark.
 
 The registered runs (symbolic: docs/eval/AGENT_BENCHMARK_RESULTS.md; LLM-in-the-loop: AGENT_BENCHMARK_LLM_RESULTS.md)
-were produced before Lane Q's intentional product changes. Three of them reach the benchmark's adapters:
+were produced before Lane Q's intentional product changes. Five of them reach the benchmark's adapters:
 
 1. the ``recall`` rendering of attribution-only evidence (``palimem.agent.render``): frozen in
    ``registered_render_v1.py``;
@@ -11,7 +11,13 @@ were produced before Lane Q's intentional product changes. Three of them reach t
    ``correct`` now becomes ``allege``): the adapters build ``AdmissionConfig(profile=OPEN_WORLD)``, which is wrapped to
    pass ``failed_correction_is_allege=False`` (the registered behaviour: a competing assertion with a correction cue).
 
-``registered_product_v1()`` applies all three inside a ``with`` block and restores the originals on exit, so nothing
+4. negative evidence (ruling 4 of 2026-10-05): the registered kernel refused ``not_value`` / ``not_member`` reports
+   (``KernelUnsupported``; RA-012 was answered by no palimem system): ``palimem.kernel.polarity.justify_polarity`` is
+   replaced by a function that refuses them again;
+5. an authorised dispute's kernel effect (ruling 3): the adapters' ``AdmissionConfig`` is wrapped to also pass
+   ``dispute_is_denial=False`` (the registered behaviour: a dispute had no kernel effect).
+
+``registered_product_v1()`` applies all five inside a ``with`` block and restores the originals on exit, so nothing
 outside the block (the product, the other tests) sees any change. It is meant for the offline re-score tests and for
 ``registered_rerun.py``; a NEW run on current main must NOT use it (it would hide the product changes it is meant to
 measure). The registered adapters (``llm_agent.py``, ``llm_systems.py``, ``palimem_system.py``) are not modified:
@@ -45,14 +51,21 @@ def registered_product_v1() -> Iterator[None]:
     frozen = importlib.import_module("registered_render_v1")
     tools = importlib.import_module("palimem.agent.tools")
     policy = importlib.import_module("palimem.policy.policy")
+    polarity = importlib.import_module("palimem.kernel.polarity")
+    from palimem.kernel.spec import KernelUnsupported
+
+    def _refuse_negative_evidence(*_a: object, **_k: object) -> object:
+        raise KernelUnsupported("negative evidence is unsupported (the registered product, before the 2026-10-05 ruling)")
 
     saved = {
         (ps, "AdmissionConfig"): ps.AdmissionConfig,
         (tools, "answer_json"): tools.answer_json,
         (tools, "answer_text"): tools.answer_text,
         (policy, "BeliefOfForm"): policy.BeliefOfForm,
+        (polarity, "justify_polarity"): polarity.justify_polarity,
     }
-    ps.AdmissionConfig = functools.partial(AdmissionConfig, failed_correction_is_allege=False)
+    ps.AdmissionConfig = functools.partial(AdmissionConfig, failed_correction_is_allege=False, dispute_is_denial=False)
+    polarity.justify_polarity = _refuse_negative_evidence
     tools.answer_json = frozen.answer_json
     tools.answer_text = frozen.answer_text
     policy.BeliefOfForm = _NeverMatches

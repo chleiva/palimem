@@ -271,3 +271,8 @@ study checkout, no frozen cache and no deposit zip, on Python 3.11 and 3.13).
   cannot answer; they replay admitted evidence and are not the serving path.
 * A `Memory` over SQLite is reopened by constructing a new `Memory` on the same file with the same schema and configuration:
   inputs already stored are adopted, a different one needs a higher version.
+
+
+## Disputes and denials in the evidence (rulings 3 and 4 of 2026-10-05)
+
+The kernel's per-key evidence is `direct` (kernel views of the admitted reports) plus, in the product profile, the denials of the active authorised disputes (`palimem.admission.disputes`). Both the whole-log path (`direct_entries(ev, disputes)`) and the incremental state (`IncrementalAdmission._direct_list`) build it with the same function, so they agree append by append; a key that holds a dispute re-derives its evidence whenever a report arrives on it (a new report may confirm the target). The compat profile never merges denials. See `docs/decisions/S-02.md` and `docs/decisions/S-04.md`.

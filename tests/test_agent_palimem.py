@@ -137,11 +137,29 @@ def test_resource_limited_is_a_missing_response_not_a_guess():
     assert res["overall"]["missing"] == 1
 
 
-def test_negative_evidence_is_a_recorded_gap_not_worked_around():
+def test_negative_evidence_is_answered_since_the_ruling_and_unresolved_when_it_conflicts():
+    # author ruling 4 of 2026-10-05: a denial beside an affirmation of the same value is unresolved, so the agent asks
     s = _scn([_rep(1, "a", "assert", _val("acme")), _rep(2, "b", "assert", {"form": "not_value", "value": "acme"}, day=2)])
+    run = ps.run_scenario(s, "justified")
+    assert run.error is None and run.responses["SYN-1.d1"] == {"action": "ask", "value": None}
+
+
+def test_negative_evidence_outside_the_kernels_scope_is_a_recorded_gap_not_worked_around():
+    # a denial beside a `change` cue has no oracle yet: the kernel refuses, the adapter records the gap and answers nothing
+    s = _scn([_rep(1, "a", "assert", _val("acme")), _rep(2, "b", "change", _val("globex"), day=2),
+              _rep(3, "a", "assert", {"form": "not_value", "value": "acme"}, day=3)])
     run = ps.run_scenario(s, "justified")
     assert run.responses["SYN-1.d1"] is None
     assert run.error is not None and "KernelUnsupported" in run.error
+
+
+def test_the_registered_pin_restores_the_refusal_of_negative_evidence():
+    from registered_product_v1 import registered_product_v1
+
+    s = _scn([_rep(1, "a", "assert", _val("acme")), _rep(2, "b", "assert", {"form": "not_value", "value": "acme"}, day=2)])
+    with registered_product_v1():
+        run = ps.run_scenario(s, "justified")
+    assert run.responses["SYN-1.d1"] is None and run.error is not None and "KernelUnsupported" in run.error
 
 
 def test_an_unauthorised_withdrawal_has_no_effect():

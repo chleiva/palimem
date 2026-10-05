@@ -6,8 +6,7 @@
   "ind-20-traversal-budget-store-dirty": "query:q_unrelated $.decision: expected 'resource_limited', got 'commit'",
   "ind-22-belief-as-of-into-stale-snapshot": "query:q_then $.decision: expected 'resource_limited', got 'abstain'",
   "s10-02-exception-unknown-open-unresolved": "query:q1 $.kernel_status: expected 'unresolved', got 'established'",
-  "sec-39b-second-origin-group-raises-it": "query:q_same_group $._environments: elements do not match [{'$unordered': ['01M46EXSB0KGPSM4VP126QDA59']}] in any order: [['01M46EXSB0KGPSM4VP126QDA59', '01M46EXSB0KGPSM4VP126QDA5A']]",
-  "sec-41b-later-dispute-repairs-single-origin-belief": "query:q1 $.kernel_status: expected 'unresolved', got 'established'"
+  "sec-39b-second-origin-group-raises-it": "query:q_same_group $._environments: elements do not match [{'$unordered': ['01M46EXSB0KGPSM4VP126QDA59']}] in any order: [['01M46EXSB0KGPSM4VP126QDA59', '01M46EXSB0KGPSM4VP126QDA5A']]"
  },
  "implementation": "palimem.Memory",
  "needs_data": [],
@@ -20,8 +19,11 @@
   "ind-08a-environment-budget-resource-limited",
   "ind-09-mistaken-merge-reversed",
   "ind-10-deletion-with-dependants",
+  "ind-13a-positive-negative-withdraw-positive",
+  "ind-13b-positive-negative-withdraw-negative",
   "ind-14-cascade-budget-stale-c",
   "ind-15-attributed-twice-content-unknown",
+  "ind-18-two-not-values-distinct",
   "ind-19a-attributed-round-trip-typed",
   "ind-21-completion-job-does-not-overwrite-newer",
   "r01-authorised-correct-still-withdraws-its-target",
@@ -33,6 +35,14 @@
   "r02-exclude-source-needs-a-host-principal",
   "r02-exclude-source-removes-earlier-and-later-reports",
   "r02-exclude-source-repairs-derived-beliefs",
+  "r03-authorised-dispute-is-unresolved-against-disputed",
+  "r03-dispute-overridden-by-confirmation-from-another-origin-group",
+  "r03-dispute-without-a-grant-has-no-kernel-effect",
+  "r03-withdrawing-the-dispute-restores-the-target",
+  "r04-denial-of-another-value-is-a-constraint-not-a-rival",
+  "r04-one-denial-alone-is-established-false",
+  "r04-positive-and-denial-of-the-same-value-withdraw-restores",
+  "r04-two-compatible-denials-are-unknown-with-constraints",
   "s06-01-default-environment-budget-is-twelve",
   "s06-02-over-budget-is-never-unresolved",
   "s06-05-explicit-environment-budget-of-seven",
@@ -49,7 +59,8 @@
   "sec-30-tombstone-leaks-no-key-text",
   "sec-39a-single-origin-commit-is-visible",
   "sec-40a-trusted-injection-contradicted-is-unresolved",
-  "sec-41a-source-withdraws-its-own-single-origin-report"
+  "sec-41a-source-withdraws-its-own-single-origin-report",
+  "sec-41b-later-dispute-repairs-single-origin-belief"
  ],
  "pass_needs_data": [
   "compat-01-authority-coincide"
@@ -60,10 +71,7 @@
   "ind-07b-crash-after-commit-before-ack": "missing capability: crash_injection",
   "ind-11-disjoint-intervals-one-withdrawn": "palimem.Memory: location: inertia=false on a changeable attribute has no specified semantics (S-08)",
   "ind-12-overlapping-intervals-one-closed": "palimem.Memory: employer: inertia=false on a changeable attribute has no specified semantics (S-08)",
-  "ind-13a-positive-negative-withdraw-positive": "palimem.Memory does not implement op 'append'",
-  "ind-13b-positive-negative-withdraw-negative": "palimem.Memory does not implement op 'append'",
   "ind-17-outbox-redelivery-after-crash": "missing capability: crash_injection",
-  "ind-18-two-not-values-distinct": "palimem.Memory does not implement op 'append'",
   "ind-19b-attributed-round-trip-extracted": "missing capability: extractor",
   "sec-25a-edited-log-row-is-detected": "missing capability: tamper_hook",
   "sec-26-restored-old-copy-is-detected": "missing capability: backup_restore"

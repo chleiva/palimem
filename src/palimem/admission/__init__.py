@@ -16,6 +16,7 @@ from palimem.admission.admitter import (
 )
 from palimem.admission.authz import AuthDecision, Authorizer
 from palimem.admission.config import DEFAULT_CLASS_STATUS, AdmissionConfig, SourceStatus
+from palimem.admission.disputes import apply_disputes, dispute_view
 from palimem.admission.equivalence import (
     equivalent,
     normalise_value,
@@ -65,7 +66,9 @@ __all__ = [
     "LogView",
     "SourceStatus",
     "Withdrawal",
+    "apply_disputes",
     "derive_ulid",
+    "dispute_view",
     "enable_source_exclusions",
     "equivalent",
     "exclude_source",

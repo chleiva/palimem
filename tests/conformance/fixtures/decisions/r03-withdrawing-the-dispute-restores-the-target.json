@@ -1,19 +1,19 @@
 {
   "version": 1,
   "kind": "scenario",
-  "id": "sec-41b-later-dispute-repairs-single-origin-belief",
-  "title": "A later authorised dispute stops a single-origin belief from standing as established",
+  "id": "r03-withdrawing-the-dispute-restores-the-target",
+  "title": "Withdrawal of the dispute (by its own source) restores the target",
   "gate": "G1",
-  "area": "poisoning",
+  "area": "authority",
   "status": "active",
   "covers": [
-    "SEC-41",
-    "T-17"
+    "ruling-3",
+    "S-02"
   ],
   "requires": [],
   "spec_dependencies": [],
-  "why": "A user granted the dispute power on employer disputes r1 (the dispute also states a competing value). Author ruling 3 of 2026-10-05 fixes the kernel meaning: the target's candidate becomes unresolved against 'disputed' (here value(acme) against not_value(acme)), with NO value asserted (the competing value the dispute states is not asserted by it), until confirmation from another origin group or withdrawal. The single-origin belief does not survive the dispute. (The earlier version of this fixture assumed the dispute was an A-ERR competitor with candidates {Acme, Globex}; the ruling supersedes it.)",
-  "source": "docs/THREAT_MODEL.md §7 (SEC-41)",
+  "why": "The disputer withdraws its own dispute (the default authority: the target's own source, here the chat source of r2): the dispute no longer acts, everything it affected is repaired like any withdrawal, and the registry's Acme is established again.",
+  "source": "docs/decisions/RULINGS-2026-10-05.md item 3",
   "setup": {
     "profile": "open-world",
     "schema": {
@@ -34,6 +34,19 @@
       }
     },
     "authority": [
+      {
+        "who": {
+          "kind": "target_source"
+        },
+        "may": [
+          "correct",
+          "withdraw",
+          "dispute"
+        ],
+        "on": {},
+        "targets": "report",
+        "over_origins": null
+      },
       {
         "who": {
           "kind": "principal",
@@ -88,10 +101,7 @@
           "entity": "alice",
           "attr": "employer"
         },
-        "proposition": {
-          "form": "value",
-          "v": "globex"
-        },
+        "proposition": null,
         "cue": "dispute",
         "target": "$r1",
         "source": {
@@ -104,14 +114,11 @@
         "valid_from": null,
         "valid_to": null,
         "precision": "day"
-      },
-      "expect": {
-        "recorded_cue": "dispute"
       }
     },
     {
       "op": "query",
-      "name": "q1",
+      "name": "q_disputed",
       "query": {
         "key": {
           "entity": "alice",
@@ -120,21 +127,57 @@
       },
       "expect": {
         "kernel_status": "unresolved",
-        "decision": "ask",
-        "assertion": "$absent",
-        "_candidates": {
+        "assertion": "$absent"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r3",
+      "at": "2026-02-06T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": null,
+        "cue": "withdraw",
+        "target": "$r2",
+        "source": {
+          "id": "chat",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_chat",
+        "actor": "user:alice",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_restored",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "decision": "commit",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "acme"
+          }
+        },
+        "_environments": {
           "$unordered": [
             {
-              "form": {
-                "form": "value",
-                "v": "acme"
-              }
-            },
-            {
-              "form": {
-                "form": "not_value",
-                "v": "acme"
-              }
+              "$unordered": [
+                "$r1"
+              ]
             }
           ]
         }

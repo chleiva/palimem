@@ -33,7 +33,6 @@ from .dsl import (
     length,
     limited,
     none,
-    oneof,
     op,
     query,
     reports,
@@ -491,18 +490,19 @@ def build() -> list[dict[str, Any]]:
         "G1", "negative_evidence", ["design-row-18", "S-04"],
         "Two denials about different values are compatible evidence (the employer is neither). Candidates are identified by their content, "
         "so not_value(acme) and not_value(globex) are two different candidates, each carrying its value; neither collapses to a bare "
-        "'false', and no positive value candidate appears. The kernel status is established_false or unresolved depending on how several "
-        "negative candidates are summarised, which the design does not fix.",
+        "'false', and no positive value candidate appears. AUTHOR RULING of 2026-10-05 (docs/decisions/RULINGS-2026-10-05.md item 11) fixes "
+        "the status the design left open: two compatible not_value candidates give kernel_status unknown, with both negatives listed as "
+        "constraints in alternatives (the value is narrowed, not determined; a single established candidate cannot carry two denials); "
+        "established_false only when completeness makes them exhaustive.",
         {"employer": A("single_changeable", vt="entity")},
         [
             append("r1", d(2, 1), "alice", "employer", NV("acme")),
             append("r2", d(2, 2), "alice", "employer", NV("globex"), source="press"),
             query("q1", Q("alice", "employer"),
-                  {"kernel_status": oneof("established_false", "unresolved"),
+                  {"kernel_status": "unknown", "assertion": ABSENT,
                    "_candidates": unordered(c_not_value("acme"), c_not_value("globex"))}),
             query("q2", Q("alice", "employer"), {"_candidates": none({"form": {"form": "value"}})}),
         ],
-        deps=["Status for several compatible negative candidates is not defined by design v0.3 or S-04."],
         source=ROW.format(18)))
 
     # 19 ----------------------------------------------------------------------------------------

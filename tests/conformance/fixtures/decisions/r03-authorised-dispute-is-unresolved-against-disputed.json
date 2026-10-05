@@ -1,19 +1,20 @@
 {
   "version": 1,
   "kind": "scenario",
-  "id": "sec-41b-later-dispute-repairs-single-origin-belief",
-  "title": "A later authorised dispute stops a single-origin belief from standing as established",
+  "id": "r03-authorised-dispute-is-unresolved-against-disputed",
+  "title": "An authorised dispute: the target's candidate is unresolved against 'disputed', no value asserted",
   "gate": "G1",
-  "area": "poisoning",
+  "area": "authority",
   "status": "active",
   "covers": [
-    "SEC-41",
-    "T-17"
+    "ruling-3",
+    "S-02",
+    "tb-18"
   ],
   "requires": [],
   "spec_dependencies": [],
-  "why": "A user granted the dispute power on employer disputes r1 (the dispute also states a competing value). Author ruling 3 of 2026-10-05 fixes the kernel meaning: the target's candidate becomes unresolved against 'disputed' (here value(acme) against not_value(acme)), with NO value asserted (the competing value the dispute states is not asserted by it), until confirmation from another origin group or withdrawal. The single-origin belief does not survive the dispute. (The earlier version of this fixture assumed the dispute was an A-ERR competitor with candidates {Acme, Globex}; the ruling supersedes it.)",
-  "source": "docs/THREAT_MODEL.md §7 (SEC-41)",
+  "why": "The registry asserts Acme (r1). A user principal granted the dispute power on employer disputes r1 (r2). Ruling 3: the target's candidate becomes unresolved against 'disputed', with no value asserted: candidates value(acme) and not_value(acme), one environment each ({r1} and the dispute {r2}), the policy asks and commits to nothing. The dispute does not quarantine the source and does not withdraw r1.",
+  "source": "docs/decisions/RULINGS-2026-10-05.md item 3",
   "setup": {
     "profile": "open-world",
     "schema": {
@@ -34,6 +35,19 @@
       }
     },
     "authority": [
+      {
+        "who": {
+          "kind": "target_source"
+        },
+        "may": [
+          "correct",
+          "withdraw",
+          "dispute"
+        ],
+        "on": {},
+        "targets": "report",
+        "over_origins": null
+      },
       {
         "who": {
           "kind": "principal",
@@ -80,6 +94,25 @@
       }
     },
     {
+      "op": "query",
+      "name": "q_before",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "acme"
+          }
+        }
+      }
+    },
+    {
       "op": "append",
       "ref": "r2",
       "at": "2026-02-05T10:00:00Z",
@@ -88,10 +121,7 @@
           "entity": "alice",
           "attr": "employer"
         },
-        "proposition": {
-          "form": "value",
-          "v": "globex"
-        },
+        "proposition": null,
         "cue": "dispute",
         "target": "$r1",
         "source": {
@@ -106,12 +136,15 @@
         "precision": "day"
       },
       "expect": {
-        "recorded_cue": "dispute"
+        "recorded_cue": "dispute",
+        "admission": {
+          "outcome": "admissible"
+        }
       }
     },
     {
       "op": "query",
-      "name": "q1",
+      "name": "q_after",
       "query": {
         "key": {
           "entity": "alice",
@@ -137,7 +170,35 @@
               }
             }
           ]
+        },
+        "_environments": {
+          "$unordered": [
+            {
+              "$unordered": [
+                "$r1"
+              ]
+            },
+            {
+              "$unordered": [
+                "$r2"
+              ]
+            }
+          ]
         }
+      }
+    },
+    {
+      "op": "reports",
+      "name": "rep_r1",
+      "filter": {
+        "id": "$r1"
+      },
+      "expect": {
+        "rows": [
+          {
+            "withdrawn": false
+          }
+        ]
       }
     }
   ]

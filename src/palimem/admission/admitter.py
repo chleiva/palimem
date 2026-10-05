@@ -72,6 +72,7 @@ from palimem.types.authority import AGENT_CLASS_ORIGINS
 
 from .authz import AuthDecision, Authorizer
 from .config import AdmissionConfig, SourceStatus
+from .disputes import apply_disputes
 from .equivalence import equivalent, proposition_signature
 from .ids import derive_ulid
 from .log import LogView
@@ -242,6 +243,9 @@ class Admitter:
                         allegations.append(e)
         attributions = attributions_from_groups(groups)
         withdrawn = {rid: w for rid, w in ev.withdrawn.items() if by_id[rid].report.key == key}
+        if self.config.dispute_denial and disputes:
+            # ruling 3: an active (not withdrawn) authorised dispute is read as a denial of its target (see .disputes)
+            direct = apply_disputes(direct, [e for e in disputes if _rid(e) not in ev.withdrawn])
         return EvidenceSet(
             key=key,
             admission_version=ev.admission_version,

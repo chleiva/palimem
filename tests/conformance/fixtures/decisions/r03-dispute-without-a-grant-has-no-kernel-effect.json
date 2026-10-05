@@ -1,19 +1,19 @@
 {
   "version": 1,
   "kind": "scenario",
-  "id": "sec-41b-later-dispute-repairs-single-origin-belief",
-  "title": "A later authorised dispute stops a single-origin belief from standing as established",
+  "id": "r03-dispute-without-a-grant-has-no-kernel-effect",
+  "title": "A dispute that fails the authority check is an allege: the target stands",
   "gate": "G1",
-  "area": "poisoning",
+  "area": "authority",
   "status": "active",
   "covers": [
-    "SEC-41",
-    "T-17"
+    "ruling-3",
+    "S-02"
   ],
   "requires": [],
   "spec_dependencies": [],
-  "why": "A user granted the dispute power on employer disputes r1 (the dispute also states a competing value). Author ruling 3 of 2026-10-05 fixes the kernel meaning: the target's candidate becomes unresolved against 'disputed' (here value(acme) against not_value(acme)), with NO value asserted (the competing value the dispute states is not asserted by it), until confirmation from another origin group or withdrawal. The single-origin belief does not survive the dispute. (The earlier version of this fixture assumed the dispute was an A-ERR competitor with candidates {Acme, Globex}; the ruling supersedes it.)",
-  "source": "docs/THREAT_MODEL.md §7 (SEC-41)",
+  "why": "The same dispute from a principal without the grant (the press, no rule for it): recorded_cue allege, no effect; employer is still established Acme with environment {r1}.",
+  "source": "docs/decisions/RULINGS-2026-10-05.md item 3",
   "setup": {
     "profile": "open-world",
     "schema": {
@@ -24,9 +24,9 @@
       }
     },
     "sources": {
-      "chat": {
+      "press": {
         "class": "standard",
-        "origin_group": "g_chat"
+        "origin_group": "g_press"
       },
       "registry": {
         "class": "trusted",
@@ -34,6 +34,19 @@
       }
     },
     "authority": [
+      {
+        "who": {
+          "kind": "target_source"
+        },
+        "may": [
+          "correct",
+          "withdraw",
+          "dispute"
+        ],
+        "on": {},
+        "targets": "report",
+        "over_origins": null
+      },
       {
         "who": {
           "kind": "principal",
@@ -88,25 +101,22 @@
           "entity": "alice",
           "attr": "employer"
         },
-        "proposition": {
-          "form": "value",
-          "v": "globex"
-        },
+        "proposition": null,
         "cue": "dispute",
         "target": "$r1",
         "source": {
-          "id": "chat",
+          "id": "press",
           "class": "standard"
         },
         "origin": "external_observation",
-        "origin_group": "g_chat",
-        "actor": "user:alice",
+        "origin_group": "g_press",
+        "actor": "connector:press",
         "valid_from": null,
         "valid_to": null,
         "precision": "day"
       },
       "expect": {
-        "recorded_cue": "dispute"
+        "recorded_cue": "allege"
       }
     },
     {
@@ -119,22 +129,20 @@
         }
       },
       "expect": {
-        "kernel_status": "unresolved",
-        "decision": "ask",
-        "assertion": "$absent",
-        "_candidates": {
+        "kernel_status": "established",
+        "decision": "commit",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "acme"
+          }
+        },
+        "_environments": {
           "$unordered": [
             {
-              "form": {
-                "form": "value",
-                "v": "acme"
-              }
-            },
-            {
-              "form": {
-                "form": "not_value",
-                "v": "acme"
-              }
+              "$unordered": [
+                "$r1"
+              ]
             }
           ]
         }

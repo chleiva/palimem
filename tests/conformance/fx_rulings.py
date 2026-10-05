@@ -9,19 +9,24 @@ from __future__ import annotations
 from typing import Any
 
 from .dsl import (
+    ABSENT,
+    NV,
     A,
     Q,
     V,
     append,
+    c_not_value,
     c_value,
     envs,
+    length,
     op,
     query,
     reports,
     resolved,
     unordered,
+    withdraw,
 )
-from .fx_core import d, day, scen
+from .fx_core import d, scen
 from .fx_other import BASE, EMP, WORK_CITY
 
 RULINGS = "docs/decisions/RULINGS-2026-10-05.md"
@@ -202,8 +207,156 @@ def r02() -> list[dict[str, Any]]:
     return out
 
 
+def r04() -> list[dict[str, Any]]:
+    """Ruling 4: negative evidence in the open-world product kernel."""
+    out: list[dict[str, Any]] = []
+    out.append(scen(
+        "r04-two-compatible-denials-are-unknown-with-constraints", "Two compatible not_value reports: unknown, both listed as constraints in alternatives",
+        "G1", "negative_evidence", ["ruling-4", "design-row-18", "S-04"],
+        "r1 (registry) denies Acme, r2 (press) denies Globex. Denials of different values are compatible, so every interpretation labels both "
+        "TRUE; the employer is neither, but the evidence does not say what it is. Ruling 4: kernel_status unknown, with both negatives listed as "
+        "constraints in alternatives (a single established candidate cannot carry two denials), nothing committed (decision abstain, no assertion), "
+        "one minimal environment per denial. established_false only when completeness makes them exhaustive.",
+        EMP,
+        [
+            append("r1", d(2, 1), "alice", "employer", NV("acme")),
+            append("r2", d(2, 2), "alice", "employer", NV("globex"), source="press"),
+            query("q1", Q("alice", "employer"),
+                  resolved("unknown", decision="abstain", assertion=ABSENT,
+                           _candidates=unordered(c_not_value("acme"), c_not_value("globex")), _environments=envs(["$r1"], ["$r2"]))),
+        ],
+        source=RULINGS + " item 11"))
+
+    out.append(scen(
+        "r04-one-denial-alone-is-established-false", "One denial alone is established_false carrying the not_value candidate",
+        "G1", "negative_evidence", ["ruling-4", "S-04"],
+        "A single explicit denial and nothing else: design v0.3 says explicit negative evidence suffices for established_false. The candidate "
+        "is not_value(acme), the environment {r1}, and the policy commits to it.",
+        EMP,
+        [
+            append("r1", d(2, 1), "alice", "employer", NV("acme")),
+            query("q1", Q("alice", "employer"),
+                  resolved("established_false", decision="commit", assertion=c_not_value("acme"), _environments=envs(["$r1"]))),
+        ],
+        source=RULINGS + " item 11"))
+
+    out.append(scen(
+        "r04-denial-of-another-value-is-a-constraint-not-a-rival", "A denial of a different value is consistent with the positive report and does not make it unresolved",
+        "G1", "negative_evidence", ["ruling-4", "S-04"],
+        "r1 affirms Acme, r2 denies Globex. They are about different values, so they do not conflict: every interpretation labels both TRUE and the "
+        "employer is established Acme. The denial is a consistent constraint (true in every world) and is not listed; the minimal environment of "
+        "Acme is {r1} alone.",
+        EMP,
+        [
+            append("r1", d(2, 1), "alice", "employer", V("acme")),
+            append("r2", d(2, 2), "alice", "employer", NV("globex"), source="press"),
+            query("q1", Q("alice", "employer"),
+                  resolved("established", decision="commit", assertion=c_value("acme"), _environments=envs(["$r1"]))),
+        ],
+        source=RULINGS + " item 11"))
+
+    out.append(scen(
+        "r04-positive-and-denial-of-the-same-value-withdraw-restores", "A positive and a denial of the same value are unresolved with both readings; withdrawing the denial restores the positive",
+        "G1", "negative_evidence", ["ruling-4", "design-row-13"],
+        "r1 (registry) affirms Acme, r2 (press) denies it: they conflict, an interpretation may label only one TRUE, and either may be wrong "
+        "(A-ERR), so the key is unresolved with both readings as candidates (value acme, not_value acme), one environment each, and the policy asks. "
+        "The press withdraws its own denial: the positive alone decides (established Acme). The history is kept: at r2's position the key was "
+        "unresolved.",
+        EMP,
+        [
+            append("r1", d(2, 1), "alice", "employer", V("acme")),
+            append("r2", d(2, 2), "alice", "employer", NV("acme"), source="press"),
+            query("q_both", Q("alice", "employer"),
+                  resolved("unresolved", decision="ask", _candidates=unordered(c_value("acme"), c_not_value("acme")),
+                           _environments=envs(["$r1"], ["$r2"]))),
+            withdraw("r3", d(2, 10), "$r2", "alice", "employer", source="press"),
+            query("q_after", Q("alice", "employer"), resolved("established", decision="commit", assertion=c_value("acme"))),
+            query("q_history", Q("alice", "employer", belief_as_of="$r2.lsn"), resolved("unresolved", _candidates=length(2))),
+        ],
+        source=RULINGS + " items 11, 12"))
+    return out
+
+
+# a declared grant table REPLACES the profile default, so the default grant (a source's own reports) is restated beside the grant
+GRANT = [
+    {"who": {"kind": "target_source"}, "may": ["correct", "withdraw", "dispute"], "on": {}, "targets": "report", "over_origins": None},
+    {"who": {"kind": "principal", "value": "user:alice"}, "may": ["dispute"], "on": {"attr": "employer", "entity": "*"},
+     "targets": "report", "over_origins": None},
+]
+
+
+def r03() -> list[dict[str, Any]]:
+    """Ruling 3: an authorised dispute makes the target unresolved against 'disputed'."""
+    out: list[dict[str, Any]] = []
+    out.append(scen(
+        "r03-authorised-dispute-is-unresolved-against-disputed", "An authorised dispute: the target's candidate is unresolved against 'disputed', no value asserted",
+        "G1", "authority", ["ruling-3", "S-02", "tb-18"],
+        "The registry asserts Acme (r1). A user principal granted the dispute power on employer disputes r1 (r2). Ruling 3: the target's candidate "
+        "becomes unresolved against 'disputed', with no value asserted: candidates value(acme) and not_value(acme), one environment each ({r1} and "
+        "the dispute {r2}), the policy asks and commits to nothing. The dispute does not quarantine the source and does not withdraw r1.",
+        EMP,
+        [
+            append("r1", d(2, 1), "alice", "employer", V("acme")),
+            query("q_before", Q("alice", "employer"), resolved("established", assertion=c_value("acme"))),
+            append("r2", d(2, 5), "alice", "employer", None, cue="dispute", target="$r1", source="chat", actor="user:alice",
+                   expect={"recorded_cue": "dispute", "admission": {"outcome": "admissible"}}),
+            query("q_after", Q("alice", "employer"),
+                  resolved("unresolved", decision="ask", assertion=ABSENT,
+                           _candidates=unordered(c_value("acme"), c_not_value("acme")), _environments=envs(["$r1"], ["$r2"]))),
+            reports("rep_r1", {"id": "$r1"}, {"rows": [{"withdrawn": False}]}),
+        ],
+        authority=GRANT, source=RULINGS + " item 3"))
+
+    out.append(scen(
+        "r03-dispute-overridden-by-confirmation-from-another-origin-group", "Confirmation of the target from another origin group ends the dispute's effect",
+        "G1", "authority", ["ruling-3", "S-02"],
+        "After the dispute of r1 (unresolved) the press, another origin group (neither the registry's nor the disputer's), reports the same value: "
+        "independent corroboration outweighs one dispute, so the key is established Acme again. A report from the target's own origin group, or from the "
+        "disputer's, would not count (it is not independent of what it confirms or contradicts).",
+        EMP,
+        [
+            append("r1", d(2, 1), "alice", "employer", V("acme")),
+            append("r2", d(2, 5), "alice", "employer", None, cue="dispute", target="$r1", source="chat", actor="user:alice"),
+            query("q_disputed", Q("alice", "employer"), resolved("unresolved", assertion=ABSENT)),
+            append("r3", d(2, 6), "alice", "employer", V("acme"), source="press"),
+            query("q_confirmed", Q("alice", "employer"), resolved("established", decision="commit", assertion=c_value("acme"))),
+            query("q_history", Q("alice", "employer", belief_as_of="$r2.lsn"), resolved("unresolved")),
+        ],
+        authority=GRANT, source=RULINGS + " item 3"))
+
+    out.append(scen(
+        "r03-withdrawing-the-dispute-restores-the-target", "Withdrawal of the dispute (by its own source) restores the target",
+        "G1", "authority", ["ruling-3", "S-02"],
+        "The disputer withdraws its own dispute (the default authority: the target's own source, here the chat source of r2): the dispute no longer acts, "
+        "everything it affected is repaired like any withdrawal, and the registry's Acme is established again.",
+        EMP,
+        [
+            append("r1", d(2, 1), "alice", "employer", V("acme")),
+            append("r2", d(2, 5), "alice", "employer", None, cue="dispute", target="$r1", source="chat", actor="user:alice"),
+            query("q_disputed", Q("alice", "employer"), resolved("unresolved", assertion=ABSENT)),
+            withdraw("r3", d(2, 6), "$r2", "alice", "employer", source="chat", actor="user:alice"),
+            query("q_restored", Q("alice", "employer"), resolved("established", decision="commit", assertion=c_value("acme"), _environments=envs(["$r1"]))),
+        ],
+        authority=GRANT, source=RULINGS + " item 3"))
+
+    out.append(scen(
+        "r03-dispute-without-a-grant-has-no-kernel-effect", "A dispute that fails the authority check is an allege: the target stands",
+        "G1", "authority", ["ruling-3", "S-02"],
+        "The same dispute from a principal without the grant (the press, no rule for it): recorded_cue allege, no effect; employer is still established "
+        "Acme with environment {r1}.",
+        EMP,
+        [
+            append("r1", d(2, 1), "alice", "employer", V("acme")),
+            append("r2", d(2, 5), "alice", "employer", None, cue="dispute", target="$r1", source="press",
+                   expect={"recorded_cue": "allege"}),
+            query("q1", Q("alice", "employer"), resolved("established", decision="commit", assertion=c_value("acme"), _environments=envs(["$r1"]))),
+        ],
+        authority=GRANT, source=RULINGS + " item 3"))
+    return out
+
+
 def build() -> list[dict[str, Any]]:
-    return [*r01(), *r02()]
+    return [*r01(), *r02(), *r03(), *r04()]
 
 
-__all__ = ["build", "day"]
+__all__ = ["build"]

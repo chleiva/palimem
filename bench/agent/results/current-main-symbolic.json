@@ -122,13 +122,18 @@
    "system": "lww"
   },
   {
-   "differing_points": [],
+   "differing_points": [
+    [
+     "RA-012",
+     "RA-012.d1"
+    ]
+   ],
    "profiles": {
     "authority_source": {
      "current_main": {
-      "exact_match": 0.96,
+      "exact_match": 1.0,
       "harmful_action_rate": 0.0,
-      "missing": 1.0,
+      "missing": 0.0,
       "n": 25.0,
       "unnecessary_deferral_rate": 0.0
      },
@@ -142,9 +147,9 @@
     },
     "default": {
      "current_main": {
-      "exact_match": 0.96,
+      "exact_match": 1.0,
       "harmful_action_rate": 0.0,
-      "missing": 1.0,
+      "missing": 0.0,
       "n": 25.0,
       "unnecessary_deferral_rate": 0.0
      },
@@ -157,18 +162,31 @@
      }
     }
    },
-   "responses_current_main_at_differing_points": {},
+   "responses_current_main_at_differing_points": {
+    "RA-012/RA-012.d1": {
+     "current_main": {
+      "action": "ask",
+      "value": null
+     },
+     "registered": null
+    }
+   },
    "split": "test",
    "system": "justified"
   },
   {
-   "differing_points": [],
+   "differing_points": [
+    [
+     "RA-012",
+     "RA-012.d1"
+    ]
+   ],
    "profiles": {
     "authority_source": {
      "current_main": {
-      "exact_match": 0.88,
+      "exact_match": 0.92,
       "harmful_action_rate": 0.08,
-      "missing": 1.0,
+      "missing": 0.0,
       "n": 25.0,
       "unnecessary_deferral_rate": 0.0
      },
@@ -182,9 +200,9 @@
     },
     "default": {
      "current_main": {
-      "exact_match": 0.88,
+      "exact_match": 0.92,
       "harmful_action_rate": 0.08,
-      "missing": 1.0,
+      "missing": 0.0,
       "n": 25.0,
       "unnecessary_deferral_rate": 0.0
      },
@@ -197,18 +215,31 @@
      }
     }
    },
-   "responses_current_main_at_differing_points": {},
+   "responses_current_main_at_differing_points": {
+    "RA-012/RA-012.d1": {
+     "current_main": {
+      "action": "ask",
+      "value": null
+     },
+     "registered": null
+    }
+   },
    "split": "test",
    "system": "recency"
   },
   {
-   "differing_points": [],
+   "differing_points": [
+    [
+     "RA-012",
+     "RA-012.d1"
+    ]
+   ],
    "profiles": {
     "authority_source": {
      "current_main": {
-      "exact_match": 0.84,
+      "exact_match": 0.88,
       "harmful_action_rate": 0.12,
-      "missing": 1.0,
+      "missing": 0.0,
       "n": 25.0,
       "unnecessary_deferral_rate": 0.0
      },
@@ -222,9 +253,9 @@
     },
     "default": {
      "current_main": {
-      "exact_match": 0.84,
+      "exact_match": 0.88,
       "harmful_action_rate": 0.12,
-      "missing": 1.0,
+      "missing": 0.0,
       "n": 25.0,
       "unnecessary_deferral_rate": 0.0
      },
@@ -237,7 +268,15 @@
      }
     }
    },
-   "responses_current_main_at_differing_points": {},
+   "responses_current_main_at_differing_points": {
+    "RA-012/RA-012.d1": {
+     "current_main": {
+      "action": "ask",
+      "value": null
+     },
+     "registered": null
+    }
+   },
    "split": "test",
    "system": "lww"
   }

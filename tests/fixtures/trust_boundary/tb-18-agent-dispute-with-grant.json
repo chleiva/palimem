@@ -5,7 +5,7 @@
     "R6"
   ],
   "spec_dependencies": [
-    "S-02: kernel semantics of an authorised dispute is not defined in design v0.3; expectation assumes the dispute plays the A-ERR competitor role (alternatives: London, empty)"
+    "S-02: resolved by the author ruling of 2026-10-05 (item 3): an authorised dispute makes the target's candidate unresolved against 'disputed' (value(London) vs not_value(London)), no value asserted, until confirmation from another origin group or withdrawal; the expectation kernel_status == unresolved is unchanged"
   ],
   "setup": {
     "profile": "open-world",

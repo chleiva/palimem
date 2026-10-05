@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "r04-one-denial-alone-is-established-false",
+  "title": "One denial alone is established_false carrying the not_value candidate",
+  "gate": "G1",
+  "area": "negative_evidence",
+  "status": "active",
+  "covers": [
+    "ruling-4",
+    "S-04"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "A single explicit denial and nothing else: design v0.3 says explicit negative evidence suffices for established_false. The candidate is not_value(acme), the environment {r1}, and the policy commits to it.",
+  "source": "docs/decisions/RULINGS-2026-10-05.md item 11",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "not_value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established_false",
+        "decision": "commit",
+        "assertion": {
+          "form": {
+            "form": "not_value",
+            "v": "acme"
+          }
+        },
+        "_environments": {
+          "$unordered": [
+            {
+              "$unordered": [
+                "$r1"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

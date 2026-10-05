@@ -19,6 +19,7 @@ from .dsl import (
     V,
     append,
     c_empty,
+    c_not_value,
     c_value,
     contains,
     envs,
@@ -594,14 +595,18 @@ def security() -> list[dict[str, Any]]:
               "targets": "report", "over_origins": None}]
     sec("sec-41b-later-dispute-repairs-single-origin-belief", "A later authorised dispute stops a single-origin belief from standing as established",
         "G1", "poisoning", ["SEC-41", "T-17"],
-        "A user granted the dispute power on employer disputes r1 and states the competing value. The key can no longer be established on r1 alone: "
-        "it is unresolved with both candidates; the single-origin belief does not survive the dispute.",
-        EMP, [append("r1", d(2, 1), "alice", "employer", V("acme"), valid_from=day(1, 1)),
-              append("r2", d(2, 5), "alice", "employer", V("globex"), cue="dispute", target="$r1", source="chat", actor="user:alice", valid_from=day(1, 1),
+        "A user granted the dispute power on employer disputes r1 (the dispute also states a competing value). Author ruling 3 of 2026-10-05 fixes "
+        "the kernel meaning: the target's candidate becomes unresolved against 'disputed' (here value(acme) against not_value(acme)), with NO value "
+        "asserted (the competing value the dispute states is not asserted by it), until confirmation from another origin group or withdrawal. "
+        "The single-origin belief does not survive the dispute. (The earlier version of this fixture assumed the dispute was an A-ERR "
+        "competitor with candidates {Acme, Globex}; the ruling supersedes it.)",
+        EMP, [append("r1", d(2, 1), "alice", "employer", V("acme")),
+              append("r2", d(2, 5), "alice", "employer", V("globex"), cue="dispute", target="$r1", source="chat", actor="user:alice",
                      expect={"recorded_cue": "dispute"}),
-              query("q1", Q("alice", "employer"), resolved("unresolved", _candidates=unordered(c_value("acme"), c_value("globex"))))],
-        authority=grant,
-        deps=["S-02: the kernel semantics of an authorised dispute is not defined in design v0.3; assumes the dispute plays the A-ERR competitor role."])
+              query("q1", Q("alice", "employer"),
+                    resolved("unresolved", decision="ask", assertion=ABSENT,
+                             _candidates=unordered(c_value("acme"), c_not_value("acme"))))],
+        authority=grant)
     return out
 
 

@@ -25,6 +25,7 @@ def admission_from_payload(p: Mapping[str, Any]) -> AdmissionConfig:
         source_status={k: SourceStatus(v) for k, v in dict(p.get("source_status", {})).items()},
         acting_reports_must_be_live=p.get("acting_reports_must_be_live"),
         failed_correction_is_allege=p.get("failed_correction_is_allege"),
+        dispute_is_denial=p.get("dispute_is_denial"),
     )
 
 
