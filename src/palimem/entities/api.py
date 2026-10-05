@@ -96,6 +96,7 @@ class MergeRecord:
     decision: MergeDecision
     representative: str
     members: tuple[str, ...]
+    rewritten: tuple[Key, ...] = ()  # the beliefs this decision wrote (the marker's own key included)
 
     @property
     def id(self) -> str:
@@ -193,14 +194,14 @@ class Entities:
 
     # -- decisions
 
-    def _append(self, entity: str, text: str, idempotency_key: str | None) -> str:
+    def _append(self, entity: str, text: str, idempotency_key: str | None) -> tuple[str, tuple[Key, ...]]:
         rep = _Report(
             key=Key(entity=entity, attr=ENTITY_MERGE_ATTR), cue=Cue.ASSERT, proposition=MemberProp(value=text),
             source=self.source, origin=Origin.EXTERNAL_OBSERVATION, origin_group=self.origin_group, actor=self.actor,
         )
         res = self.mem.append(rep, idempotency_key=idempotency_key)
         assert res.entry is not None and res.entry.report.id is not None
-        return res.entry.report.id
+        return res.entry.report.id, tuple(b.key for b in res.beliefs)
 
     def merge(
         self, alias: str, into: str, *, reason: str, method: str = "manual", score: float | None = None,
@@ -221,10 +222,10 @@ class Entities:
         st = self._state()
         if st.canon(alias) == st.canon(into):
             raise EntitiesError(f"{alias!r} and {into!r} are already the same entity")
-        mid = self._append(
+        mid, written = self._append(
             alias, encode_marker(MergeOp.MERGE, into=into, reason=reason, method=method, score=score), idempotency_key
         )
-        return self._record_of(mid)
+        return self._record_of(mid, written)
 
     def unmerge(self, merge_id: str, *, reason: str, idempotency_key: str | None = None) -> MergeRecord:
         """Undo a merge. The beliefs that consumed evidence across it (and only those) are recomputed."""
@@ -235,18 +236,20 @@ class Entities:
         if merge_id not in active:
             raise EntitiesError(f"{merge_id} is not an active merge")
         target = active[merge_id]
-        did = self._append(
+        did, written = self._append(
             target.alias, encode_marker(MergeOp.UNMERGE, target=merge_id, reason=reason, method="manual"), idempotency_key
         )
-        return self._record_of(did)
+        return self._record_of(did, written)
 
-    def _record_of(self, decision_id: str) -> MergeRecord:
+    def _record_of(self, decision_id: str, written: tuple[Key, ...] = ()) -> MergeRecord:
         head = self.mem.lsn_of(None)
         self.layer.sync(head)
         for d in self.layer.registry.history(head):
             if d.id == decision_id:
                 st = self.layer.registry.state_at(head)
-                return MergeRecord(decision=d, representative=st.canon(d.alias), members=st.members(d.alias))
+                return MergeRecord(
+                    decision=d, representative=st.canon(d.alias), members=st.members(d.alias), rewritten=written
+                )
         raise MergeRejected(
             f"decision {decision_id} was logged but not honoured (not admitted, not from a system/user principal, "
             "or malformed)"

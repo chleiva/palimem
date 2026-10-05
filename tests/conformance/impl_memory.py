@@ -54,6 +54,7 @@ from palimem.types import (
     Rule,
     Schema,
     SemanticConfig,
+    Source,
     ValidationError,
     ValueType,
 )
@@ -135,6 +136,20 @@ def build_schemas(setup: dict[str, Any]) -> tuple[Schema, KernelSchema]:
     return Schema(version=1, attrs=tuple(attrs)), KernelSchema(attrs=specs, rules=tuple(rules))
 
 
+def _with_merge_attr(schema: Schema) -> Schema:
+    from palimem.entities import enable_entity_merges
+
+    return enable_entity_merges(schema)  # type: ignore[return-value]
+
+
+def _with_merge_spec(ks: KernelSchema) -> KernelSchema:
+    from palimem.entities import ENTITY_MERGE_ATTR, merge_attr_spec
+
+    attrs = dict(ks.attrs)
+    attrs[ENTITY_MERGE_ATTR] = merge_attr_spec()  # type: ignore[assignment]
+    return KernelSchema(attrs=attrs, rules=ks.rules, entities=ks.entities)
+
+
 class _Clock:
     def __init__(self) -> None:
         self.now = datetime(2026, 1, 1, tzinfo=UTC)
@@ -160,7 +175,7 @@ class MemoryImplementation:
     # ------------------------------------------------------------------ protocol
 
     def capabilities(self) -> set[str]:
-        return {"budget_control", "completion_jobs", "delete", "hash_chain", "profile_revise_stream_v1", "outbox"}
+        return {"budget_control", "completion_jobs", "delete", "hash_chain", "profile_revise_stream_v1", "outbox", "merge"}
 
     def start(self, setup: dict[str, Any]) -> Any:
         self.clock = _Clock()
@@ -173,7 +188,10 @@ class MemoryImplementation:
             admission = AdmissionConfig(profile=profile, rules=rules)
             self._traversal: int | None = (setup.get("limits") or {}).get("traversal_budget")
             self._env_budget: int = (setup.get("limits") or {}).get("environment_budget", DEFAULT_ENVIRONMENT_BUDGET)
-            self._schema, self._ks, self._admission, self._profile = schema, ks, admission, profile
+            # every fixture's schema also declares the reserved entity-merge attribute (host-only; inert unless a merge op runs)
+            self._schema, self._ks = _with_merge_attr(schema), _with_merge_spec(ks)
+            self._admission, self._profile = admission, profile
+            self._merge_ids: dict[str, str] = {}
             self._build_memory()
         except KernelUnsupported as e:
             if "expect_load_error" in setup:
@@ -301,6 +319,34 @@ class MemoryImplementation:
             ):
                 rows.append(item)
         return {"count": len(rows), "rows": rows}
+
+    def _entities(self, op: dict[str, Any]) -> Any:
+        from palimem.entities import Entities
+
+        assert self.mem is not None
+        if op.get("at"):
+            self.clock.set(op["at"])
+        return Entities(self.mem, actor=op["actor"], source=Source(id=op["actor"], cls="trusted"), origin_group=op["actor"])
+
+    @staticmethod
+    def _merge_result(rec: Any) -> dict[str, Any]:
+        return {
+            "merge_id": rec.id, "representative": rec.representative, "members": list(rec.members),
+            "recomputed_keys": [{"entity": k.entity, "attr": k.attr} for k in rec.rewritten if k.attr != "__entity_merge__"],
+        }
+
+    def op_merge(self, op: dict[str, Any]) -> Any:
+        """A host-level entity merge (design row 9): ``entities`` are the two names, ``canonical`` the one that stays."""
+        a, b = op["entities"]
+        into = op.get("canonical") or b
+        alias = a if into == b else b
+        rec = self._entities(op).merge(alias, into, reason=op.get("reason", "conformance fixture"))
+        self._merge_ids[op["merge_id"]] = rec.id
+        return self._merge_result(rec)
+
+    def op_unmerge(self, op: dict[str, Any]) -> Any:
+        rec = self._entities(op).unmerge(self._merge_ids[op["merge_id"]], reason=op.get("reason", "conformance fixture"))
+        return self._merge_result(rec)
 
     def op_complete_jobs(self, op: dict[str, Any]) -> Any:
         assert self.mem is not None
