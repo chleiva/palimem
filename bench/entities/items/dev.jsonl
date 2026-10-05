@@ -1,0 +1,70 @@
+{"a": "Initech LLC", "b": "Initech", "category": "corporate", "id": "p03af308fc8", "kind": "org", "label": "same"}
+{"a": "Springfield", "b": "Cambridge", "category": "unrelated", "id": "p046c378026", "kind": "other", "label": "different"}
+{"a": "Marie Dubois", "b": "Pierre Dubois", "category": "same_surname", "id": "p059257439f", "kind": "person", "label": "different"}
+{"a": "European Space Agency", "b": "ESA", "category": "acronym", "id": "p060d1fe787", "kind": "org", "label": "same"}
+{"a": "Springfield, Illinois", "b": "Springfield, Missouri", "category": "place", "id": "p08df0d84fd", "kind": "other", "label": "different"}
+{"a": "Big Apple", "b": "New York", "category": "alias_only", "id": "p0c736c59b1", "kind": "other", "label": "same"}
+{"a": "Alison Reed", "b": "Allison Reed", "category": "near_name", "id": "p1283e175f7", "kind": "person", "label": "different"}
+{"a": "M. Dubois", "b": "Marie Dubois", "category": "initial", "id": "p135c4c8839", "kind": "person", "label": "same"}
+{"a": "Renée Dupont", "b": "Renee Dupont", "category": "accent", "id": "p14366ae5d0", "kind": "person", "label": "same"}
+{"a": "Cambrdige", "b": "Cambridge", "category": "typo", "id": "p152dd030f9", "kind": "other", "label": "same"}
+{"a": "Studio 54", "b": "Studio 45", "category": "numeric", "id": "p15607958ad", "kind": "other", "label": "different"}
+{"a": "R. Brown", "b": "Alice Brown", "category": "initial_conflict", "id": "p1598609d6f", "kind": "person", "label": "different"}
+{"a": "Elizabeth Turner", "b": "Liz Turner", "category": "nickname", "id": "p215bf6ca7f", "kind": "person", "label": "same"}
+{"a": "Martin Luther King Jr", "b": "Martin Luther King Sr", "category": "generation", "id": "p22f60b2b09", "kind": "person", "label": "different"}
+{"a": "Dr. Hannah Weiss", "b": "Hannah Weiss", "category": "honorific", "id": "p2346b67a39", "kind": "person", "label": "same"}
+{"a": "Smith, John", "b": "John Smith", "category": "word_order", "id": "p2bf7556abb", "kind": "person", "label": "same"}
+{"a": "Washington", "b": "Washington Post", "category": "shared_token", "id": "p2d4b09aa46", "kind": "other", "label": "different"}
+{"a": "Prof. Marta Silva", "b": "Professor Marta Silva", "category": "abbrev", "id": "p2d7c5fc7b3", "kind": "person", "label": "same"}
+{"a": "Massachusetts Institute of Technology", "b": "MIT", "category": "acronym", "id": "p319f27dd38", "kind": "org", "label": "same"}
+{"a": "Acme, Corp.", "b": "Acme Corp", "category": "case_punct", "id": "p348f4d67db", "kind": "org", "label": "same"}
+{"a": "Apple Inc", "b": "Apple Records", "category": "org_qualifier", "id": "p3a600b6d53", "kind": "org", "label": "different"}
+{"a": "Bombay", "b": "Mumbai", "category": "alias_only", "id": "p405fe9376f", "kind": "other", "label": "same"}
+{"a": "Hannah Weiss", "b": "Daniel Weiss", "category": "same_surname", "id": "p40dcb1974c", "kind": "person", "label": "different"}
+{"a": "Umbrella", "b": "Umbrello", "category": "near_name", "id": "p43c0be4fed", "kind": "org", "label": "different"}
+{"a": "Globxe", "b": "Globex", "category": "typo", "id": "p45be8cad3b", "kind": "org", "label": "same"}
+{"a": "Tyrell Corp", "b": "Tyrell Corporation", "category": "corporate", "id": "p45fa4814a6", "kind": "org", "label": "same"}
+{"a": "Newcastle", "b": "New Castle", "category": "place", "id": "p4db4d6459d", "kind": "other", "label": "different"}
+{"a": "Mercury Insurance", "b": "Mercury Records", "category": "org_qualifier", "id": "p4f23fa4dfd", "kind": "org", "label": "different"}
+{"a": "Globex", "b": "Initech", "category": "unrelated", "id": "p4f43758cb3", "kind": "org", "label": "different"}
+{"a": "Stark Industries", "b": "Stark Logistics", "category": "org_qualifier", "id": "p5b2e91fb76", "kind": "org", "label": "different"}
+{"a": "Maria G. Lopez", "b": "Maria Lopez", "category": "initial", "id": "p5bfdc8fa8e", "kind": "person", "label": "same"}
+{"a": "Alice Jonhson", "b": "Alice Johnson", "category": "typo", "id": "p5cb6766001", "kind": "person", "label": "same"}
+{"a": "John Smith", "b": "James Smith", "category": "homonym_person", "id": "p5ce71165ed", "kind": "person", "label": "different"}
+{"a": "Jordan", "b": "Michael Jordan", "category": "shared_token", "id": "p63502658c6", "kind": "other", "label": "different"}
+{"a": "Marta Silva", "b": "Pedro Silva", "category": "same_surname", "id": "p6e0915cb5c", "kind": "person", "label": "different"}
+{"a": "First National Bank", "b": "Second National Bank", "category": "org_qualifier", "id": "p7f82a2df15", "kind": "org", "label": "different"}
+{"a": "Tyrell Corp", "b": "Terrell Corp", "category": "near_name", "id": "p806f99a7d8", "kind": "org", "label": "different"}
+{"a": "Mt. Everest", "b": "Mount Everest", "category": "abbrev", "id": "p8695cf07c0", "kind": "other", "label": "same"}
+{"a": "Hannah Weiss", "b": "Hannah Schmidt", "category": "same_given", "id": "p86bb16176c", "kind": "person", "label": "different"}
+{"a": "Cyberdyne Systems Limited", "b": "Cyberdyne Systems", "category": "corporate", "id": "p89fd59a070", "kind": "org", "label": "same"}
+{"a": "Route 66", "b": "Route 99", "category": "numeric", "id": "p8dd2adb5bb", "kind": "other", "label": "different"}
+{"a": "Nair, Priya", "b": "Priya Nair", "category": "word_order", "id": "p8f7478ddac", "kind": "person", "label": "same"}
+{"a": "Oxford", "b": "Oxford Instruments", "category": "shared_token", "id": "p8f7b941d66", "kind": "other", "label": "different"}
+{"a": "Alexander Petrov", "b": "Alex Petrov", "category": "nickname", "id": "p91d6c40e58", "kind": "person", "label": "same"}
+{"a": "Mrs. Elena Rossi", "b": "Elena Rossi", "category": "honorific", "id": "p951f33d82c", "kind": "person", "label": "same"}
+{"a": "Christian Leiva", "b": "Christian Leiva Beltran", "category": "extra_name", "id": "p975ae5e253", "kind": "person", "label": "same"}
+{"a": "Priya Nair", "b": "Anil Nair", "category": "same_surname", "id": "p9ccb94b8e8", "kind": "person", "label": "different"}
+{"a": "New-York", "b": "New York", "category": "case_punct", "id": "pa248928423", "kind": "other", "label": "same"}
+{"a": "Michael Chen", "b": "Michelle Chen", "category": "homonym_person", "id": "pa3d61ac295", "kind": "person", "label": "different"}
+{"a": "M. Dubois", "b": "Pierre Dubois", "category": "initial_conflict", "id": "pa7eb5b0fa0", "kind": "person", "label": "different"}
+{"a": "Veltran", "b": "Veltrex", "category": "near_name", "id": "pb05618c3e4", "kind": "org", "label": "different"}
+{"a": "São Paulo", "b": "Sao Paulo", "category": "accent", "id": "pbcca9b2161", "kind": "other", "label": "same"}
+{"a": "Jonathan Reed", "b": "Jon Reed", "category": "nickname", "id": "pbf40f01d8b", "kind": "person", "label": "same"}
+{"a": "Apollo 11", "b": "Apollo 13", "category": "numeric", "id": "pc0488d98e1", "kind": "other", "label": "different"}
+{"a": "Stark Industires", "b": "Stark Industries", "category": "typo", "id": "pc2290dd3d6", "kind": "org", "label": "same"}
+{"a": "St. Louis", "b": "Saint Louis", "category": "abbrev", "id": "pc57869dd48", "kind": "other", "label": "same"}
+{"a": "Cambridge, UK", "b": "Cambridge, MA", "category": "place", "id": "pc92d597d97", "kind": "other", "label": "different"}
+{"a": "O'Brien Consulting", "b": "OBrien Consulting", "category": "case_punct", "id": "pcb276b4b04", "kind": "org", "label": "same"}
+{"a": "Robert Brown", "b": "Roberta Brown", "category": "homonym_person", "id": "pcb9b162c7b", "kind": "person", "label": "different"}
+{"a": "Twitter", "b": "X Corp", "category": "alias_only", "id": "pcd19e4c139", "kind": "org", "label": "same"}
+{"a": "Wayne Enterprises Co.", "b": "Wayne Enterprises", "category": "corporate", "id": "pd0ae70d0dc", "kind": "org", "label": "same"}
+{"a": "Christian Leiva", "b": "Chris Leiva", "category": "nickname", "id": "pd11f9861f1", "kind": "person", "label": "same"}
+{"a": "Hooli", "b": "Hooley", "category": "near_name", "id": "pda7c37bcf5", "kind": "org", "label": "different"}
+{"a": "Alice Johnson", "b": "Bob Brown", "category": "unrelated", "id": "pde35ec3ddb", "kind": "person", "label": "different"}
+{"a": "Globex Energy", "b": "Globex Health", "category": "org_qualifier", "id": "pdfd9e4a45f", "kind": "org", "label": "different"}
+{"a": "Zoë Müller", "b": "Zoe Muller", "category": "accent", "id": "pe2cb63c9c1", "kind": "person", "label": "same"}
+{"a": "The Hooli Group", "b": "Hooli Group", "category": "corporate", "id": "pe7b622d1d1", "kind": "org", "label": "same"}
+{"a": "Henry Ford II", "b": "Henry Ford III", "category": "generation", "id": "pf341ed6ac9", "kind": "person", "label": "different"}
+{"a": "John R. Doe", "b": "John Doe", "category": "initial", "id": "pf6c71717a9", "kind": "person", "label": "same"}
+{"a": "Georgia", "b": "Georgia Tech", "category": "shared_token", "id": "pfc6003adcd", "kind": "other", "label": "different"}

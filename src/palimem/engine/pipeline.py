@@ -24,6 +24,7 @@ from collections import Counter, OrderedDict, deque
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from palimem.admission import (
     EVIDENCE_CUES,
@@ -78,6 +79,9 @@ from palimem.types import (
 from palimem.types import Segment as PSegment
 from palimem.types._codec import Value
 from palimem.types.limits import DEFAULT_ENVIRONMENT_BUDGET
+
+if TYPE_CHECKING:
+    from palimem.entities.layer import EntityLayer
 
 ChangeFrom = Callable[[Report], Value | None]
 
@@ -263,13 +267,19 @@ class Resolver:
     ones) and over the breakpoints of each belief. Decoding a stored belief is the expensive step, so every derived
     key of one revision shares one resolver."""
 
-    def __init__(self, view: StoreView, overlay: Mapping[Key, Belief] | None = None) -> None:
+    def __init__(
+        self, view: StoreView, overlay: Mapping[Key, Belief] | None = None,
+        canon: Callable[[Key], Key] | None = None,
+    ) -> None:
         self._view = view
         self._overlay = overlay or {}
+        self._canon = canon  # entity layer: a read of a merged entity's key is a read of its representative's
         self._cache: dict[Key, Belief | None] = {}
         self._bps: dict[Key, frozenset[int]] = {}
 
     def belief(self, key: Key) -> Belief | None:
+        if self._canon is not None:
+            key = self._canon(key)
         b = self._overlay.get(key)
         if b is not None:
             return b
@@ -439,6 +449,8 @@ class Pipeline:
         self.plans = DependentsPlans.of(kernel_schema)
         self._vi: ValueIndex | None = None
         self._vi_lsn: int | None = None
+        self.layer: EntityLayer | None = None
+        """Optional entity layer (:mod:`palimem.entities`): merged entities are justified as one. ``None`` = no merges."""
         self.stats: Counter[str] = Counter()
         """Operation counters (never wall-clock): ``revisions``, ``derived_justified``, ``derived_keys_read``,
         ``derived_written``, ``index_builds``. Used by the regression test that an append's work does not grow with the
@@ -454,6 +466,8 @@ class Pipeline:
         self._inc = None
         self._delta = None
         self.drop_index()
+        if self.layer is not None:
+            self.layer.bind(view)
 
     def drop_index(self) -> None:
         """Forget the value index: a belief may have changed outside a revision (completion, erasure repair, a
@@ -490,6 +504,8 @@ class Pipeline:
         self._inc = None
         self._delta = None
         self.drop_index()
+        if self.layer is not None:
+            self.layer.reset()
 
     def set_admitter(self, admitter: Admitter) -> None:
         self.admitter = admitter
@@ -498,6 +514,8 @@ class Pipeline:
         self._inc = None
         self._delta = None
         self.drop_index()
+        if self.layer is not None:
+            self.layer.reset()
 
     # -- incremental admission
 
@@ -659,11 +677,8 @@ class Pipeline:
         prov = _BeliefProvider(resolver)
         dj: DerivedJustification = justify_derived(ks, key, prov, self.semantic, all_entities=self.exhaustive)
         def deps_of() -> tuple[Dependency, ...]:
-            return tuple(
-                Dependency(key=k, version=b.version)
-                for k, b in sorted(prov.consulted.items(), key=lambda kv: (kv[0].entity, kv[0].attr))
-                if b is not None and k != key
-            )
+            read = {b.key: b for b in prov.consulted.values() if b is not None and b.key != key}  # merged entities read one belief
+            return tuple(Dependency(key=k, version=b.version) for k, b in sorted(read.items(), key=lambda kv: (kv[0].entity, kv[0].attr)))
 
         try:
             segments = dj.segments()
@@ -778,9 +793,14 @@ class KernelReviser:
                 inputs=ctx.inputs, recorded_at=ctx.entry.recorded_at,
                 attributions=attributions_of(k),
             )
+        canon = None
+        added: tuple[Key, ...] = ()
+        if p.layer is not None:  # entity layer: the representative's aggregated beliefs for merged classes
+            res = p.layer.revise_overlay(p, ctx, ks, overlay, entries_of, attributions_of, base_changed, next_version)
+            canon, added = res.canon, res.added
         out: list[Belief] = list(overlay.values())
 
-        changed_attrs = {k.attr for k in base_changed}
+        changed_attrs = {k.attr for k in base_changed} | {k.attr for k in added}
         derived_attrs = [a for a, s in ks.attrs.items() if s.derived]
         affected = [a for a in derived_attrs if base_attrs_closure(ks, a) & changed_attrs]
         p.stats["revisions"] += 1
@@ -792,7 +812,7 @@ class KernelReviser:
                     index.update(k, b)
         if affected:
             marked = store_closure(view, touched)
-            resolver = Resolver(view, overlay)
+            resolver = Resolver(view, overlay, canon)
             order = {e: i for i, e in enumerate(ks.entities)}
             changed_keys: dict[Key, None] = dict.fromkeys(overlay)
             for a in sorted(affected, key=lambda x: (p.depth_of(x), x)):  # shallow first: a revision budget keeps these
@@ -850,9 +870,16 @@ class KernelReviser:
             recorded_at = inc.entries[-1].recorded_at if inc.entries else datetime.now(UTC)
             if ks.spec(key.attr).derived:
                 return p.derived_belief(
-                    ks, key, Resolver(view), version=version, lsn=lsn, generation=gen, inputs=inputs,
-                    recorded_at=recorded_at,
+                    ks, key, Resolver(view, canon=p.layer.head_canon(view) if p.layer is not None else None),
+                    version=version, lsn=lsn, generation=gen, inputs=inputs, recorded_at=recorded_at,
                 )
+            if p.layer is not None:
+                agg = p.layer.recompute_base(
+                    p, ks, key, inc.direct_of, inc.attributions_of if inc.belief_of_count else (lambda _k: ()),
+                    view=view, version=version, lsn=lsn, generation=gen, inputs=inputs, recorded_at=recorded_at,
+                )
+                if agg is not None:
+                    return agg
             return p.base_belief(
                 ks, key, inc.direct_of(key), version=version, lsn=lsn, generation=gen, inputs=inputs,
                 recorded_at=recorded_at, attributions=inc.attributions_of(key) if inc.belief_of_count else (),
@@ -862,10 +889,19 @@ class KernelReviser:
         recorded_at = ev.entries[-1].recorded_at if ev.entries else datetime.now(UTC)
         if ks.spec(key.attr).derived:
             return p.derived_belief(
-                ks, key, Resolver(view), version=version, lsn=lsn, generation=gen, inputs=inputs,
-                recorded_at=recorded_at,
+                ks, key, Resolver(view, canon=p.layer.head_canon(view) if p.layer is not None else None),
+                version=version, lsn=lsn, generation=gen, inputs=inputs, recorded_at=recorded_at,
             )
         has_attr = p.facts(ev).has_attributions
+        if p.layer is not None:
+            direct_now = p.facts(ev).direct
+            agg = p.layer.recompute_base(
+                p, ks, key, lambda k: direct_now.get(k, []),
+                lambda k: p.admitter.evidence_set_of(ev, k).attributions if has_attr else (),
+                view=view, version=version, lsn=lsn, generation=gen, inputs=inputs, recorded_at=recorded_at,
+            )
+            if agg is not None:
+                return agg
         return p.base_belief(
             ks, key, p.facts(ev).direct.get(key, []), version=version, lsn=lsn, generation=gen, inputs=inputs,
             recorded_at=recorded_at, attributions=p.admitter.evidence_set_of(ev, key).attributions if has_attr else (),

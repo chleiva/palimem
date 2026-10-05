@@ -209,6 +209,10 @@ class Memory:
             entities=entities, budget=budget, change_from_of=change_from_of, revision_budget=revision_budget,
         )
         self.pipeline.bind(backend)
+        if any(a.name == "__entity_merge__" for a in schema.attrs):  # the schema opted in to entity merges
+            from palimem.entities import attach_layer
+
+            attach_layer(self)
         self._admitter = StoreAdmitter(self.pipeline)
         self.reviser = KernelReviser(self.pipeline)
         self._semantic_version = 1
@@ -355,6 +359,8 @@ class Memory:
             self.schema.attr(key.attr)
         except KeyError:
             raise ValueError(f"attribute {key.attr!r} is not declared in the schema") from None
+        if self.pipeline.layer is not None:  # entity layer: a merged entity is read through its representative
+            key = self.pipeline.layer.canon_key(key, self.lsn_of(as_of))
         r = self.backend.read_belief(key, as_of)
         if isinstance(r, NotReconstructable):
             raise NotReconstructableError(r)
