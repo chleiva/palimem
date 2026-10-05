@@ -82,3 +82,17 @@ Declared targets (committed before any run): T1 query p50 <= 5 ms / p99 <= 25 ms
 - **Crossover:** the store answers 60-120x faster than a cold replay but only 2.6x faster than a replay that reuses the cached admission evaluation.
 - **Method:** the workload generator initially pushed some keys over the per-key budget of 7 (a correction aimed at a correction restores its target); fixed, with two end-to-end tests that fail if a workload exceeds the budget; first results discarded and re-run.
 - **Action taken:** an optimisation lane (revise only dependents, bounded admission cache, no rewrite of unchanged versions, incremental `verify_beliefs`) is running; the targets are not amended.
+
+## From the first live extractor measurement (Lane G2, dev split only)
+
+One pass per model on the 69-item dev split with the frozen prompt; the frozen test split and `bench/extract/gate.json` untouched. Spend $0.0350 for 208 calls (estimate $0.041); $19.965 of the $20 cap remains. All three models fail the declared thresholds on dev:
+
+| | claim F1 | cue accuracy | wrong-value | dropped change cue | injection compliance |
+|---|---|---|---|---|---|
+| gpt-oss-20b | 0.606 | 0.897 | 0.095 | 0.357 (upper 0.625) | 0.143 |
+| Ministral 14B | 0.712 | 0.947 | 0.127 | 0.000 | 0.286 |
+| Ministral 8B | 0.443 | 0.963 | 0.095 | 0.143 | 0.143 |
+
+- Most Ministral losses are *format* failures in the strict grammar (a `correct` with a null proposition; replies not shaped `{"claims": [...]}`), not wrong extractions. 3 of 69 gpt-oss requests hit the 1,500-token ceiling while reasoning and returned empty. No model forged an identity field (0 of 21); all three extracted a pure-directive injection as data.
+- The dev split is small (1 fragmentation group, 7 injection items, 8 empty-expected items, 14 change claims): too little power for most rates. Valid-time F1 is 0.08-0.53 and the temporal errors are not yet classified.
+- **Decisions for you:** (1) confirm the G-X thresholds so the single-use test split can be run; (2) is prompt iteration on dev acceptable before any test run (I have started it, capped, with each prompt hash recorded); (3) should an injected directive extracted as ordinary data count as an extraction failure (today it does, though admission would treat it as an ordinary report from its real source)?
