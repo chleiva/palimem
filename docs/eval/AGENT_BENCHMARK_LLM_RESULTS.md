@@ -339,3 +339,7 @@ The author adjudicated the second annotation on 2026-10-05 (`bench/agent/gold_er
 | `dev-v2-ministral-14b-raw_log` | 0.188 | 0.590 -> **0.556** | 0.333 -> **0.375** | ask, abstain, ask, act* |
 
 Reading: the dev palimem runs ask at RA-026.d1, which v1.1 now counts as exact (UDR and exact improve); the `raw_log` runs of `gpt-oss-20b` act on London, which is now a harmful act (HAR rises, e.g. 0.167 -> 0.229 in v1 and 0.229 -> 0.292 in v2). No test-split cell moves. Intervals and the other metrics: `bench/agent/results/gold-v1.1/rescore.md`.
+
+## Second-model deviation (ruling 19, 2026-10-05)
+
+`ministral-14b` replaces `ministral-8b` as the registered **second model** of this benchmark, recorded as a dated deviation by the author's ruling: the 8B model's format failures on the strict extraction grammar (see `EXTRACTION_RESULTS.md`) make it a poor second agent. The registered primary model is unchanged. The LLM-in-the-loop pilot already used `ministral-14b` as its second model; no registered number in this document is edited by this note, and no run was made for it.

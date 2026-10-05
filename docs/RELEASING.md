@@ -1,8 +1,25 @@
 # Releasing palimem
 
-Status: the pipeline and one release-candidate audit are verified (2026-10-05, nothing was published); the one-time setup below is not yet done. The pipeline is `.github/workflows/release.yml`. Nothing in this repository publishes anything by itself except a **published GitHub release**, and publishing uses PyPI Trusted Publishing (OIDC), so no API token is stored in GitHub or in the repository.
+Status (2026-10-05): the one-time setup below is **done** (see the table that follows it) and 0.1.0 is **prepared but not released**: the version in the repository is 0.1.0, the release-candidate audit was repeated on it, and the only published artefact is still the 0.0.1 name reservation. `release.yml` has never run. The pipeline is `.github/workflows/release.yml`. Nothing in this repository publishes anything by itself except a **published GitHub release**, and publishing uses PyPI Trusted Publishing (OIDC), so no API token is stored in GitHub or in the repository.
 
 ## One-time setup (the maintainer does this by hand)
+
+**State on 2026-10-05.** Items marked *API* were read back through the GitHub API; the others are the maintainer's report
+(neither PyPI nor TestPyPI can be inspected from the repository).
+
+| Item | State | Checked |
+|---|---|---|
+| PyPI trusted publisher for `chleiva/palimem`, workflow `release.yml`, environment `pypi` | done | maintainer |
+| Account-wide PyPI token used for the 0.0.1 reservation | revoked | maintainer |
+| TestPyPI pending publisher for project `palimem`, same repository and workflow, environment `testpypi` | done | maintainer |
+| GitHub environment `pypi` with the maintainer as required reviewer | done | API |
+| GitHub environment `testpypi` | done | API |
+| Private vulnerability reporting | on | API |
+| Dependabot alerts and security updates, secret scanning | on | API |
+| Code scanning (the CodeQL job of `security.yml`) | running | workflow runs |
+| Branch protection on `main`: `harness`, `test (3.11)`, `test (3.12)`, `test (3.13)` required; no pull request required; administrator bypass on | done | API |
+
+The sections below stay as the reference for how each item is configured.
 
 ### 1. PyPI trusted publisher
 
@@ -39,8 +56,8 @@ In the repository settings, under **Environments**, create `pypi` and `testpypi`
 3. **Bump** `version` in `pyproject.toml` and `__version__` in `src/palimem/__init__.py` (they must agree).
 4. **Gates locally**: `ruff check .`, `mypy --strict src/palimem`, `python -m palimem.schemas --check`, `pytest -q` (also CI-style: with no study data and an empty `HOME`, where the data-backed tests must skip, not fail), `python -m harness.differential`, `python -m harness.kernel_diff --source-retract sidetable --strict --provenance strict` and `python -m harness.pipeline_diff --backend both --provenance strict` (full runs, minutes each), and the conformance suite (`python -m tests.conformance.runner --impl tests.conformance.impl_memory:MemoryImplementation`).
 5. **Merge to `main`** and wait for CI (including the `harness` job) and the `security` workflow to be green.
-6. **Dry run** (optional but recommended for the first release of each minor): Actions > `release` > *Run workflow*. Manual runs publish to **TestPyPI only**. Check the result with `pip install --index-url https://test.pypi.org/simple/ --no-deps palimem==<version>` in a clean environment.
-7. **Tag and release**: create the tag `v<version>` (it must equal `v` plus the `pyproject.toml` version; the workflow fails otherwise) and publish a GitHub release for it. Publishing the release triggers the real PyPI upload, after the environment approval.
+6. **Dry run** (required for the first release, by the author's ruling of 2026-10-05: **0.1.0 goes to TestPyPI first**): Actions > `release` > *Run workflow*. Manual runs publish to **TestPyPI only**. TestPyPI keeps every version number it has received and the pending publisher creates the project on the first upload, so run this with the version you mean to release (0.1.0), not a throwaway. Check the result with `pip install --index-url https://test.pypi.org/simple/ --no-deps palimem==<version>` in a clean environment.
+7. **Tag and release**, **only after** the README gate section matches `docs/GATES.md` (`tests/test_gates_alignment.py` checks this and runs in CI) and the TestPyPI dry run succeeded: create the tag `v<version>` (it must equal `v` plus the `pyproject.toml` version; the workflow fails otherwise) and publish a GitHub release for it. Publishing the release triggers the real PyPI upload, after the environment approval.
 8. **Verify**: `pip install palimem==<version>` in a clean environment, `python -c "import palimem; print(palimem.__version__)"`, run the README quickstart and `palimem --version` from a directory that is not the repository, and check the project page. (The audit above is the dry run of this step against a local wheel.)
 9. **Announce** only what the release contains; the README status table must match.
 
@@ -80,18 +97,17 @@ Findings, and what was done about each:
 2. **Two extras were declared that nothing imports** (`mcp`, `anthropic`): the MCP server is a standard-library JSON-RPC loop
    and no Anthropic transport exists. They were removed so the metadata does not promise integrations that are not there.
 3. **Classifiers and URLs** were missing for Python 3.11 to 3.13, audience, operating system, issues and changelog; added.
-4. **Not fixed (outside the scope of this pass, which changes no source): the wheel has no `py.typed` marker.** The package
-   passes `mypy --strict`, but a consumer's type checker will not use its annotations until a marker is added to
-   `src/palimem/`.
+4. **`py.typed` (fixed after this audit):** the first audit found no `py.typed` marker; the marker is now in `src/palimem/` and
+   in the wheel (re-checked in the 0.1.0 preparation below).
 5. **Not verified:** the installed wheel was exercised on Python 3.13 only (the machine's interpreter); the test suite runs
    on 3.11, 3.12 and 3.13 in CI, but a wheel install on 3.11 and 3.12 has not been run. The `release.yml` workflow has not
-   been executed, because the trusted publisher is not configured and no release or TestPyPI upload was made.
+   been executed: the trusted publishers are now configured, but no release or TestPyPI upload has been made.
 
 ## What 0.1.0 does and does not promise
 
-This is the proposal to hold the first real release to; it changes nothing by itself. The numbering is the author's
-decision: the release train in [`VERSIONING.md`](VERSIONING.md) section 4 was written before the work, and what exists now
-spans what the train spread over 0.1 to 0.4, with the gaps listed in [`LIMITATIONS.md`](LIMITATIONS.md).
+This is the text to hold the first real release to; it changes nothing by itself. The numbering is the author's: 0.1.0 is the
+first public release and spans what the earlier plan spread over 0.1 to 0.4 ([`VERSIONING.md`](VERSIONING.md) section 4).
+Where each gate stands is in [`GATES.md`](GATES.md), and the README gate section must match it before PyPI.
 
 **It promises**
 
@@ -99,25 +115,31 @@ spans what the train spread over 0.1 to 0.4, with the gaps listed in [`LIMITATIO
   API, the MCP server over stdio and the `palimem` CLI work as documented in [`AGENT_GUIDE.md`](AGENT_GUIDE.md).
 - The full pipeline answers all 30,272 queries of the 500 frozen Setting 1 streams with 0 disagreements against the study's
   frozen gold on status, value, alternatives and (through the compat projection) provenance, and this is checked in CI
-  ([`PIPELINE.md`](PIPELINE.md), [`HARNESS.md`](HARNESS.md)).
+  ([`PIPELINE.md`](PIPELINE.md), [`HARNESS.md`](HARNESS.md)); the study's cached claims for Settings 2 and 3 replay with 0
+  disagreements against the study's own store, one Setting 3 stream excepted ([`SETTINGS23.md`](SETTINGS23.md)).
 - The log is append-only and hash-chained, appends are transactional and idempotent, `verify_log` detects edits, deletions and
   reordering, and an erasure leaves a tombstone that keeps the chain intact ([`STORAGE.md`](STORAGE.md)).
 - An LLM reaching palimem through the agent tool API cannot choose source, origin or actor, cannot retract external evidence
-  and cannot dispute without a host grant (18 of 20 trust-boundary fixtures pass; the other two have recorded causes).
+  and cannot dispute without a host grant (19 of 20 trust-boundary fixtures pass; the other has a recorded cause).
 - Stored data written by one 0.x release stays readable by migration in the next ([`VERSIONING.md`](VERSIONING.md) section 4).
 
 **It does not promise**
 
 - A stable contract: any `0.MINOR` may break it, marked **BREAKING** in the changelog with a migration note.
-- The performance targets: four of the seven declared targets are missed at the sizes reached, and no run reached the
-  10^5-report reference size ([`PERFORMANCE.md`](PERFORMANCE.md)).
-- Natural-language input quality: the only extractor gate run failed one criterion ([`eval/EXTRACTION_RESULTS.md`](eval/EXTRACTION_RESULTS.md) section 9).
-- Negative evidence, rule exceptions in an open world, authorised-dispute semantics, entity merges or open-schema extraction.
-- Anything about Settings 2 and 3 of the study, concurrent or multi-process use, multi-tenant isolation, real MCP client
-  compatibility, or third-party baselines.
-- That an agent behaves better with it: the only agent-level result is symbolic and checks the kernel against hand-written gold.
+- The performance targets: four of the seven declared targets (T2, T3, T6, T7) are missed at the sizes reached, and no run
+  reached the 10^5-report reference size ([`PERFORMANCE.md`](PERFORMANCE.md)).
+- Natural-language input quality: the only extractor gate run failed one criterion (`gpt-oss-20b`, dropped change cues 0.235
+  against 0.20, [`eval/EXTRACTION_RESULTS.md`](eval/EXTRACTION_RESULTS.md) section 9); the Ministral models were not run on the
+  test split.
+- Rule exceptions (reserved in 0.x), a source-scope withdraw (an admission operation exists instead), open-schema extraction,
+  an embedding or LLM entity resolver, or learning of any kind.
+- Concurrent or multi-process use, multi-tenant isolation, real MCP client compatibility, or a comparison with any
+  third-party memory system (none was run).
+- That an agent behaves better with it in general: the agent-level evidence is a pilot for **a compliant reader of the
+  kernel's text** (the `recall` text carries its own decision instructions), exploratory, with a model third opinion as the
+  second annotation and no human annotation.
 - A LongMemEval improvement (see the README), or the study's 20-point and latency figures.
-- A security audit: the threat model is a design review, not an assessment.
+- A security audit: the threat model is a design review, not an assessment, and the poisoning gate has never been run.
 
 ## Optional: SBOM (CycloneDX)
 

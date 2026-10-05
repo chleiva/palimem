@@ -1,7 +1,7 @@
 # Gate status
 
 Where every gate of the project stands, with the criterion as written, the evidence in this repository, and what is missing.
-Derived on 2026-10-05 from `main` at `ab7774c` plus the Settings 2/3 replay ([`SETTINGS23.md`](SETTINGS23.md)). Numbers marked
+Derived on 2026-10-05 from `main` at `e20e6ac` (first derived at `ab7774c`; refreshed by the release-preparation pass, which re-checked every figure the commands in section 11 produce and brought the rest up to date with the author's rulings of 2026-10-05, [`decisions/RULINGS-2026-10-05.md`](decisions/RULINGS-2026-10-05.md)), including the Settings 2/3 replay ([`SETTINGS23.md`](SETTINGS23.md)). Numbers marked
 **(re-run today)** were produced by running the command listed in section 11; the others are quoted from the document that holds
 the method and the caveats, which you should read before relying on them. Nothing here is a release decision.
 
@@ -12,12 +12,12 @@ Status words: **met** (criterion satisfied by evidence in the repo), **partly me
 
 | Gate | What it decides | Status | The evidence in one line | What is missing |
 |---|---|---|---|---|
-| **G0** semantic contract | contracts written, reviewed, frozen as versioned fixtures | **partly met** | types, 17 JSON Schemas, 13 decision records, 90 + 20 conformance fixtures | no freeze tag, no external review, ten open contract gaps |
-| **G1** kernel and store parity | identical answers to the oracle on every frozen query, provenance identical, independent tests green, recovery green | **partly met** | 30,272 of 30,272 queries, 0 disagreements; provenance 0 through the compat projection; recovery tests green | 8 independent fixtures fail, 24 are skipped or pending; the provenance criterion is **blocked** on S-12 |
-| **G2** service parity, integration, targets | Setting 2 inputs re-run through the service, declared targets met on a load week, integration fixtures, packaging | **partly met** | Setting 2 replay 6,737 of 6,737 queries, 0 disagreements | no extractor re-run, targets T2 T3 T6 T7 missed, no load week, no `inquiry.resolvers`, package is a placeholder |
+| **G0** semantic contract | contracts written, reviewed, frozen as versioned fixtures | **partly met** | types, 19 JSON Schemas, 13 decision records, 90 + 20 conformance fixtures | no freeze tag, no external review, two open contract gaps |
+| **G1** kernel and store parity | identical answers to the oracle on every frozen query, provenance identical, independent tests green, recovery green | **partly met** | 30,272 of 30,272 queries, 0 disagreements; provenance 0 through the compat projection; recovery tests green | 5 independent fixtures fail, 8 are skipped and 16 pending a decision; the provenance criterion is **blocked** on S-12 |
+| **G2** service parity, integration, targets | Setting 2 inputs re-run through the service, declared targets met on a load week, integration fixtures, packaging | **partly met** | Setting 2 replay 6,737 of 6,737 queries, 0 disagreements | no extractor re-run, targets T2 T3 T6 T7 missed, no load week, no `inquiry.resolvers`, the published package is the 0.0.1 placeholder (0.1.0 prepared, not released) |
 | **G3** policy learning | learned policy beats P0cSU on a sealed held-out stratum | **not started** | three presets exist, nothing is learned | everything |
 | **G4** consolidation | keys above the enumeration budget answered with oracle agreement | **not started** | a research spike and a candidate fast kernel | the shared representation and the above-budget stratum |
-| **G-S** security | threat model, poisoning gate, trust boundary, log integrity, policy files | **partly met** | 40 threats written; agent trust-boundary fixtures 18 of 20; chain and `verify_log` tested | no poisoning re-run, 12 of 13 security conformance fixtures pending a decision |
+| **G-S** security | threat model, poisoning gate, trust boundary, log integrity, policy files | **partly met** | 40 threats written; agent trust-boundary fixtures 19 of 20; chain and `verify_log` tested | no poisoning re-run, 12 of 14 security conformance fixtures pending a decision |
 | **G-X** extraction quality | extractor meets declared per-model thresholds on a frozen split | **not met** | gpt-oss-20b, single test run: fails one criterion (0.235 against 0.20) | the Ministral models were not run on test |
 | **G-A** agent-level | lowers harmful actions against last-write-wins and a third-party system | **partly met** | harmful-action rate 0.040 / 0.000 against 0.547 / 0.520 (exploratory) | no third-party baseline, not a confirmatory analysis |
 
@@ -30,11 +30,11 @@ passes.
 
 **Evidence.**
 
-* Executable contract: `palimem.types` and 17 generated JSON Schemas with 26 examples, drift-checked in CI ([`TYPES.md`](TYPES.md)).
+* Executable contract: `palimem.types` and 19 generated JSON Schemas with 32 examples, drift-checked in CI ([`TYPES.md`](TYPES.md)).
 * 13 decision records, all decided; the six contract changes that needed an explicit author line were decided on 2026-10-04
   ([`decisions/README.md`](decisions/README.md), [`CONTRACT_PENDING.md`](CONTRACT_PENDING.md)).
-* Fixtures: 90 conformance fixtures (2 tagged G0, 81 G1, 7 G2) plus 20 trust-boundary fixtures ([`CONFORMANCE.md`](CONFORMANCE.md)).
-  **(re-run today)** the 2 G0 fixtures pass.
+* Fixtures: 90 conformance fixtures (3 tagged G0, 80 G1, 7 G2) plus 20 trust-boundary fixtures ([`CONFORMANCE.md`](CONFORMANCE.md)).
+  **(re-run today)** the 3 G0 fixtures pass.
 * Versioning and the RFC process: [`VERSIONING.md`](VERSIONING.md).
 
 **Missing.**
@@ -42,12 +42,13 @@ passes.
 * **Not frozen.** [`VERSIONING.md`](VERSIONING.md) §9 says G0 freezes the contracts as `contracts-v2.0-rc1`; the repository has no
   tags. Work proceeded past G0 on the decision that 0.x may break contracts, so G0 blocks a 1.0, not the code.
 * **No external review** (one author, with LLM-assisted reviews; the same weakness as the oracle).
-* **Open contract gaps that need an author line** ([`MORNING_REVIEW.md`](MORNING_REVIEW.md) has the running list): `Rule.exceptions`
-  for defeasible rules (S-10); a `merge` power and a `MergeRecord`; a `change_from` field on `Report` (3,593 of 7,135 change
-  reports in Setting 1 need it; today it travels out of band); a query selector for the attribution versus the content of a
-  `belief_of` proposition; the status of two compatible `not_value` candidates; whether A-ERR is evaluated per segment or per key;
-  a `NotReconstructable` answer variant; a source-scope withdraw; cardinality of derived attributes (the one Setting 3 stream the
-  kernel refuses, [`SETTINGS23.md`](SETTINGS23.md) §4.1); explicit `error_allowed` / `competing_values`.
+* **Contract gaps.** Decided by the author on 2026-10-05 and implemented: an optional `change_from` on `Report`; a `merge`
+  power with a `MergeRecord`; a `NotReconstructable` answer variant; `verify(scope=log|beliefs)`; no attribution selector on
+  `Query` (value queries are content-only, `Memory.attributions(key)` is the attribution path); two compatible `not_value`
+  candidates answer `unknown`; A-ERR is evaluated per key; no source-scope withdraw (an `exclude_source` admission operation
+  instead); `Rule.exceptions` reserved in 0.x. **Still open:** the cardinality of derived attributes (the one Setting 3 stream the
+  kernel refuses, [`SETTINGS23.md`](SETTINGS23.md) §4.1) and explicit `error_allowed` / `competing_values`
+  ([`MORNING_REVIEW.md`](MORNING_REVIEW.md) has the running list).
 
 **Status: partly met.** Contracts are written, executable and fixtured; they are not reviewed externally or frozen.
 
@@ -71,25 +72,22 @@ compatibility profile, provenance identical, every independent test green, recov
 * **Recovery.** The store test suite kills a separate process at every step of the transaction and a retry converges with no
   duplicate and no partial revision (`tests/store/test_crash.py`, `test_crash_wave2.py`); a whole-pipeline crash test exists
   (`tests/test_pipeline.py`). **(re-run today)** `tests/store`: 214 passed, 2 skipped.
-* **Independent tests.** **(re-run today)** against `palimem.Memory`, of the 81 G1 fixtures: **27 pass, 8 fail, 10 skipped, 14
-  pending a decision, 2 shells, 20 not run by this runner** (the 20 trust-boundary fixtures have their own runner: 18 pass, 2
-  fail, below).
+* **Independent tests.** **(re-run today)** against `palimem.Memory`, of the 100 G1 fixtures (80 plus the 20 trust-boundary
+  ones): **53 pass, 5 fail, 6 skipped, 12 pending a decision, 4 shells, 20 not run by this runner** (the 20 trust-boundary
+  fixtures have their own runner: 19 pass, 1 fails, below).
 * Static exactness check, the {A,B,∅} counter-example as a regression test, and the equivalence suite of incremental admission
   against the whole-log oracle (2,040 random streams, compared after every append): [`KERNEL.md`](KERNEL.md), [`PIPELINE.md`](PIPELINE.md).
 
 **Missing.**
 
-* **The 8 failing fixtures, each with its cause.** `ind-01`, `ind-08b`, `ind-16`, `sec-39b`: they expect independent origin groups
-  to give *alternative* environments; the kernel returns one *joint* environment (an error label needs a dispute); **blocked** on an
-  author decision. `ind-20`: the fixture expects a store-wide dirty marker, the store follows the decided component-scoped one
-  (the fixture, not the store, is out of line with the decision). `ind-22`: the fixture disagrees with the store's own design
-  notes (STORAGE §9.5). `s10-02`: needs `Rule.exceptions` (gap above). `sec-41b`: needs the kernel semantics of an authorised
-  `dispute` (S-02 open point).
-* **10 skipped and 14 pending.** Skips: crash-injection, tamper and restore capabilities the `Memory` adapter does not expose (the
-  store tests cover them), `inertia=false` semantics (S-08), fixtures that append negative evidence (`not_value`, `not_member`,
-  `enumeration([])`: the adapter does not implement that append form and the kernel rejects negative evidence, for which no oracle
-  exists, the deposited model raises `NotImplementedError`), an extractor. Pending: fixtures waiting on an open decision (most are
-  security fixtures whose mitigation is only proposed).
+* **The 5 failing fixtures, each with its cause.** `ind-01`, `ind-08b`, `ind-16`, `sec-39b`: they expect independent origin groups
+  to give *alternative* environments (and, for `ind-08b`, an explanation that truncates at the budget); the kernel returns one
+  *joint* environment (an error label needs a dispute); **blocked** on an author decision. `ind-22`: the fixture disagrees with
+  the store's own design notes (STORAGE §9.5). The earlier failures `ind-20` (reconciled to the component-scoped dirty marker),
+  `s10-02` (rule exceptions are reserved in 0.x) and `sec-41b` (authorised dispute is implemented) no longer fail.
+* **8 skipped and 16 pending** (of all 110 listed fixtures). Skips: crash-injection, tamper and restore capabilities the `Memory`
+  adapter does not expose (the store tests cover them), `inertia=false` semantics (specified, refused until implemented), an
+  extractor. Pending: fixtures waiting on an open decision (most are security fixtures whose mitigation is only proposed).
 * **Provenance criterion is blocked.** Your S-12 line said `flatten` equals the oracle's provenance by definition and G1 requires
   exact equality on the frozen sets. That holds through the compat projection (met) and cannot hold for the product rule (above).
   Decision needed: G1's provenance criterion means equality *through the compat profile*.
@@ -118,13 +116,14 @@ v1 adapter, and the README contains the six obligations.
   *Notification after a crash*: the outbox is at-least-once with stable event ids and its crash tests pass at the store level
   (`tests/store/test_outbox.py`); `ind-17` is skipped in the `Memory` adapter for lack of a crash hook.
 * **Targets declared before any run** ([`PERFORMANCE.md`](PERFORMANCE.md) §3): at the sizes reached (up to 10,000 reports) query
-  latency (T1, p99 4.6 ms) and recovery after a kill (T4, 0.13 s, nothing lost) hold; append p99 (T2) is 252 ms against 100;
-  memory (T3) 5.2 KiB per report against 1; the p99 ratio over scale (T6) 21.8 against 4; disk (T7) 50 KiB per report against 5.
-  After incremental admission the plain append is about 1.0 ms at 10,000 reports and the p99 tail is organisation fan-out, the
+  latency (T1, p99 4.6 ms) and recovery after a kill (T4, 0.13 s, nothing lost) hold; append p99 (T2) is 240 ms against 100;
+  memory (T3) 5.0 KiB per report against 1; the p99 ratio over scale (T6) 4.1 over 1,000 to 10,000 reports against 4 (it was 21.8
+  over 300 to 10,000 before incremental admission, and no 300 point was measured after); disk (T7) 48 to 59 KiB per report against
+  5. After incremental admission the plain append is about 1.0 ms at 10,000 reports and the p99 tail is organisation fan-out, the
   pinning design ([`PERFORMANCE.md`](PERFORMANCE.md) §10).
-* **Packaging.** A wheel built from `main` installs into a clean virtual environment with zero dependencies; the quickstart and the
-  CLI run from it, `twine check` passes ([`RELEASING.md`](RELEASING.md), Python 3.13 only). The README carries the six
-  obligations in the required order, with the LongMemEval note before any table.
+* **Packaging.** A wheel built from this tree installs into a clean virtual environment with zero dependencies; the quickstart
+  and the CLI run from it, `twine check` passes, and `py.typed` is in the wheel ([`RELEASING.md`](RELEASING.md), Python 3.13 only).
+  The README carries the six obligations in the required order, with the LongMemEval note before any table.
 
 **Missing.**
 
@@ -139,8 +138,11 @@ v1 adapter, and the README contains the six obligations.
 * **`inquiry` naming its resolver.** `Inquiry.competing` and `missing` are populated; `resolvers` (the source classes that could
   decide) is never populated: generation from the rule schema (T-D4) is not built.
 * **Packaging.** The only published artefact is the 0.0.1 name reservation, an empty package; `pip install palimem` today installs
-  no functionality. Reproducing the deposited Setting 1 numbers from an *installed* wheel was not done (the harness runs from a
-  checkout). `release.yml` has never run and the trusted publisher is not configured on PyPI.
+  no functionality (0.1.0 is prepared in this repository and has not been released). Reproducing the deposited Setting 1
+  numbers from an *installed* wheel was not done (the harness runs from a checkout). `release.yml` has never run. Setup state
+  (author, 2026-10-05; the environments and branch protection verified through the GitHub API): trusted publishers on PyPI
+  (environment `pypi`, required reviewer) and TestPyPI (pending publisher, environment `testpypi`), the account-wide token
+  revoked, branch protection requiring the `harness` and `test` jobs.
 * One Setting 3 stream (24 queries) is not replayed (kernel gap, [`SETTINGS23.md`](SETTINGS23.md) §4.1).
 
 **Status: partly met.**
@@ -182,15 +184,16 @@ independent validation above n = 14. The environment budget is 12 after a cross-
 | # | Criterion | Evidence | Verdict |
 |---|---|---|---|
 | 1 | Threat model published; each threat has a mitigation, a test or an explicit `[accepted]` note | 40 threats written; 37 rows reference a `[proposed]` mitigation, 20 a `[design]` one, 6 `[accepted]` | partly |
-| 2 | SEC-01 … SEC-44 pass in the conformance suite | the 44 items map to 11 trust-boundary fixtures, 25 conformance fixtures and 8 marked not expressible; **(re-run today)** the security area has 13 conformance fixtures, 1 passing, **12 pending a decision** | **not met** |
+| 2 | SEC-01 … SEC-44 pass in the conformance suite | the 44 items map to 11 trust-boundary fixtures, 25 conformance fixtures and 8 marked not expressible; **(re-run today)** the security area has 14 conformance fixtures, 2 passing, **12 pending a decision**; the poisoning area has 9, of which 7 pass, 1 fails (`sec-39b`, the joint-versus-alternative question) and 1 is pending | **not met** |
 | 3 | The agent tool API cannot set `origin`, `source`, `actor`, `origin_group` or `authority` (SEC-01 to SEC-04) | `tb-01`, `tb-02`, `tb-03`, `tb-16` pass **(re-run today)** | met |
 | 4 | Poisoning re-run (T-H2) with limits declared first: untrusted source at most the measured 0.78, target under 0.10 once an admission policy exists; compromised trusted source a behaviour gate | no re-run exists; the study's 0.78 on 78 queries is the only poisoning evidence | **not started** |
-| 5 | The hash chain and `verify_log` exist and SEC-25, SEC-26, SEC-30 pass | store tests `test_sec25_…`, `test_sec26_…` (two forms), `test_sec30_…` pass on both backends (**re-run today**, `tests/store`: 214 passed); the `Memory` conformance runner skips them for lack of a tamper or restore hook | met at the store level |
-| 6 | `SECURITY.md` in force; releases use trusted publishing with 2FA | `SECURITY.md` and `release.yml` exist; the PyPI trusted publisher is not configured, the 0.0.1 reservation used an account-wide token (to revoke) | partly |
+| 5 | The hash chain and `verify_log` exist and SEC-25, SEC-26, SEC-30 pass | store tests `test_sec25_…`, `test_sec26_…` (two forms), `test_sec30_…` pass on both backends (**re-run today**, `tests/store`: 237 passed, 4 skipped); the `Memory` conformance runner skips them for lack of a tamper or restore hook | met at the store level |
+| 6 | `SECURITY.md` in force; releases use trusted publishing with 2FA | `SECURITY.md` and `release.yml` exist; the PyPI trusted publisher is configured and the account-wide token used for the 0.0.1 reservation is revoked (author-reported, 2026-10-05; environments, private vulnerability reporting and branch protection verified through the GitHub API); `release.yml` has never run | partly |
 
-Trust-boundary fixtures: 21 tests pass **(re-run today)**; 18 of 20 fixtures pass; the two ratcheted failures are `tb-12` (the
-fixture expects `abstain` on an unresolved key, the default policy answers `ask`) and `tb-18` (the kernel does not yet weigh an
-authorised dispute).
+Trust-boundary fixtures: 21 tests pass **(re-run today)**; 19 of 20 fixtures pass; the one ratcheted failure is `tb-12` (the
+fixture expects `abstain` on an unresolved key, the default policy answers `ask`; the author's ruling 16 of 2026-10-05, the host
+API abstains with `inquiry` populated and agent sessions default to `ask`, is not yet implemented). `tb-18` (authorised dispute)
+passes since the semantics rulings.
 
 **Status: partly met.** The agent cannot forge identity, the log is tamper-evident and erasable, and the threat model exists; the
 poisoning gate has never been run and most security fixtures are waiting on decisions.
@@ -211,11 +214,12 @@ claim F1 (0.837), cue accuracy (0.926), wrong-value rate (0.045), abstention acc
 of 7); 0 of 72 items needed repair. Spend $0.0196 on test; the shared ledger total across all LLM work so far is $0.457 of the $20 budget.
 
 **Missing.** Ministral 14B and 8B were not run on test: the declared selection rule picks revision 0 for them (they fail F1 widely
-there), and running revision 3 is a different prompt hash and an author decision (judge the injection criterion by interval overlap,
-keep the rule, or allow a targeted revision). The dev split is small (14 change claims, 7 injection items): too little power for
+there). The author ruled on 2026-10-05 that the rule stands: no Ministral test run this cycle, no fourth revision, no
+interval-overlap reading of a criterion after the fact; a new pre-declared cycle may put Ministral 14B at revision 3 forward
+later, which would be a first use of the test split by that model. The dev split is small (14 change claims, 7 injection items): too little power for
 most rates, and the test split has 17 change claims.
 
-**Status: not met** for the model that was tested; **blocked** for the other two on the decision above.
+**Status: not met** for the model that was tested; the other two have no test result (by the author's ruling, not run this cycle).
 
 ## 9. G-A, agent-level evidence
 
@@ -232,15 +236,19 @@ rate 0.000 for both; this checks that the kernel reproduces the gold (H0), not t
 0.818] and 0.650 [0.455, 0.875], with the lower bounds above 0 and both models agreeing in direction.
 
 **Missing.** The LLM run is explicitly a pilot, not the confirmatory analysis (it used Ministral 14B in place of the registered 8B, 3
-seeds not 5, no Holm correction, no second annotator); H3 and H5 are not established; **no third-party system was run** (Mem0 and
+seeds not 5, no Holm correction; the second annotation is a model third opinion, not a human one); H3 and H5 are not established; **no third-party system was run** (Mem0 and
 Graphiti/Zep need services, Letta is an agent itself), so the criterion's "at least one third-party baseline" is unmet. The memory
 text carries its own decision instructions and the models mostly follow them, so the result says little about agents without that
 text or about a hostile memory. 20 scenarios give about ±0.17; one author wrote the scenarios and the gold, and two gold
-conflicts are open (RA-006 against RA-007, and RA-026.d1). Registered numbers stay reproducible from a pinned product behaviour; a
-fresh run on current `main` differs on RA-007 (dev) and RA-006 (test).
+conflicts were adjudicated on 2026-10-05 (RA-006 keeps gold `ask`; RA-023.d1 keeps the P0cSU gold; RA-026.d1 is an erratum applied as a
+versioned overlay, [`../bench/agent/gold_errata.md`](../bench/agent/gold_errata.md)). `ministral-14b` replaces the registered
+`ministral-8b` as the second model (author's ruling 19, a dated deviation). Registered numbers stay reproducible from a pinned
+product behaviour. Under the author's ruling on failed corrections, the current product answers RA-006 with `ask` again (its gold
+stands); RA-007 answers `act manchester`, its default gold, and is "harmful" only against the `authority_source` profile gold,
+which the ruling says is wrong ([`eval/RA-007_TRACE.md`](eval/RA-007_TRACE.md)).
 
-**Status: partly met** (exploratory evidence against last-write-wins; the third-party half is unmet and the analysis is not
-confirmatory).
+**Status: partly met** (exploratory evidence against last-write-wins, stated only as the result for a compliant reader of the
+kernel's text; the third-party half is unmet and the analysis is not confirmatory).
 
 ## 10. Decisions that block a gate
 
@@ -248,30 +256,36 @@ confirmatory).
 |---|---|---|
 | G1's provenance criterion means equality through the compat profile | G1 | [`MORNING_REVIEW.md`](MORNING_REVIEW.md) item 0, S-12 |
 | Joint versus alternative environments for independent origin groups | G1 (four fixtures) | [`MORNING_REVIEW.md`](MORNING_REVIEW.md), A2 |
-| `Rule.exceptions`, authorised-dispute semantics, `not_value`, source-scope withdraw, `change_from` | G0, G1 | [`MORNING_REVIEW.md`](MORNING_REVIEW.md) |
-| Which gold the product follows, RA-006 or RA-007 | G-A | [`MORNING_REVIEW.md`](MORNING_REVIEW.md) |
-| Ministral on the test split | G-X | [`MORNING_REVIEW.md`](MORNING_REVIEW.md) |
-| A second annotator for the gold (agent benchmark, extractor set, entity pairs): the agent benchmark has a **model third opinion** (model-executed, author-instructed, author-reviewed; self-reported blind, not certified; kappa 0.866 against the registered gold; adjudicated 2026-10-05, one erratum RA-026.d1); no human annotator; none for the extractor set or the entity pairs | G-A, G-X | [`LIMITATIONS.md`](LIMITATIONS.md) |
+| Retire the `authority_source` gold for RA-007 as superseded by ruling 1, or keep it as a documented alternative profile | G-A | [`eval/RA-007_TRACE.md`](eval/RA-007_TRACE.md) |
+| Cardinality of derived attributes; explicit `error_allowed` / `competing_values` | G0 | section 2 |
 | Wording of G2's "empty report-by-report diff" for a different extractor | G2 | section 4 |
+| Whether `tb-12`'s expectation or the default policy is right once ruling 16 is implemented | G-S | section 7 |
+
+Decided on 2026-10-05 and no longer blocking: the contract additions and semantics rulings ([`decisions/RULINGS-2026-10-05.md`](decisions/RULINGS-2026-10-05.md)), no Ministral test run this cycle, the second annotation accepted as a model third opinion (self-reported blind, not certified; no human annotator exists or is planned; none for the extractor labels or the entity pairs, [`LIMITATIONS.md`](LIMITATIONS.md)).
 
 ## 11. What was re-run for this document, and what was not
 
-Re-run on 2026-10-05, each on the commit named above plus the replay:
+Re-run on 2026-10-05 on `main` at `e20e6ac` (the release-preparation pass), each from a fresh worktree with the study's frozen
+data extracted from the published deposit:
 
 | Command | Result |
 |---|---|
 | `python -m harness.pipeline_diff --stride 20 --backend both --provenance strict` | 25 streams, 1,522 queries per backend, 0 disagreements, 0 provenance disagreements, 1,295 stored-versus-audit supports checked, 0 mismatches |
 | `python -m harness.kernel_diff --stride 20 --source-retract sidetable --strict --provenance strict` | exit 0: PASS, 1,522 queries, 0 disagreements, 0 unexplained |
-| `python -m tests.conformance.runner --impl tests.conformance.impl_memory:MemoryImplementation` | 90 fixtures: 30 pass, 8 fail, 12 skipped, 18 pending, 2 shells, 20 not run by this runner |
-| `pytest tests/trust_boundary` | 21 passed; 18 of 20 fixtures pass, `tb-12` and `tb-18` ratcheted |
-| `pytest tests/store` | 214 passed, 2 skipped |
+| `python -m harness.exclusion_diff --stride 20 --backend both` | 0 disagreements |
+| `python -m tests.conformance.runner --impl tests.conformance.impl_memory:MemoryImplementation` | 110 fixtures listed (3 G0, 100 G1 including the 20 trust-boundary ones, 7 G2): 57 pass, 5 fail, 8 skipped, 16 pending a decision, 4 shells, 20 not run by this runner |
+| `pytest tests/trust_boundary` | 21 passed; 19 of 20 fixtures pass, `tb-12` ratcheted |
+| `pytest tests/store` | 237 passed, 4 skipped |
 | `python -m harness.replay_s23 --dataset all` | Setting 2: 6,737 queries, 0; stronger backbone: 994, 0; Setting 3: 690 of 714, 0; both backends |
-| `pytest` with study data and the cached Setting 2/3 files | 1,604 passed, 2 skipped, 2 xfailed |
-| `pytest` simulating CI's plain `test` job (no study checkout, no zip, no cache) | 1,555 passed, 51 skipped, 2 xfailed |
+| `pytest` with study data and the cached Setting 2/3 files | 2,537 passed, 4 skipped, 2 xfailed |
 
-**Not re-run today, quoted from the cited documents:** the full 500-stream pipeline and kernel differentials (30,272 queries), the
-SQLite pass over every second stream, the budget cross-check (1,050 fresh streams, 80,856 comparisons), every performance
-measurement, the extractor dev and test runs, the agent benchmark runs, the study's published numbers.
+**Not re-run today, quoted from the cited documents:** the full 500-stream pipeline and kernel differentials (30,272 queries; the
+lead ran them on the merged tree at the semantics-rulings merge, strict, with 0 disagreements), the SQLite pass over every
+second stream, the budget cross-check (1,050 fresh streams, 80,856 comparisons), every performance measurement, the extractor dev
+and test runs, the agent benchmark runs, the study's published numbers, and the CI-style run without study data (the plain `test`
+job of CI runs it on every push).
 
-**Could not be verified:** that `release.yml` works (never run), the PyPI trusted-publisher setup, wheel installs on Python versions
-other than 3.13, the 10^5-report extrapolations (no run reached that size), and the correctness of the gold itself (one author).
+**Could not be verified:** that `release.yml` works (never run), the PyPI and TestPyPI trusted-publisher setup (the maintainer's
+report; the GitHub environments and branch protection were read back through the GitHub API), wheel installs on Python versions
+other than 3.13, the 10^5-report extrapolations (no run reached that size), and the correctness of the gold itself (one author,
+with a model third opinion as the second annotation).
