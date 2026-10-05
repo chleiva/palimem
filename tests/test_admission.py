@@ -242,15 +242,32 @@ def test_origin_group_sharing_is_not_authority_in_the_product():
     assert dec(log, "w").effective_cue is Cue.ALLEGE
 
 
-def test_unauthorised_correct_stays_an_ordinary_assert_without_withdrawing():
+def test_unauthorised_correct_lands_as_allege_with_no_effect_in_the_product_profile():
+    # design v0.3 (§Write API): a correction that fails the authority check is recorded as `allege`, exactly like a
+    # failed withdraw or dispute: no effect on admissibility or the kernel (S-02 implementation note)
     log = Log()
     log.add("a", source="press", value="Acme")
     log.add("c", Cue.CORRECT, source="registry", value="Globex", target="a")
     d = dec(log, "c")
+    assert d.effective_cue is Cue.ALLEGE and d.withdraws == ()
+    assert d.record.outcome is Out.EXCLUDED
+    es = Admitter(AdmissionConfig()).evidence_set(log.list, KEY)
+    assert [e.report.id for e in es.direct] == [log.id("a")]  # the failed correction is no evidence, not even a rival value
+    assert {e.report.id for e in es.allegations} == {log.id("c")}  # but it stays visible to audits and the inquiry
+
+
+def test_unauthorised_correct_stays_an_ordinary_assert_in_the_compat_profile():
+    # the paper's behaviour (A-CORR: a cross-origin correction is a competing assertion carrying a correction cue)
+    # is unchanged under `revise-stream-v1`
+    log = Log()
+    log.add("a", source="press", value="Acme")
+    log.add("c", Cue.CORRECT, source="registry", value="Globex", target="a")
+    cfg = AdmissionConfig(profile=Profile.REVISE_STREAM_V1)
+    d = dec(log, "c", cfg)
     assert d.effective_cue is Cue.CORRECT and d.withdraws == ()
     assert d.record.outcome is Out.ADMISSIBLE
-    es = Admitter(AdmissionConfig()).evidence_set(log.list, KEY)
-    assert {e.report.id for e in es.direct} == {log.id("a"), log.id("c")}  # kernel's A-CORR handles it
+    es = Admitter(cfg).evidence_set(log.list, KEY)
+    assert {e.report.id for e in es.direct} == {log.id("a"), log.id("c")}
 
 
 def test_authorised_correct_withdraws_its_target_and_asserts_the_new_value():
