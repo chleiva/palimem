@@ -49,6 +49,7 @@ from .admitter import (
     Attribution,
     Withdrawal,
     attributions_from_groups,
+    kernel_view,
 )
 from .equivalence import proposition_signature
 
@@ -272,6 +273,10 @@ class IncrementalAdmission:
             s = self._sig[rid] = proposition_signature(prop)
             self._record(lambda: self._sig.pop(rid, None))
         return s
+
+    def _view(self, e: LogEntry) -> LogEntry:
+        """The entry as the kernel reads it (a correction without authority is read as the assert it carries)."""
+        return kernel_view(e, self.decision(_rid(e)))
 
     def _is_direct(self, e: LogEntry) -> bool:
         rid = _rid(e)
@@ -501,7 +506,7 @@ class IncrementalAdmission:
         # ---- direct evidence per key
         changed_keys: set[Key] = set()
         for k in dirty:
-            new = tuple(x for x in self.by_key.get(k, ()) if self._is_direct(x))
+            new = tuple(self._view(x) for x in self.by_key.get(k, ()) if self._is_direct(x))
             old = self.direct.get(k, ())
             if tuple(_rid(x) for x in new) != tuple(_rid(x) for x in old):
                 changed_keys.add(k)
@@ -510,7 +515,7 @@ class IncrementalAdmission:
             elif k in self.direct:
                 self._del(self.direct, k)
         if r.key not in dirty and self._is_direct(e):
-            self._put(self.direct, r.key, self.direct.get(r.key, ()) + (e,))
+            self._put(self.direct, r.key, self.direct.get(r.key, ()) + (self._view(e),))
             changed_keys.add(r.key)
 
         records: list[AdmissionRecord] = [self.decision(rid).record]

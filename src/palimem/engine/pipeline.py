@@ -33,6 +33,7 @@ from palimem.admission import (
     Attribution,
     Evaluation,
     IncrementalAdmission,
+    kernel_view,
     supports_incremental,
 )
 from palimem.engine.dependents import DependentsPlans, ValueIndex, resolve
@@ -112,7 +113,7 @@ def direct_entries(ev: Evaluation) -> dict[Key, list[LogEntry]]:
             and not isinstance(r.proposition, BeliefOfProp)
             and r.origin is Origin.EXTERNAL_OBSERVATION
         ):
-            out.setdefault(r.key, []).append(e)
+            out.setdefault(r.key, []).append(kernel_view(e, ev.decisions[rid]))
     return out
 
 

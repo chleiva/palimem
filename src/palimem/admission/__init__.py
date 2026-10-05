@@ -11,6 +11,7 @@ from palimem.admission.admitter import (
     Evaluation,
     EvidenceSet,
     Withdrawal,
+    kernel_view,
     origin_group_count,
 )
 from palimem.admission.authz import AuthDecision, Authorizer
@@ -47,6 +48,7 @@ __all__ = [
     "Withdrawal",
     "derive_ulid",
     "equivalent",
+    "kernel_view",
     "normalise_value",
     "origin_group_count",
     "proposition_signature",

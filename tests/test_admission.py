@@ -242,18 +242,50 @@ def test_origin_group_sharing_is_not_authority_in_the_product():
     assert dec(log, "w").effective_cue is Cue.ALLEGE
 
 
-def test_unauthorised_correct_lands_as_allege_with_no_effect_in_the_product_profile():
-    # design v0.3 (§Write API): a correction that fails the authority check is recorded as `allege`, exactly like a
-    # failed withdraw or dispute: no effect on admissibility or the kernel (S-02 implementation note)
+def test_unauthorised_correct_loses_its_effect_on_the_target_but_its_content_is_admitted_as_an_assert():
+    # author ruling of 2026-10-05 (S-02): a correction that fails the authority check is an `allege` for the TARGET part
+    # (the target is neither withdrawn nor forced to ERR), but the proposition is still a claim by its own, admissible
+    # source: admitted as an ordinary assert, so a correction is never worth less than the same statement as an assert
     log = Log()
     log.add("a", source="press", value="Acme")
     log.add("c", Cue.CORRECT, source="registry", value="Globex", target="a")
     d = dec(log, "c")
-    assert d.effective_cue is Cue.ALLEGE and d.withdraws == ()
-    assert d.record.outcome is Out.EXCLUDED
+    assert d.effective_cue is Cue.ALLEGE and d.withdraws == ()  # the target part
+    assert d.record.outcome is Out.ADMISSIBLE and d.record.reason is Why.ADMITTED  # the content part
+    assert d.authority is not None and not d.authority.allowed  # the failed check stays visible to audits
     es = Admitter(AdmissionConfig()).evidence_set(log.list, KEY)
-    assert [e.report.id for e in es.direct] == [log.id("a")]  # the failed correction is no evidence, not even a rival value
-    assert {e.report.id for e in es.allegations} == {log.id("c")}  # but it stays visible to audits and the inquiry
+    assert [e.report.id for e in es.direct] == [log.id("a"), log.id("c")]  # a rival value, admitted
+    view = es.direct[1].report
+    assert view.cue is Cue.ASSERT and view.target is None  # the kernel reads an assert, not a correction
+    assert {e.report.id for e in es.allegations} == {log.id("c")}  # and the allege for the target stays visible
+    assert not es.withdrawn  # nothing was withdrawn
+
+
+def test_unauthorised_correct_from_a_quarantined_source_is_not_authority_when_confirmed():
+    # a quarantined source's correction is never authority-checked; once derived confirmation admits it, it is evidence
+    # (an assert), never an act on the target
+    log = Log()
+    log.add("a", source="press", value="Acme", group="g1")
+    log.add("q", Cue.CORRECT, source="rumour", cls="quarantined", value="Globex", target="a", group="g2")
+    log.add("c", source="wire", value="Globex", group="g3")
+    d = dec(log, "q")
+    assert d.record.reason is Why.CONFIRMED and d.effective_cue is Cue.ALLEGE and d.withdraws == ()
+    es = Admitter(AdmissionConfig()).evidence_set(log.list, KEY)
+    assert {e.report.id: e.report.cue for e in es.direct} == {
+        log.id("a"): Cue.ASSERT, log.id("q"): Cue.ASSERT, log.id("c"): Cue.ASSERT,
+    }
+    assert not es.withdrawn
+
+
+def test_the_switch_set_to_false_restores_the_papers_a_corr_in_the_product_profile():
+    log = Log()
+    log.add("a", source="press", value="Acme")
+    log.add("c", Cue.CORRECT, source="registry", value="Globex", target="a")
+    cfg = AdmissionConfig(failed_correction_is_allege=False)
+    d = dec(log, "c", cfg)
+    assert d.effective_cue is Cue.CORRECT and d.withdraws == ()
+    es = Admitter(cfg).evidence_set(log.list, KEY)
+    assert es.direct[1].report.cue is Cue.CORRECT  # a competing assertion carrying the correction cue
 
 
 def test_unauthorised_correct_stays_an_ordinary_assert_in_the_compat_profile():

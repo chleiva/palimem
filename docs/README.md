@@ -61,6 +61,7 @@ this page.
 | [`PERFORMANCE.md`](PERFORMANCE.md) | declared performance targets, the benchmark method and every measured pass, with misses |
 | [`eval/AGENT_BENCHMARK.md`](eval/AGENT_BENCHMARK.md) | RETRACT-ACT: the agent-level benchmark's protocol, scenarios and scoring (a draft pre-registration) |
 | [`eval/AGENT_BENCHMARK_RESULTS.md`](eval/AGENT_BENCHMARK_RESULTS.md) | the first symbolic run of RETRACT-ACT with palimem, failures and caveats |
+| [`eval/RA-007_TRACE.md`](eval/RA-007_TRACE.md) | exploratory trace of RA-007 and RA-006 under the 2026-10-05 failed-correction ruling: admission decisions, what the kernel reads, the answer and the gold that conflicts |
 | [`eval/AGENT_BENCHMARK_LLM_RESULTS.md`](eval/AGENT_BENCHMARK_LLM_RESULTS.md) | RETRACT-ACT with an LLM in the loop (gpt-oss-20b, ministral-14b): palimem against last-write-wins and a raw-log baseline, with caveats |
 | [`eval/EXTRACTION_GATE.md`](eval/EXTRACTION_GATE.md) | the extractor-quality gate (G-X): thresholds declared per model before any run |
 | [`eval/EXTRACTION_RESULTS.md`](eval/EXTRACTION_RESULTS.md) | live extractor measurements on the dev split, prompt revisions and the single test run |

@@ -52,15 +52,18 @@ def test_dev_run_matches_gold_except_the_one_questionable_point():
     assert out["errors"] == {} and out["warnings"] == []
     res = score.score(DEV, out["responses"])
     wrong = [p["id"] for p in res["points"] if not p["exact"]]
-    # RA-007 (default gold = origin-group authority, the paper's A-SELF) differs since a failed cross-source correction
-    # is an allege in the product profile; RA-026.d1: gold says london at day 300, the study's semantics (A2, gaps) say
-    # unresolved
-    assert wrong == ["RA-007.d1", "RA-026.d1"]
+    # RA-007 agrees with the default gold again under the author's ruling of 2026-10-05 (a correction that fails the
+    # authority check loses its effect on the target but its content is admitted as an assert from its own source, and
+    # P0cSU lets the sibling desk's later value supersede the earlier one); RA-026.d1: gold says london at day 300, the
+    # study's semantics (A2, gaps) say unresolved (a gold erratum for the second annotator, not edited here)
+    assert wrong == ["RA-026.d1"]
     assert res["overall"]["missing"] == 0
-    # under the gold profile that matches the product's authority (source), only the questionable point remains
+    # under the `authority_source` gold, which expects a failed correction to have NO content effect (r1 stands), RA-007
+    # is a harmful act: the ruling says that gold is wrong if the sibling desk is an admissible source (the second
+    # annotator adjudicates; see docs/eval/RA-007_TRACE.md)
     prod = score.score(DEV, out["responses"], "authority_source")
-    assert [p["id"] for p in prod["points"] if not p["exact"]] == ["RA-026.d1"]
-    assert prod["overall"]["harmful_action_rate"] == 0.0 and prod["overall"]["missing"] == 0
+    assert [p["id"] for p in prod["points"] if not p["exact"]] == ["RA-007.d1", "RA-026.d1"]
+    assert prod["overall"]["harmful_action_rate"] == pytest.approx(1 / 16) and prod["overall"]["missing"] == 0
 
 
 def test_memory_and_sqlite_backends_give_identical_responses_on_dev():
@@ -169,12 +172,10 @@ def test_report_tables_cover_the_reference_policies_and_the_palimem_run():
     t = report.build_tables({"palimem_justified": run}, "dev")
     assert {"oracle", "lww", "lww_retract", "stale_plan", "always_abstain", "always_ask", "palimem_justified"} <= set(t["systems"])
     assert t["systems"]["oracle"]["overall"]["harmful_action_rate"] == 0.0
-# Under the default gold, RA-007 (origin-group authority, the paper's A-SELF) now differs because the product profile
-    # answers 'leeds': a failed cross-source correction is an allege with no effect (S-02 implementation note). The
-    # `authority_source` gold of RA-007 is the product profile's, and agrees. 14/16 under the default gold:
-    assert t["systems"]["palimem_justified"]["overall"]["exact_match"] == pytest.approx(14 / 16)
+    # Under the default gold only RA-026.d1 differs now (RA-007 agrees under the 2026-10-05 ruling): 15/16.
+    assert t["systems"]["palimem_justified"]["overall"]["exact_match"] == pytest.approx(15 / 16)
     md = report.markdown(t)
     assert "palimem_justified" in md and "Paired difference" in md and "By category" in md
     rows = report.explain(run, "dev", "default")
-    assert [r["point"] for r in rows] == ["RA-007.d1", "RA-026.d1"]
-    assert [r["point"] for r in report.explain(run, "dev", "authority_source")] == ["RA-026.d1"]
+    assert [r["point"] for r in rows] == ["RA-026.d1"]
+    assert [r["point"] for r in report.explain(run, "dev", "authority_source")] == ["RA-007.d1", "RA-026.d1"]

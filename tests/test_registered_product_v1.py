@@ -26,11 +26,13 @@ from registered_product_v1 import registered_product_v1
 
 RESULTS = BENCH / "results"
 SYSTEMS = ("justified", "recency", "lww", "justified_su_off")
-# decision points whose response differs between the registered product (034d520) and current main, per split:
-# RA-007 (dev): a correction by a sibling source of the same origin group is now `allege` under source-level authority
-# (the product default, design v0.3); RA-006 (test): a cross-origin correction now has no effect (`allege`) instead of
-# being a competing report, so the registered `ask` becomes an `act` (its gold conflicts with RA-007's source profile).
-EXPECTED_DIFFERENCES = {"dev": {("RA-007", "RA-007.d1")}, "test": {("RA-006", "RA-006.d1")}}
+# decision points whose response differs between the registered product (034d520) and current main, per split.
+# Lane Q made a failed correction a total `allege` (RA-007 dev and RA-006 test then differed). The author's ruling of
+# 2026-10-05 (S-02) restored the content half: a correction without authority loses its effect on the target but its
+# proposition is admitted as an assert from its own source, so for these two scenarios current main answers exactly as
+# the registered product did (RA-006 `ask`, RA-007 `act manchester`). The remaining difference is in the gold, not the
+# response (RA-007's `authority_source` gold; see docs/eval/RA-007_TRACE.md). Any further drift must be documented here.
+EXPECTED_DIFFERENCES: dict[str, set[tuple[str, str]]] = {"dev": set(), "test": set()}
 
 
 def _registered(split: str, system: str) -> dict:
