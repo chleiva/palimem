@@ -6,8 +6,12 @@ may change the contract; such changes are marked **BREAKING** with a migration n
 
 ## [Unreleased]
 
-Nothing here is released: the only published artefact is the 0.0.1 name reservation. Everything below is installed from a
-checkout. What does not exist, was not measured or was not decided is in [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md); the
+Nothing yet.
+
+## [0.1.0] - 2026-10-05 (prepared, not released)
+
+Prepared for a first release, to TestPyPI first by the author's ruling; **not yet published**: the only published artefact is the
+0.0.1 name reservation. Everything below is installed from a checkout until then. What does not exist, was not measured or was not decided is in [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md); the
 numbers and their caveats are in the README (section 7).
 
 ### Changed (semantics rulings of 2026-10-05, Lane S2; the compat profile and the registered results are unchanged)

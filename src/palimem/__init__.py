@@ -5,7 +5,7 @@ API, the MCP server and the CLI live in :mod:`palimem.memory`, :mod:`palimem.age
 :mod:`palimem.cli`.
 """
 
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 
 from palimem.facade import (
     Memory,
