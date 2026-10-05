@@ -259,3 +259,52 @@ def test_not_reconstructable_snapshot_raises_until_the_contract_has_a_variant(me
     mem.delete(r1.entry.report.id)
     with pytest.raises((NotReconstructableError, StoreError)):
         current(mem, "alex", "employer", belief_as_of=1)
+
+
+def _q(name: str, value: str, group: str) -> object:
+    from palimem.types import Source
+
+    r = assertion("alex", "employer", value, source=name, group=group)
+    from dataclasses import replace
+
+    return replace(r, source=Source(id=name, cls="quarantined"))
+
+
+def test_derived_confirmation_lifts_a_quarantine_and_updates_the_belief(mem: Memory) -> None:
+    """Two quarantined sources cannot confirm each other; an admissible report of a third origin group confirms both,
+    each earlier report gets a fresh admission record, and the touched key's belief changes in the same append."""
+    from palimem.types import Report
+
+    a = mem.append(_q("qa", "acme", "g_a"))  # type: ignore[arg-type]
+    b = mem.append(_q("qb", "acme", "g_b"))  # type: ignore[arg-type]
+    for res in (a, b):
+        assert res.admissions[0].outcome.value == "quarantined"
+    unknown = current(mem, "alex", "employer")
+    assert isinstance(unknown, Resolved) and unknown.kernel_status is KernelStatus.UNKNOWN
+
+    c = mem.append(assertion("alex", "employer", "acme", source="registry", group="g_c"))
+    assert isinstance(c.entry and c.entry.report, Report)
+    outcomes = {r.report_id: (r.outcome.value, r.reason.value) for r in c.admissions}
+    assert len(c.admissions) == 3  # its own, plus one fresh record for each earlier quarantined report
+    assert sum(1 for v in outcomes.values() if v == ("admissible", "confirmed")) == 2
+    ans = current(mem, "alex", "employer")
+    assert isinstance(ans, Resolved) and established_value(ans) == "acme"
+
+
+def test_direct_entries_equals_the_admission_evidence_set(mem: Memory) -> None:
+    """The one-pass evidence extraction the revision uses is the same set as ``EvidenceSet.direct`` (the design's
+    ``evidence_set(key, admission_version)``)."""
+    from palimem.engine import direct_entries
+    from palimem.types import Cue
+
+    r1 = mem.append(assertion("alex", "employer", "veltran", source="press"))
+    mem.append(assertion("alex", "employer", "acme", source="press", cue=Cue.CHANGE))
+    mem.append(assertion("veltran", "hq_city", "tessaly", source="registry"))
+    mem.append(_q("qa", "acme", "g_a"))  # type: ignore[arg-type]
+    assert r1.entry is not None and r1.entry.report.id is not None
+    mem.withdraw(r1.entry.report.id, source=src("press"), actor="connector:press")
+    ev = mem.evaluation()
+    by_key = direct_entries(ev)
+    for key in {e.report.key for e in ev.entries}:
+        want = [e.report.id for e in mem.pipeline.admitter.evidence_set_of(ev, key).direct]
+        assert [e.report.id for e in by_key.get(key, [])] == want
