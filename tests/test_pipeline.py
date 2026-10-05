@@ -247,7 +247,16 @@ def test_crash_at_every_step_leaves_no_trace_and_retry_converges(step: str, tmp_
     for e, a in (("alex", "employer"), ("veltran", "hq_city"), ("alex", "work_city")):
         x, y = current(m2, e, a), current(ref, e, a)
         assert isinstance(x, Resolved) and isinstance(y, Resolved)
-        assert x.justified.segment == y.justified.segment
+        # report ids are assigned by each log (ULIDs), so compare supports by their shape, not by id
+        sx, sy = x.justified.segment, y.justified.segment
+        assert (sx.valid_from, sx.valid_to, sx.kernel_status, sx.established, sx.alternatives) == (
+            sy.valid_from, sy.valid_to, sy.kernel_status, sy.established, sy.alternatives)
+        assert _support_shape(sx) == _support_shape(sy)
+
+
+def _support_shape(segment: object) -> object:
+    support = segment.support  # type: ignore[attr-defined]
+    return {cid: tuple((len(s.environment), s.valid_from, s.valid_to, s.precision) for s in sups) for cid, sups in support.items()}
 
 
 def test_not_reconstructable_snapshot_raises_until_the_contract_has_a_variant(mem: Memory) -> None:
