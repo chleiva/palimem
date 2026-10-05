@@ -280,7 +280,7 @@ def _kernel_eval(conv: Any, policy: str, budget: int, inject: str = "none") -> A
             if hit is not None:
                 return hit
             entries = self.adm.admitted_by_key(lsn).get(key, [])
-            j = justify_key(self.conv.kschema, key, entries, sem, change_from=self.conv.change_from, budget=budget)
+            j = justify_key(self.conv.kschema, key, entries, sem, budget=budget)
             if isinstance(j, ResourceLimitedResult):
                 self.resource_limited += 1
                 raise RuntimeError(f"resource limited: {j.detail}")  # noqa: TRY004

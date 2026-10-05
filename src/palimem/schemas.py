@@ -320,6 +320,7 @@ def build_defs() -> dict[str, dict[str, Any]]:
             "precision": _enum(_vals(Precision)),
             "raw_ref": _nullable(nonempty),
             "extractor": _nullable(_ref("Extractor")),
+            "change_from": _ref("Value"),  # optional; only for cue 'change' (author ruling 2026-10-05)
         },
         ["key", "cue", "source", "origin", "origin_group", "actor"],
         allOf=[
@@ -327,6 +328,7 @@ def build_defs() -> dict[str, dict[str, Any]]:
             _when("cue", ["assert", "change"], _absent_or_null("target")),
             _when("cue", ["assert", "change", "correct"], _present("proposition", _ref("Proposition"))),
             _when("cue", ["withdraw"], _absent_or_null("proposition")),
+            _when("cue", ["assert", "correct", "withdraw", "dispute", "allege"], _absent_or_null("change_from")),
         ],
     )
     d["LogEntry"] = _obj(
@@ -636,6 +638,10 @@ def build_examples() -> list[tuple[str, str, Any]]:
         ("report_attributed", "report", Report(
             key=key, cue=Cue.ASSERT, proposition=BeliefOfProp(holder="bob", proposition=ValueProp(value="Acme")),
             source=Source(id="chat", cls="standard"), origin=Origin.ATTRIBUTED, origin_group="chat", actor="connector:chat")),
+        ("report_change", "report", Report(
+            key=key, cue=Cue.CHANGE, proposition=ValueProp(value="Globex"), change_from="Acme",
+            source=Source(id="registry", cls="trusted"), origin=Origin.EXTERNAL_OBSERVATION,
+            origin_group="registry-group", actor="connector:registry", valid_from=_T1)),
         ("proposition", "proposition", EnumerationProp(values=("a", "b"))),
         ("attr", "attr", attr),
         ("schema", "schema", schema),

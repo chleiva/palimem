@@ -186,6 +186,16 @@ def test_change_from_presupposes_the_previous_value() -> None:
     without = _j(ks, key, es)
     # with `from acme`, a reading in which acme was wrong (ERR) and globex TRUE is excluded
     assert len(with_from.interpretations) < len(without.interpretations)
+    # the same presupposition stated on the report itself (Report.change_from)
+    es_field = [
+        es[0],
+        entry(2, "alex", "employer", "globex", day=3, origin_group="gB", source="b", cue="change", change_from="acme"),
+    ]
+    by_field = _j(ks, key, es_field)
+    assert by_field.interpretations == with_from.interpretations
+    assert by_field.segments() == with_from.segments()
+    # the field wins over an out-of-band override for the same report
+    assert _j(ks, key, es_field, change_from={es_field[1].report.id or "": "zzz"}).interpretations == with_from.interpretations
 
 
 # ---------------------------------------------------------------- budget

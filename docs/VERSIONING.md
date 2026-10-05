@@ -51,6 +51,17 @@ Rule: *anything a stored belief depends on is stored with it*, so a historical `
 - The conformance suite is versioned independently so a 0.x release can say which suite it passes.
 - Stored data written by `0.N` must be readable (by migration) by `0.N+1`, even when the contract moved. The store format is the one thing 0.x tries not to break.
 
+### Additive changes at 0.x (dated list)
+
+Additive contract changes (new optional fields, new enum values, new variants, new optional capabilities) are allowed in
+any `0.MINOR` and are recorded here and in `CHANGELOG.md`. Each keeps every earlier stored record and canonical byte string
+valid: a new optional field is omitted from the canonical JSON when absent, so hash-chain commitments of earlier reports
+do not change.
+
+| Date | Change | Ruling |
+|---|---|---|
+| 2026-10-05 | `Report.change_from` (optional; only for cue `change`; omitted when absent) | `decisions/RULINGS-2026-10-05.md` item 5 |
+
 ## 5. Deprecation
 
 - After 1.0: a deprecated field, method or default is announced in a MINOR release (with a runtime warning where applicable), kept for **at least two MINOR releases and 6 months**, and removed only in the next MAJOR.

@@ -21,7 +21,7 @@ types and the schemas.
 |---|---|---|
 | `Key`, `Proposition` = `ValueProp` / `MemberProp` / `NotMemberProp` / `EnumerationProp` / `NotValueProp` / `BeliefOfProp` (`values`) | Report, Proposition | `EnumerationProp` is a set (deduplicated, canonically ordered); `[]` is explicitly empty |
 | `Candidate` + `CandidateForm` = `ValueForm` / `SetForm` / `EmptyForm` / `NotValueForm` / `NotMemberForm` / `BeliefOfForm` (`values`) | Belief record | `id` = SHA-256 of canonical (key, form), derived and verified on decode; negative forms keep their content |
-| `Report`, `Source`, `Extractor` (`report`) | Report | free of lsn / hash-chain / `recorded_at`; `id` is `None` until the log assigns it |
+| `Report`, `Source`, `Extractor` (`report`) | Report | free of lsn / hash-chain / `recorded_at`; `id` is `None` until the log assigns it; optional `change_from` (only for cue `change`; omitted from the canonical JSON when absent, so earlier reports keep their exact bytes and hash-chain commitments) |
 | `LogEntry` (`report`) | Storage layout | `lsn`, `recorded_at`, `report`, optional `prev_hash` / `entry_hash` |
 | `AdmissionRecord` (`admission`) | Admission model | outcome, reason code, `admission_version`, `confirmed_by` |
 | `Attr`, `Completeness`, `CompletenessScope`, `Interval`, `Rule`, `Schema` (`attr`) | Schema entry | `check_proposition_for_attr` is the pure form-vs-class check |

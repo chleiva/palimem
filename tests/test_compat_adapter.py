@@ -85,15 +85,24 @@ def test_resource_limited_has_no_v1_projection() -> None:
         answer_v1(rl, multi=False)
 
 
-def test_change_from_round_trips_through_the_log_reference() -> None:
+def test_change_from_round_trips_through_the_report_field() -> None:
     r = assertion("alex", "employer", "acme", cue=Cue.CHANGE)
     assert change_from_of(r) is None
     r2 = with_change_from(r, "veltran")
-    assert r2.raw_ref is not None and r2.raw_ref.startswith(CHANGE_FROM_PREFIX)
+    assert r2.change_from == "veltran" and r2.raw_ref is None
     assert change_from_of(r2) == "veltran"
     assert change_from_of(with_change_from(r, 7)) == 7  # json keeps int distinct from str
-    # only a change cue carries it
-    assert change_from_of(with_change_from(assertion("alex", "employer", "acme"), "x")) is None
+
+
+def test_change_from_in_the_legacy_raw_ref_carrier_is_still_read() -> None:
+    from dataclasses import replace
+
+    r = assertion("alex", "employer", "acme", cue=Cue.CHANGE)
+    legacy = replace(r, raw_ref=CHANGE_FROM_PREFIX + '"veltran"')
+    assert change_from_of(legacy) == "veltran"
+    assert change_from_of(replace(legacy, change_from="x")) == "x"  # the field wins
+    # only a change cue ever carried it
+    assert change_from_of(replace(assertion("alex", "employer", "acme"), raw_ref=CHANGE_FROM_PREFIX + '"x"')) is None
 
 
 def test_compat_profile_config() -> None:

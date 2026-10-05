@@ -23,6 +23,11 @@ dispute    required                    optional (the competing claim, if any)
 allege     required                    optional
 =========  ==========================  =========================
 
+A ``change`` cue may carry ``change_from``, the value the source says the attribute had before the
+change (author ruling 2026-10-05, additive). It is optional, allowed only for cue ``change`` and omitted
+from the canonical JSON when absent, so the bytes (and hash-chain commitments) of every earlier report
+are unchanged.
+
 There is no ``confirm`` cue (S-01): confirmation is derived and recorded as an AdmissionRecord.
 ``actor`` is a typed principal id ``<kind>:<name>`` (S-07).
 """
@@ -36,6 +41,7 @@ from typing import Any, Self
 from palimem.types._codec import (
     Codec,
     ValidationError,
+    Value,
     as_enum,
     as_int,
     as_obj,
@@ -45,6 +51,7 @@ from palimem.types._codec import (
     check_nonempty,
     check_order,
     check_ulid,
+    check_value,
     norm_ts,
     opt,
     opt_ts_str,
@@ -116,6 +123,7 @@ class Extractor(Codec):
 _REPORT_REQUIRED = ["key", "cue", "source", "origin", "origin_group", "actor"]
 _REPORT_OPTIONAL = [
     "id", "proposition", "target", "observed_at", "valid_from", "valid_to", "precision", "raw_ref", "extractor",
+    "change_from",
 ]
 
 
@@ -138,6 +146,7 @@ class Report(Codec):
     raw_ref: str | None = None
     extractor: Extractor | None = None
     id: str | None = None  # ULID assigned by the log; None before append
+    change_from: Value | None = None  # previous value stated by a `change` cue (author ruling 2026-10-05)
 
     def __post_init__(self) -> None:
         if not isinstance(self.key, Key):
@@ -160,6 +169,10 @@ class Report(Codec):
             check_nonempty(self.raw_ref, "report.raw_ref")
         if self.extractor is not None and not isinstance(self.extractor, Extractor):
             raise ValidationError("report.extractor: not an Extractor")
+        if self.change_from is not None:
+            check_value(self.change_from, "report.change_from")
+            if self.cue is not Cue.CHANGE:
+                raise ValidationError(f"report.change_from: only a 'change' cue may state a previous value, not '{self.cue.value}'")
         for name in ("observed_at", "valid_from", "valid_to"):
             set_field(self, name, norm_ts(getattr(self, name), f"report.{name}"))
         check_order(self.valid_from, self.valid_to, "report.valid_from/valid_to")
@@ -182,7 +195,7 @@ class Report(Codec):
             raise ValidationError("report: origin 'attributed' requires a belief_of proposition")
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        d: dict[str, Any] = {
             "id": self.id,
             "key": self.key.to_dict(),
             "proposition": None if self.proposition is None else self.proposition.to_dict(),
@@ -199,6 +212,9 @@ class Report(Codec):
             "raw_ref": self.raw_ref,
             "extractor": None if self.extractor is None else self.extractor.to_dict(),
         }
+        if self.change_from is not None:  # omitted when absent: earlier reports keep their exact bytes
+            d["change_from"] = self.change_from
+        return d
 
     @classmethod
     def from_dict(cls, d: Any) -> Self:
@@ -219,6 +235,7 @@ class Report(Codec):
             precision=as_enum(Precision, o.get("precision", "day"), "report.precision"),
             raw_ref=opt(o.get("raw_ref"), lambda x: as_str(x, "report.raw_ref")),
             extractor=opt(o.get("extractor"), Extractor.from_dict),
+            change_from=o.get("change_from"),
         )
 
 

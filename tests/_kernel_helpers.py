@@ -38,6 +38,7 @@ def entry(
     target: int | None = None,
     since: int | None = None,
     multi: bool = False,
+    change_from: Value | None = None,
 ) -> LogEntry:
     """A log entry whose report id is ``ulid(lsn)``; ``target`` is the lsn of the targeted report."""
     cue_e = {"assert": Cue.ASSERT, "change": Cue.CHANGE, "correct": Cue.CORRECT}[cue]
@@ -53,6 +54,7 @@ def entry(
         origin_group=origin_group,
         actor=f"connector:{source}",
         valid_from=None if since is None else dt_of_day(since),
+        change_from=change_from,
     )
     return LogEntry(lsn=lsn, recorded_at=dt_of_day(lsn if day is None else day), report=rep)
 

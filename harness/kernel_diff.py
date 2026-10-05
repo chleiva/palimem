@@ -156,7 +156,7 @@ class StreamEval:
                 for e in entries
             ]
         sem = SEMANTIC_SU if self.inject == "self-update" else SEMANTIC
-        j = justify_key(self.conv.kschema, key, entries, sem, change_from=self.conv.change_from)
+        j = justify_key(self.conv.kschema, key, entries, sem)
         if isinstance(j, ResourceLimitedResult):
             self.resource_limited += 1
             raise RuntimeError(f"resource limited: {j.detail}")  # noqa: TRY004

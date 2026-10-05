@@ -9,9 +9,10 @@ report is the day of ``valid_from`` when the source gave one, otherwise the day 
 ``recorded_at`` (assumption A1: a report with no temporal cue asserts the value held at least when it was
 reported). Days are counted from :data:`EPOCH`.
 
-Contract gap, reported to the author: ``Report`` has no field for a ``change`` cue's *from* value
-(``op_from`` in the paper, present on 3,593 of the 7,135 change reports of Setting 1). A-CHG needs it, so
-the kernel accepts it out of band as ``change_from: {report id -> previous value}``.
+A ``change`` cue's *from* value (``op_from`` in the paper, present on 3,593 of the 7,135 change reports of
+Setting 1) is the optional ``Report.change_from`` field (author ruling 2026-10-05). The older out-of-band
+``change_from: {report id -> previous value}`` mapping is still accepted as an explicit override for
+callers that predate the field; the field wins when both are given for a report.
 """
 
 from __future__ import annotations
@@ -79,7 +80,7 @@ def evidence_from_entries(entries: Sequence[LogEntry], change_from: Mapping[str,
                 anchor=anchor,
                 value=r.proposition.value,
                 op_cue=op_cue,
-                op_from=(change_from or {}).get(r.id) if op_cue == "change" else None,
+                op_from=(r.change_from if r.change_from is not None else (change_from or {}).get(r.id)) if op_cue == "change" else None,
                 op_of=r.target if op_cue == "correction" else None,
                 origin_group=r.origin_group,
                 lsn=e.lsn,

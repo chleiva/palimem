@@ -11,6 +11,7 @@ checkout. What does not exist, was not measured or was not decided is in [`docs/
 numbers and their caveats are in the README (section 7).
 
 ### Added
+- **`Report.change_from`** (additive, author ruling 2026-10-05): the optional previous value stated by a `change` cue, allowed only for that cue and omitted from the canonical JSON when absent (earlier reports keep their exact bytes and hash-chain commitments). The kernel and the compat converter read it; the out-of-band `change_from` mapping and the `raw_ref` carrier of the compat profile are retired as the carrier (the old carrier is still read). Schemas regenerated.
 - **Registered-benchmark reproducibility** (`bench/agent/registered_product_v1.py`, `registered_render_v1.py`,
   `registered_rerun.py`, `current_main_column.py`): the registered RETRACT-ACT runs (symbolic and LLM-in-the-loop) correspond
   to the product behaviour of commit 034d520 and re-score offline to identical responses under a pin; a new run on current

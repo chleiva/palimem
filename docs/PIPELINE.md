@@ -122,7 +122,7 @@ verifiable:
 | Paper feature | Compat convention |
 |---|---|
 | source-level `retract(source)` (also removes assertions the source makes later) | a marker report `source_status(<source>) = "retracted"` on the reserved attribute `__source_status__`; `CompatAdmitter` withdraws every report of a marked source from that position on, and leaves admission records and A-SELF effects as the paper does |
-| `change` cue's `from` value (contract gap 1) | `Report.raw_ref = "palimem:compat:change_from:<json>"` |
+| `change` cue's `from` value | `Report.change_from` (author ruling 2026-10-05); logs written earlier carried it as `Report.raw_ref = "palimem:compat:change_from:<json>"`, which `change_from_of` still reads |
 | attribute kinds the contract classes cannot express (multi-valued *changeable*, derived cardinality, `error_allowed`, `competing_values`) | a full `KernelSchema` passed next to the contract `Schema` |
 | `blocked` | `excluded / source_blocked` |
 | withdrawn actors keep acting | `acting_reports_must_be_live = false` |
