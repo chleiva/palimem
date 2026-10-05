@@ -1,0 +1,147 @@
+{
+ "report_version": 1,
+ "kind": "heap",
+ "env": {
+  "python": "3.13.7",
+  "implementation": "CPython",
+  "sqlite": "3.50.4",
+  "os": "Darwin 25.3.0",
+  "machine": "arm64",
+  "cpu": "Apple M3",
+  "cpu_count": 8,
+  "git_commit": "75cfbe6"
+ },
+ "params": {
+  "workload": "w1",
+  "n_reports": 400,
+  "seed": 1,
+  "persons": 50
+ },
+ "traced_current_bytes": 759132,
+ "traced_peak_bytes": 1884074,
+ "by_file": [
+  {
+   "file": "bench/perf/workloads.py",
+   "size_bytes": 154580,
+   "blocks": 2263
+  },
+  {
+   "file": "src/palimem/admission/admitter.py",
+   "size_bytes": 99600,
+   "blocks": 834
+  },
+  {
+   "file": "dataclasses.py",
+   "size_bytes": 83032,
+   "blocks": 423
+  },
+  {
+   "file": "src/palimem/admission/incremental.py",
+   "size_bytes": 81288,
+   "blocks": 493
+  },
+  {
+   "file": "src/palimem/store/chain.py",
+   "size_bytes": 61200,
+   "blocks": 800
+  },
+  {
+   "file": "src/palimem/store/engine.py",
+   "size_bytes": 50792,
+   "blocks": 548
+  },
+  {
+   "file": "src/palimem/store/sqlite.py",
+   "size_bytes": 48174,
+   "blocks": 474
+  },
+  {
+   "file": "decoder.py",
+   "size_bytes": 43523,
+   "blocks": 861
+  },
+  {
+   "file": "src/palimem/store/ids.py",
+   "size_bytes": 26872,
+   "blocks": 402
+  },
+  {
+   "file": "src/palimem/admission/ids.py",
+   "size_bytes": 26800,
+   "blocks": 400
+  },
+  {
+   "file": "src/palimem/types/_codec.py",
+   "size_bytes": 22900,
+   "blocks": 458
+  },
+  {
+   "file": "bench/perf/heap.py",
+   "size_bytes": 18480,
+   "blocks": 2
+  }
+ ],
+ "by_line": [
+  {
+   "where": "dataclasses.py:1630",
+   "size_bytes": 80272,
+   "blocks": 400
+  },
+  {
+   "where": "src/palimem/admission/admitter.py:248",
+   "size_bytes": 50544,
+   "blocks": 400
+  },
+  {
+   "where": "src/palimem/store/engine.py:426",
+   "size_bytes": 45928,
+   "blocks": 400
+  },
+  {
+   "where": "src/palimem/admission/admitter.py:268",
+   "size_bytes": 45864,
+   "blocks": 387
+  },
+  {
+   "where": "src/palimem/store/sqlite.py:285",
+   "size_bytes": 45143,
+   "blocks": 438
+  },
+  {
+   "where": "decoder.py:337",
+   "size_bytes": 43342,
+   "blocks": 858
+  },
+  {
+   "where": "src/palimem/store/chain.py:53",
+   "size_bytes": 42000,
+   "blocks": 400
+  },
+  {
+   "where": "bench/perf/workloads.py:100",
+   "size_bytes": 36472,
+   "blocks": 400
+  },
+  {
+   "where": "bench/perf/workloads.py:97",
+   "size_bytes": 35440,
+   "blocks": 400
+  },
+  {
+   "where": "bench/perf/workloads.py:99",
+   "size_bytes": 31760,
+   "blocks": 379
+  },
+  {
+   "where": "src/palimem/store/ids.py:24",
+   "size_bytes": 26800,
+   "blocks": 400
+  },
+  {
+   "where": "src/palimem/admission/ids.py:23",
+   "size_bytes": 26800,
+   "blocks": 400
+  }
+ ],
+ "pipeline_evals_cache_entries": 0
+}

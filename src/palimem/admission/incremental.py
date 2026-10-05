@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import heapq
 from collections import Counter
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -54,11 +54,12 @@ from .equivalence import proposition_signature
 
 
 class SyncLog(Protocol):
-    """What :meth:`IncrementalAdmission.sync` needs of the log: committed rows only."""
+    """What :meth:`IncrementalAdmission.sync` needs of the log: committed rows only, read without caching (the state
+    keeps the entries it needs itself, so a caching log view would hold a second copy of every report)."""
 
-    def get(self, report_id: str) -> LogEntry | None: ...
+    def peek(self, report_id: str) -> LogEntry | None: ...
 
-    def entries(self, *, upto_lsn: int | None = None) -> Sequence[LogEntry]: ...
+    def scan(self, from_lsn: int, to_lsn: int) -> Iterator[LogEntry]: ...
 
     def head_lsn(self) -> int: ...
 
@@ -202,7 +203,7 @@ class IncrementalAdmission:
         if p is None:
             return
         self._pending = None
-        row = log.get(p.report_id)
+        row = log.peek(p.report_id)
         if row is not None and row.lsn == p.lsn:
             return
         for fn in reversed(p.undo):
@@ -214,23 +215,22 @@ class IncrementalAdmission:
         target = min(log.head_lsn(), before_lsn - 1)
         if self.head == target:
             last = self.entries[-1] if self.entries else None
-            if last is None or ((row := log.get(_rid(last))) is not None and row.lsn == last.lsn):
+            if last is None or ((row := log.peek(_rid(last))) is not None and row.lsn == last.lsn):
                 return
             self._rebuild(log, target)
             return
         if self.head < target:
             last = self.entries[-1] if self.entries else None
-            if last is None or ((row := log.get(_rid(last))) is not None and row.lsn == last.lsn):
-                for e in log.entries(upto_lsn=target):
-                    if e.lsn > self.head:
-                        self._apply(e)
+            if last is None or ((row := log.peek(_rid(last))) is not None and row.lsn == last.lsn):
+                for e in log.scan(self.head + 1, target):
+                    self._apply(e)
                 return
         self._rebuild(log, target)
 
     def _rebuild(self, log: SyncLog, target: int) -> None:
         self.rebuilds += 1
         self._reset()
-        for e in log.entries(upto_lsn=target):
+        for e in log.scan(1, target):
             self._apply(e)
 
     # ------------------------------------------------------------------ the update
