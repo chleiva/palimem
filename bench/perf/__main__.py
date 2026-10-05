@@ -4,6 +4,7 @@
   recovery   SIGKILL an appending process, reopen in a fresh interpreter, time to the first correct query
   crossover  store-versus-replay crossover r* on W1
   profile    cProfile over a window of appends and queries on a store of size N
+  heap       tracemalloc top allocation sites after a W1 run (T3 evidence)
   report     render the markdown tables and the target verdicts from a results directory
 """
 
@@ -17,6 +18,7 @@ from typing import Any
 
 from bench.perf import report
 from bench.perf.crossover import run_crossover
+from bench.perf.heap import run_heap
 from bench.perf.profile import run_profile
 from bench.perf.recovery import run_recovery
 from bench.perf.runner import run_workload
@@ -73,6 +75,13 @@ def main(argv: list[str] | None = None) -> int:
     pf.add_argument("--persons", type=int, default=None)
     pf.add_argument("--out", default=None)
 
+    hp = sub.add_parser("heap")
+    hp.add_argument("workload", choices=WORKLOADS)
+    hp.add_argument("--reports", type=int, required=True)
+    hp.add_argument("--seed", type=int, default=1)
+    hp.add_argument("--persons", type=int, default=None)
+    hp.add_argument("--out", default=None)
+
     rp = sub.add_parser("report")
     rp.add_argument("--dir", default=str(RESULTS))
 
@@ -98,6 +107,9 @@ def main(argv: list[str] | None = None) -> int:
     elif a.cmd == "profile":
         data = run_profile(a.workload, a.reports, window=a.window, seed=a.seed, persons=a.persons)
         _emit(data, a.out, f"profile-{a.workload}-{a.reports}.json")
+    elif a.cmd == "heap":
+        data = run_heap(a.workload, a.reports, seed=a.seed, persons=a.persons)
+        _emit(data, a.out, f"heap-{a.workload}-{a.reports}{'-p' + str(a.persons) if a.persons else ''}.json")
     else:
         print(report.render(a.dir))
     return 0

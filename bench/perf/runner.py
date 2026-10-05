@@ -173,7 +173,7 @@ def _run(
         tracemalloc.start()
     id_of: dict[int, str] = {}
     warm_n = max(1, int(WARMUP_FRACTION * n_reports))
-    cp_every = max(1, n_reports // CHECKPOINTS)
+    cp_every = max(1, min(n_reports // CHECKPOINTS, 250))  # at most 250 appends apart, so an early-stopped run still has a curve
     appends: list[int] = []
     warm: list[int] = []
     queries: list[int] = []
