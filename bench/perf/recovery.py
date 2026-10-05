@@ -58,6 +58,12 @@ def _probe(db: str, n: int, seed: int, persons: int | None, probe_lsn: int, veri
     t1 = time.perf_counter()
     rec = backend.recover()
     t_recover = time.perf_counter() - t1
+    # A restart resumes the durable completion jobs (design: "resumed after restart"): a kill between an append's commit
+    # and its completion step leaves keys stale until they run. Its cost is part of T4; how many jobs it had to run is
+    # recorded because it says how often a kill leaves work behind.
+    t_c = time.perf_counter()
+    comp = backend.complete_pending(mem.reviser)
+    t_complete = time.perf_counter() - t_c
     head = backend.head().lsn
     entry = next(iter(backend.scan(from_lsn=min(max(probe_lsn, 1), max(head, 1)), to_lsn=None)), None)
     key = entry.report.key if entry is not None and hasattr(entry, "report") else Key(entity="p0", attr="employer")
@@ -66,7 +72,9 @@ def _probe(db: str, n: int, seed: int, persons: int | None, probe_lsn: int, veri
     got = mem.read(key)
     t_query = time.perf_counter() - t2
     out: dict[str, Any] = {
-        "open_s": round(t_open, 4), "recover_s": round(t_recover, 4), "first_query_s": round(t_query, 4),
+        "open_s": round(t_open, 4), "recover_s": round(t_recover, 4), "completion_s": round(t_complete, 4),
+        "completion_jobs_run": comp.jobs_done, "completion_keys_stamped": comp.keys_stamped, "completion_jobs_still_pending": comp.jobs_pending,
+        "first_query_s": round(t_query, 4),
         "in_process_total_s": round(time.perf_counter() - t0, 4), "head_lsn": head, "recover_ok": rec.ok,
         "recover_problems": list(rec.problems), "answer_ok": isinstance(ans, Resolved) and got is not None and not isinstance(got, LimitedRead),
     }
@@ -149,7 +157,7 @@ def run_recovery(
     wall_total = time.perf_counter() - t0
     err = p.stderr.read() if p.stderr is not None else ""
     if p.wait() != 0 or first_query_wall is None:
-        raise RuntimeError(f"probe failed: {err[-800:]}")
+        raise RuntimeError(f"probe failed (exit {p.returncode}, first query seen: {first_query_wall is not None}): stderr={err[-800:]!r} last stdout line={line[-400:]!r}")
     pr = json.loads(line)  # the last line is the final record, with the verification timings
     lost = max(0, acked - pr["head_lsn"])
     return {

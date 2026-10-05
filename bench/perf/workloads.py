@@ -37,6 +37,7 @@ from palimem.types import Cue, Key, Origin, Report, Schema, Source, ValueProp
 CITIES = tuple(f"city{i:02d}" for i in range(48))
 SOURCES = (("press", "standard"), ("registry", "trusted"), ("wire", "standard"), ("blog", "low"), ("agency", "standard"))
 ENV_BUDGET = 7  # the default environment budget (S-06): keys are kept at or below it
+MAX_CORRECTIONS_PER_KEY = 2  # see _State: corrections are never withdrawn or corrected, so they are capped per key
 WORKLOADS = ("w1", "w2", "w3")
 
 
@@ -130,11 +131,18 @@ class _State:
         self.recent: list[tuple[str, str]] = []
         self.r = r
         self.credit = 0.0
+        # A correction withdraws its target, and *withdrawing or correcting a correction restores that target* (S-02), so a
+        # correction is never itself a correction or withdrawal target, and a key carries at most MAX_CORRECTIONS_PER_KEY
+        # of them. This keeps the generator's live count equal to the number of reports the store counts against the budget.
+        self.corrections: set[int] = set()
+        self.ncorr: dict[tuple[str, str], int] = {}
 
     def emit(self, entity: str, attr: str, value: str | None, cue: Cue, source: str, group: str, target: int | None = None) -> AppendOp:
+        key = (entity, attr)
+        if cue is Cue.CORRECT and self.ncorr.get(key, 0) >= MAX_CORRECTIONS_PER_KEY:
+            cue, target = Cue.ASSERT, None  # this key already carries its quota of corrections
         op = AppendOp(self.n_appends, entity, attr, value, cue, source, group, target)
         self.n_appends += 1
-        key = (entity, attr)
         if cue is Cue.WITHDRAW:
             self.live[key] = [x for x in self.live.get(key, []) if x[0] != target]
         else:
@@ -142,6 +150,8 @@ class _State:
                 self.written.append(key)
             if cue is Cue.CORRECT:
                 self.live[key] = [x for x in self.live.get(key, []) if x[0] != target]
+                self.corrections.add(op.index)
+                self.ncorr[key] = self.ncorr.get(key, 0) + 1
             self.live.setdefault(key, []).append((op.index, source, group, str(value)))
             self.recent.append(key)
             if len(self.recent) > 256:
@@ -177,14 +187,17 @@ def _value_for(st: _State, attr: str) -> str:
 
 
 def _own(st: _State, key: tuple[str, str]) -> tuple[int, str, str, str] | None:
-    live = st.live.get(key)
+    """A live report a source may withdraw or correct (never a correction: see ``_State``)."""
+    live = [x for x in st.live.get(key, []) if x[0] not in st.corrections]
     return live[st.rng.randrange(len(live))] if live else None
 
 
 def _prune(st: _State, key: tuple[str, str], keep: int) -> Iterator[AppendOp]:
-    """Keep a key at or below the environment budget: withdraw its oldest live reports (by their own source)."""
-    live = st.live.get(key, [])
-    for idx, source, group, _v in list(live[: max(0, len(live) - keep)]):
+    """Keep a key at or below ``keep`` live reports: withdraw its oldest non-correction reports (by their own source).
+    Corrections stay (withdrawing one would restore its target), so they are subtracted from the allowance."""
+    candidates = [x for x in st.live.get(key, []) if x[0] not in st.corrections]
+    allowed = max(0, keep - st.ncorr.get(key, 0))
+    for idx, source, group, _v in candidates[: max(0, len(candidates) - allowed)]:
         yield st.emit(key[0], key[1], None, Cue.WITHDRAW, source, group, target=idx)
 
 
@@ -197,8 +210,8 @@ def _w1_step(st: _State, hq_change: float = 0.03) -> Iterator[AppendOp]:
         yield st.emit(o, "hq_city", CITIES[rng.randrange(len(CITIES))], Cue.CHANGE, "registry", "registry")
         return
     key = _person_key(st)
-    own = _own(st, key)
     yield from _prune(st, key, ENV_BUDGET - 1)
+    own = _own(st, key)  # chosen after pruning: never a report this very step has just withdrawn
     src, _grp = SOURCES[rng.randrange(len(SOURCES))]
     if own is None or roll < 0.25:  # a new key (or a first report)
         yield st.emit(key[0], key[1], _value_for(st, key[1]), Cue.ASSERT, src, src)

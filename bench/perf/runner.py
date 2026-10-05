@@ -166,7 +166,7 @@ def run_workload(
 def _run(
     workload: str, n_reports: int, *, r: float, seed: int, db_path: str | Path, max_seconds: float | None, trace_memory: bool, persons: int | None = None,
 ) -> tuple[dict[str, Any], Memory]:
-    mem, _backend = make_memory(n_reports, db_path, persons)
+    mem, backend = make_memory(n_reports, db_path, persons)
     gc.collect()
     rss0 = rss_bytes()
     if trace_memory:
@@ -224,6 +224,7 @@ def _run(
                 q_kind["derived"].append(dt)
 
     elapsed = time.perf_counter() - t_start
+    pending_jobs = backend.complete_pending(mem.reviser).jobs_pending  # keys that can never finish (over the environment budget)
     if window.appends and (not checkpoints or checkpoints[-1]["reports"] != n_appended):
         checkpoints.append(_checkpoint(n_appended, t_start, window, db_path))
     heap: dict[str, int] | None = None
@@ -245,7 +246,10 @@ def _run(
         "appends": {**summarize_ns(appends), "warmup": summarize_ns(warm), "sustained_per_s": round(n_appended / total_append_s, 2) if total_append_s else 0.0},
         "appends_by_attr_cue": {k: summarize_ns(v) for k, v in sorted(by_attr.items())},
         "queries": {**summarize_ns(queries), "by_kind": {k: summarize_ns(v) for k, v in q_kind.items()}},
-        "integrity": {"resource_limited_answers": limited, "visibility_checks": visibility_checks, "not_visible_after_append": not_visible},
+        "integrity": {
+            "resource_limited_answers": limited, "visibility_checks": visibility_checks, "not_visible_after_append": not_visible,
+            "pending_completion_jobs_at_end": pending_jobs,
+        },
         "memory": {
             "rss_start_bytes": rss0, "rss_end_bytes": rss_end, "rss_peak_bytes": peak_rss_bytes(),
             "slope_bytes_per_report": _rss_slope(checkpoints), "heap": heap,

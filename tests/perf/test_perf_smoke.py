@@ -64,6 +64,31 @@ def test_no_key_exceeds_the_environment_budget(name: str) -> None:
         assert len(live.get(key, ())) <= wl.ENV_BUDGET, (key, len(live[key]))
 
 
+@pytest.mark.parametrize("name", wl.WORKLOADS)
+def test_corrections_are_never_correction_or_withdrawal_targets(name: str) -> None:
+    """Withdrawing or correcting a correction restores its target (S-02), so the generators never do it: that is what
+    keeps their live count equal to the number of reports the store counts against the environment budget."""
+    corrections: set[int] = set()
+    per_key: dict[tuple[str, str], int] = {}
+    for op in wl.generate(name, 800, r=0.0, seed=11, persons=20):
+        assert isinstance(op, wl.AppendOp)
+        if op.target is not None:
+            assert op.target not in corrections, op
+        if op.cue is Cue.CORRECT:
+            corrections.add(op.index)
+            per_key[(op.entity, op.attr)] = per_key.get((op.entity, op.attr), 0) + 1
+    assert all(n <= wl.MAX_CORRECTIONS_PER_KEY for n in per_key.values())
+
+
+@pytest.mark.parametrize("name", wl.WORKLOADS)
+def test_hot_population_stays_inside_the_validated_envelope_end_to_end(name: str) -> None:
+    """The generators must never push a key over the environment budget in the *store* (the kernel's count, not the
+    generator's own): no ResourceLimited answer and no completion job left pending, even with few people (hot keys)."""
+    rep = run_workload(name, 260, r=1.0, seed=1, db_path=":memory:", persons=20)
+    assert rep["integrity"]["resource_limited_answers"] == 0, rep["integrity"]
+    assert rep["integrity"]["pending_completion_jobs_at_end"] == 0, rep["integrity"]
+
+
 def test_query_mix_has_current_historical_and_derived_reads() -> None:
     m = wl.mix(list(wl.generate("w1", 400, r=3.0, seed=2)))
     assert m["query_current"] > 0 and m["query_historical"] > 0 and m["query_derived"] > 0
@@ -139,9 +164,9 @@ def test_recovery_kills_and_reopens_without_losing_acknowledged_appends(tmp_path
     rep = run_recovery(20, extra=150, seed=1, workdir=tmp_path)
     json.dumps(rep)
     assert rep["kind"] == "recovery"
-    assert rep["acknowledged_appends_lost"] == 0
-    assert rep["integrity_ok"] is True, rep["probe"]
-    assert rep["head_lsn_after"] >= rep["last_acked_lsn"] >= 20
+    assert rep["acknowledged_appends_lost"] == 0, rep
+    assert rep["integrity_ok"] is True, rep
+    assert rep["head_lsn_after"] >= rep["last_acked_lsn"] >= 20, rep
     assert rep["start_to_first_correct_query_s"] > 0
 
 
