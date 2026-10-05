@@ -1,0 +1,320 @@
+{
+ "datasets": {
+  "s2": {
+   "authority_extracted_claims": {
+    "correction:cross_origin": 454,
+    "correction:dangling_target": 2,
+    "correction:same_source": 628,
+    "retract:dangling_target": 1,
+    "retract:same_source": 1286,
+    "retract:source_level": 33
+   },
+   "authority_original_reports": {
+    "correction:cross_origin": 455,
+    "correction:same_source": 629,
+    "retract:same_source": 1281,
+    "retract:source_level": 30
+   },
+   "backends": {
+    "memory": {
+     "disagreement_classes": {},
+     "examples": [],
+     "not_replayed": {},
+     "per_slot": {
+      "asof": {
+       "queries": 287
+      },
+      "belief_asof": {
+       "queries": 307
+      },
+      "current": {
+       "queries": 2367
+      },
+      "downstream": {
+       "queries": 2909
+      },
+      "reported": {
+       "queries": 338
+      },
+      "yesno:changed": {
+       "queries": 88
+      },
+      "yesno:erroneous": {
+       "queries": 128
+      },
+      "yesno:holds": {
+       "queries": 313
+      }
+     },
+     "totals": {
+      "agrees_with_gold": 6285,
+      "agrees_with_study_replay": 6737,
+      "queries": 6737,
+      "streams_replayed": 100,
+      "study_store_agrees_with_gold": 6285
+     }
+    },
+    "sqlite": {
+     "disagreement_classes": {},
+     "examples": [],
+     "not_replayed": {},
+     "per_slot": {
+      "asof": {
+       "queries": 287
+      },
+      "belief_asof": {
+       "queries": 307
+      },
+      "current": {
+       "queries": 2367
+      },
+      "downstream": {
+       "queries": 2909
+      },
+      "reported": {
+       "queries": 338
+      },
+      "yesno:changed": {
+       "queries": 88
+      },
+      "yesno:erroneous": {
+       "queries": 128
+      },
+      "yesno:holds": {
+       "queries": 313
+      }
+     },
+     "totals": {
+      "agrees_with_gold": 6285,
+      "agrees_with_study_replay": 6737,
+      "queries": 6737,
+      "streams_replayed": 100,
+      "study_store_agrees_with_gold": 6285
+     }
+    }
+   },
+   "dataset": "s2",
+   "extracted_feature_mix": {
+    "assert": 11763,
+    "change": 1595,
+    "correction": 1084,
+    "observations": 13083,
+    "retract": 1320
+   },
+   "reference_normalisation": {
+    "correction_of_non_assertion_as_plain_assertion": 3,
+    "retract_of_non_assertion_dropped": 8
+   },
+   "seconds": 136.0,
+   "streams": 100
+  },
+  "s2_strong": {
+   "authority_extracted_claims": {
+    "correction:cross_origin": 74,
+    "correction:same_source": 101,
+    "retract:same_source": 188,
+    "retract:source_level": 4
+   },
+   "authority_original_reports": {
+    "correction:cross_origin": 74,
+    "correction:same_source": 101,
+    "retract:same_source": 188,
+    "retract:source_level": 4
+   },
+   "backends": {
+    "memory": {
+     "disagreement_classes": {},
+     "examples": [],
+     "not_replayed": {},
+     "per_slot": {
+      "asof": {
+       "queries": 36
+      },
+      "belief_asof": {
+       "queries": 56
+      },
+      "current": {
+       "queries": 338
+      },
+      "downstream": {
+       "queries": 430
+      },
+      "reported": {
+       "queries": 52
+      },
+      "yesno:changed": {
+       "queries": 21
+      },
+      "yesno:erroneous": {
+       "queries": 24
+      },
+      "yesno:holds": {
+       "queries": 37
+      }
+     },
+     "totals": {
+      "agrees_with_gold": 956,
+      "agrees_with_study_replay": 994,
+      "queries": 994,
+      "streams_replayed": 15,
+      "study_store_agrees_with_gold": 956
+     }
+    },
+    "sqlite": {
+     "disagreement_classes": {},
+     "examples": [],
+     "not_replayed": {},
+     "per_slot": {
+      "asof": {
+       "queries": 36
+      },
+      "belief_asof": {
+       "queries": 56
+      },
+      "current": {
+       "queries": 338
+      },
+      "downstream": {
+       "queries": 430
+      },
+      "reported": {
+       "queries": 52
+      },
+      "yesno:changed": {
+       "queries": 21
+      },
+      "yesno:erroneous": {
+       "queries": 24
+      },
+      "yesno:holds": {
+       "queries": 37
+      }
+     },
+     "totals": {
+      "agrees_with_gold": 956,
+      "agrees_with_study_replay": 994,
+      "queries": 994,
+      "streams_replayed": 15,
+      "study_store_agrees_with_gold": 956
+     }
+    }
+   },
+   "dataset": "s2_strong",
+   "extracted_feature_mix": {
+    "assert": 1840,
+    "change": 322,
+    "correction": 175,
+    "observations": 2032,
+    "retract": 192
+   },
+   "reference_normalisation": {},
+   "seconds": 25.1,
+   "streams": 15
+  },
+  "s3": {
+   "authority_extracted_claims": {
+    "correction:cross_origin": 6,
+    "correction:same_source": 24,
+    "retract:cross_origin": 80
+   },
+   "authority_original_reports": {
+    "correction:cross_origin": 6,
+    "correction:same_source": 24,
+    "retract:cross_origin": 80
+   },
+   "backends": {
+    "memory": {
+     "disagreement_classes": {},
+     "examples": [],
+     "not_replayed": {
+      "s3_Q106543540": "KernelUnsupported: single-valued attr 'ceo_city': a world holds several values ['Q36262', 'Q60']"
+     },
+     "per_slot": {
+      "asof": {
+       "queries": 74
+      },
+      "belief_asof": {
+       "queries": 87
+      },
+      "current": {
+       "queries": 238
+      },
+      "downstream": {
+       "queries": 81
+      },
+      "reported": {
+       "queries": 73
+      },
+      "yesno:erroneous": {
+       "queries": 29
+      },
+      "yesno:holds": {
+       "queries": 108
+      }
+     },
+     "totals": {
+      "agrees_with_gold": 675,
+      "agrees_with_study_replay": 690,
+      "queries": 690,
+      "queries_not_replayed": 24,
+      "streams_not_replayed": 1,
+      "streams_replayed": 29,
+      "study_store_agrees_with_gold": 675
+     }
+    },
+    "sqlite": {
+     "disagreement_classes": {},
+     "examples": [],
+     "not_replayed": {
+      "s3_Q106543540": "KernelUnsupported: single-valued attr 'ceo_city': a world holds several values ['Q36262', 'Q60']"
+     },
+     "per_slot": {
+      "asof": {
+       "queries": 74
+      },
+      "belief_asof": {
+       "queries": 87
+      },
+      "current": {
+       "queries": 238
+      },
+      "downstream": {
+       "queries": 81
+      },
+      "reported": {
+       "queries": 73
+      },
+      "yesno:erroneous": {
+       "queries": 29
+      },
+      "yesno:holds": {
+       "queries": 108
+      }
+     },
+     "totals": {
+      "agrees_with_gold": 675,
+      "agrees_with_study_replay": 690,
+      "queries": 690,
+      "queries_not_replayed": 24,
+      "streams_not_replayed": 1,
+      "streams_replayed": 29,
+      "study_store_agrees_with_gold": 675
+     }
+    }
+   },
+   "dataset": "s3",
+   "extracted_feature_mix": {
+    "assert": 416,
+    "correction": 30,
+    "observations": 496,
+    "retract": 80
+   },
+   "reference_normalisation": {},
+   "seconds": 1.0,
+   "streams": 30
+  }
+ },
+ "harness": "replay_s23",
+ "profile": "revise-stream-v1",
+ "study_commit": "244de16a45856717f06be7052b0341c2186ec3a8"
+}

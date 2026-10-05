@@ -46,7 +46,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: .cache/frozen
-          key: frozen-setting1-686cf0bbf43f   # first 12 hex of the pinned Zenodo zip SHA-256
+          key: frozen-s1-s23-686cf0bbf43f   # first 12 hex of the pinned Zenodo zip SHA-256 (Setting 1 and the Setting 2/3 files)
       - run: pip install -e ".[dev]"
       - name: Fetch and verify the frozen set (all 1,501 files against the pinned manifest)
         run: python -m harness.frozen verify --fetch
@@ -104,6 +104,18 @@ jobs:
           if python -m harness.pipeline_diff --limit 10 --backend memory --provenance strict --inject-bug drop-provenance; then
             echo "::error::pipeline_diff --provenance strict did not detect injected bug 'drop-provenance'"; exit 1
           fi
+      - name: Settings 2/3 cached data (T-J5), verified against the pinned manifest
+        run: python -m harness.studydata verify --fetch
+      - name: Settings 2/3 replay (T-J5), bounded (every 10th stream, in-memory backend) on push/PR, everything on the nightly schedule
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then ARGS="--backends memory,sqlite"; else ARGS="--stride 10 --backends memory"; fi
+          python -m harness.replay_s23 $ARGS --out replay-s23-report.json
+      - name: Settings 2/3 replay self-test, the gate must fail on an injected bug
+        run: |
+          if python -m harness.replay_s23 --dataset s2 --limit 3 --backends memory --inject-bug mutate-answer; then
+            echo "::error::replay_s23 did not detect injected bug 'mutate-answer'"; exit 1
+          fi
+      - run: pytest -q tests/test_replay_s23.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -114,3 +126,4 @@ jobs:
             kernel-provenance-report.json
             pipeline-diff-report.json
             pipeline-provenance-report.json
+            replay-s23-report.json
