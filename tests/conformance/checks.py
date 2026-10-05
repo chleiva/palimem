@@ -23,7 +23,10 @@ def _frozen_dir() -> Path | None:
         sys.path.insert(0, str(REPO))
         from harness import frozen
 
-        return Path(frozen.locate_frozen())
+        try:
+            return Path(frozen.locate_frozen())
+        except frozen.FrozenError:  # no frozen data on this machine (CI's plain test job): the check cannot run
+            return None
     except (ImportError, OSError, FileNotFoundError):
         return None
 
