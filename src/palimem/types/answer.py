@@ -18,6 +18,7 @@ from typing import Any, Self
 from palimem.types._codec import (
     Codec,
     ValidationError,
+    as_bool,
     as_enum,
     as_float,
     as_int,
@@ -40,6 +41,7 @@ from palimem.types.enums import (
     ExplainMode,
     ExplanationState,
     KernelStatus,
+    NotReconstructableReason,
     Profile,
     ResourceLimitedReason,
     RuleFired,
@@ -362,7 +364,73 @@ class ResourceLimited(Codec):
         )
 
 
-Answer = Resolved | ResourceLimited
+@dataclass(frozen=True, kw_only=True)
+class NotReconstructable(Codec):
+    """The belief in force at the requested snapshot was redacted by an erasure, so the historical answer can no
+    longer be reconstructed (S-13; author ruling 2026-10-05, an additive third ``Answer`` variant).
+
+    Like :class:`ResourceLimited` it carries no segment and no kernel_status: none could truthfully describe the
+    snapshot. It says *what* was redacted without leaking any of it: the key the caller asked about, the snapshot they
+    asked for, and the number and log position of the redacted version, never its content. ``current_available`` says
+    whether a repaired current belief of the key can be read instead."""
+
+    reason: NotReconstructableReason
+    key: Key
+    belief_as_of: BeliefAsOf  # the snapshot that was requested
+    version: int  # the redacted belief version in force at that snapshot
+    lsn: int  # the log position that version was produced at
+    current_available: bool = True
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.reason, NotReconstructableReason):
+            raise ValidationError("answer.reason: not a NotReconstructableReason")
+        if not isinstance(self.key, Key):
+            raise ValidationError("answer.key: not a Key")
+        if check_belief_as_of(self.belief_as_of, "answer.belief_as_of") is None:
+            raise ValidationError("answer.belief_as_of is required")
+        set_field(self, "belief_as_of", check_belief_as_of(self.belief_as_of, "answer.belief_as_of"))
+        check_nat(self.version, "answer.version", minimum=1)
+        check_nat(self.lsn, "answer.lsn", minimum=1)
+        if not isinstance(self.current_available, bool):
+            raise ValidationError("answer.current_available: expected a boolean")
+
+    @property
+    def decision(self) -> str:
+        return "not_reconstructable"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "decision": "not_reconstructable",
+            "reason": self.reason.value,
+            "key": self.key.to_dict(),
+            "belief_as_of": belief_as_of_to_json(self.belief_as_of),
+            "version": self.version,
+            "lsn": self.lsn,
+            "current_available": self.current_available,
+        }
+
+    @classmethod
+    def from_dict(cls, d: Any) -> Self:
+        o = as_obj(
+            d, "not_reconstructable answer",
+            ["decision", "reason", "key", "belief_as_of", "version", "lsn"], ["current_available"],
+        )
+        if o["decision"] != "not_reconstructable":
+            raise ValidationError("not_reconstructable answer: decision must be 'not_reconstructable'")
+        v = belief_as_of_from_json(o["belief_as_of"], "answer.belief_as_of")
+        if v is None:
+            raise ValidationError("answer.belief_as_of is required")
+        return cls(
+            reason=as_enum(NotReconstructableReason, o["reason"], "answer.reason"),
+            key=Key.from_dict(o["key"]),
+            belief_as_of=v,
+            version=as_int(o["version"], "answer.version"),
+            lsn=as_int(o["lsn"], "answer.lsn"),
+            current_available=as_bool(o.get("current_available", True), "answer.current_available"),
+        )
+
+
+Answer = Resolved | ResourceLimited | NotReconstructable
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -453,6 +521,8 @@ def answer_from_dict(d: Any) -> Answer:
         raise ValidationError("answer: expected an object with a 'decision'")
     if d["decision"] == "resource_limited":
         return ResourceLimited.from_dict(d)
+    if d["decision"] == "not_reconstructable":
+        return NotReconstructable.from_dict(d)
     return Resolved.from_dict(d)
 
 

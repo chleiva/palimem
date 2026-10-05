@@ -166,6 +166,10 @@ class ResourceLimitedReason(str, Enum):
     ENVIRONMENT_BUDGET = "environment_budget"  # S-06, decided: a key exceeded the environment budget
 
 
+class NotReconstructableReason(str, Enum):
+    ERASED = "erased"  # the belief version in force at the snapshot was redacted by an erasure (S-13)
+
+
 class InvalidatedKind(str, Enum):
     REPORT = "report"
     ADMISSION = "admission"

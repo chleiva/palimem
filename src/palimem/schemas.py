@@ -60,6 +60,8 @@ from palimem.types import (
     MergeOp,
     MergeRecord,
     NotMemberForm,
+    NotReconstructable,
+    NotReconstructableReason,
     NotValueForm,
     Origin,
     PolicyInfo,
@@ -539,7 +541,23 @@ def build_defs() -> dict[str, dict[str, Any]]:
             _when("reason", ["inference_incomplete", "store_dirty"], _absent_or_null("reason_key")),
         ],
     )
-    d["Answer"] = {"oneOf": [_ref("Resolved"), _ref("ResourceLimited")]}
+    d["NotReconstructable"] = _obj(
+        {
+            "decision": {"const": "not_reconstructable"},
+            "reason": _enum(_vals(NotReconstructableReason)),
+            "key": _ref("Key"),
+            "belief_as_of": _ref("BeliefAsOf"),
+            "version": _ref("Nat1"),
+            "lsn": _ref("Nat1"),
+            "current_available": {"type": "boolean"},
+        },
+        ["decision", "reason", "key", "belief_as_of", "version", "lsn"],
+        description=(
+            "The belief in force at the requested snapshot was redacted by an erasure (author ruling 2026-10-05, additive). "
+            "Carries no segment and no kernel_status; says what was redacted (version, log position) without any content."
+        ),
+    )
+    d["Answer"] = {"oneOf": [_ref("Resolved"), _ref("ResourceLimited"), _ref("NotReconstructable")]}
     return d
 
 
@@ -710,6 +728,8 @@ def build_examples() -> list[tuple[str, str, Any]]:
         ("answer", "answer", resolved),
         ("answer_ask", "answer", asking),
         ("answer_resource_limited", "answer", limited),
+        ("answer_not_reconstructable", "answer", NotReconstructable(
+            reason=NotReconstructableReason.ERASED, key=key, belief_as_of=3, version=2, lsn=3, current_available=True)),
         ("log_entry", "log_entry", LogEntry(lsn=1, recorded_at=_T0, report=report, prev_hash=None, entry_hash="a" * 64)),
         ("admission_record", "admission_record", AdmissionRecord(
             id=ADM1, report_id=R1, outcome=AdmissionOutcome.ADMISSIBLE, reason=AdmissionReason.CONFIRMED,

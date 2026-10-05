@@ -7,6 +7,9 @@
         },
         {
           "$ref": "#/$defs/ResourceLimited"
+        },
+        {
+          "$ref": "#/$defs/NotReconstructable"
         }
       ]
     },
@@ -339,6 +342,45 @@
       "required": [
         "form",
         "v"
+      ],
+      "type": "object"
+    },
+    "NotReconstructable": {
+      "additionalProperties": false,
+      "description": "The belief in force at the requested snapshot was redacted by an erasure (author ruling 2026-10-05, additive). Carries no segment and no kernel_status; says what was redacted (version, log position) without any content.",
+      "properties": {
+        "belief_as_of": {
+          "$ref": "#/$defs/BeliefAsOf"
+        },
+        "current_available": {
+          "type": "boolean"
+        },
+        "decision": {
+          "const": "not_reconstructable"
+        },
+        "key": {
+          "$ref": "#/$defs/Key"
+        },
+        "lsn": {
+          "$ref": "#/$defs/Nat1"
+        },
+        "reason": {
+          "enum": [
+            "erased"
+          ],
+          "type": "string"
+        },
+        "version": {
+          "$ref": "#/$defs/Nat1"
+        }
+      },
+      "required": [
+        "decision",
+        "reason",
+        "key",
+        "belief_as_of",
+        "version",
+        "lsn"
       ],
       "type": "object"
     },

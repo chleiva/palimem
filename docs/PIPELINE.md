@@ -100,7 +100,9 @@ agent tool API binds them itself and is a separate task (T-F2). The three-call f
 
 Reads use `read_belief` only. A key with no history at the snapshot is answered from an empty evidence set and labelled with a
 *virtual* `BeliefView` (`ref = virtual:<entity>:<attr>`, version 1, never stored). A snapshot whose version an erasure
-redacted raises `NotReconstructableError`: the contract has no `Answer` variant for it yet (STORAGE.md Q2).
+redacted is answered with the contract variant `NotReconstructable` (author ruling 2026-10-05; STORAGE.md Q2): no segment, no
+kernel_status and no content, only the key and snapshot asked for, the redacted version and log position, and whether the
+repaired current belief is readable. `Memory.explain`, which cannot return an `Answer`, still raises `NotReconstructableError`.
 
 ### Per-query profile
 

@@ -51,10 +51,10 @@ from palimem.store import (
     ErasureReason,
     InputKind,
     LimitedRead,
-    NotReconstructable,
     StoreError,
     Tombstone,
 )
+from palimem.store import NotReconstructable as StoredNotReconstructable
 from palimem.store.views import belief_view, select_segment
 from palimem.types import (
     Answer,
@@ -69,6 +69,8 @@ from palimem.types import (
     Inference,
     Key,
     LogEntry,
+    NotReconstructable,
+    NotReconstructableReason,
     Origin,
     Profile,
     Proposition,
@@ -109,8 +111,11 @@ class AttributedClaim:
 
 
 class NotReconstructableError(StoreError):
-    """The version in force at the requested snapshot was redacted by an erasure (S-13). The contract has no
-    ``Answer`` variant for it yet (open question Q2 of docs/STORAGE.md), so the host API raises."""
+    """The version in force at the requested snapshot was redacted by an erasure (S-13).
+
+    ``Memory.query`` answers with the contract variant :class:`palimem.types.NotReconstructable` (author ruling
+    2026-10-05); this exception remains for calls that cannot return an ``Answer`` (``explain``), and as a deprecated
+    way to treat that answer as an error. ``info`` is the contract answer."""
 
     def __init__(self, nr: NotReconstructable) -> None:
         super().__init__(f"belief of {nr.key.entity}/{nr.key.attr} version {nr.version} was erased")
@@ -382,7 +387,9 @@ class Memory:
             segment=seg, ref=f"virtual:{key.entity}:{key.attr}",
         )
 
-    def _view_for(self, key: Key, valid_at: datetime | None, as_of: BeliefAsOf | None) -> BeliefView | ResourceLimited:
+    def _view_for(
+        self, key: Key, valid_at: datetime | None, as_of: BeliefAsOf | None
+    ) -> BeliefView | ResourceLimited | NotReconstructable:
         try:
             self.schema.attr(key.attr)
         except KeyError:
@@ -390,8 +397,11 @@ class Memory:
         if self.pipeline.layer is not None:  # entity layer: a merged entity is read through its representative
             key = self.pipeline.layer.canon_key(key, self.lsn_of(as_of))
         r = self.backend.read_belief(key, as_of)
-        if isinstance(r, NotReconstructable):
-            raise NotReconstructableError(r)
+        if isinstance(r, StoredNotReconstructable):
+            return NotReconstructable(
+                reason=NotReconstructableReason.ERASED, key=key, belief_as_of=as_of if as_of is not None else r.lsn,
+                version=r.version, lsn=r.lsn, current_available=self._current_readable(key),
+            )
         if isinstance(r, LimitedRead):
             raw = self.backend.belief_at(key, as_of if as_of is not None else self._head_lsn())
             if raw is not None and not raw.inference.complete and (raw.inference.reason or "").startswith("environment_budget"):
@@ -406,6 +416,10 @@ class Memory:
         v = belief_view(r, valid_at)
         assert v is not None
         return v
+
+    def _current_readable(self, key: Key) -> bool:
+        """Whether the current belief of ``key`` can be read (an erasure repairs it, so usually yes)."""
+        return not isinstance(self.backend.read_belief(key, None), StoredNotReconstructable)
 
     def _project(self, view: BeliefView, profile: Profile) -> BeliefView:
         """Re-read a stored segment under another profile. The profile only decides how a candidate family is classified
@@ -425,9 +439,9 @@ class Memory:
         return replace(view, segment=new)
 
     def query(self, q: Query) -> Answer:
-        """``query(key, valid_at, belief_as_of) -> Resolved | ResourceLimited`` (output contract v2)."""
+        """``query(key, valid_at, belief_as_of) -> Resolved | ResourceLimited | NotReconstructable`` (output contract v2)."""
         view = self._view_for(q.key, q.valid_at, q.belief_as_of)
-        if isinstance(view, ResourceLimited):
+        if isinstance(view, ResourceLimited | NotReconstructable):
             return view
         view = self._project(view, q.profile)
         ctx = None
@@ -444,6 +458,8 @@ class Memory:
         a stored belief cannot answer: it is recomputed on the audit path from the admitted evidence at the snapshot.
         ``mode=one`` is the canonical environment (lexicographically least by sorted report ids)."""
         view = self._view_for(q.key, q.valid_at, q.belief_as_of)
+        if isinstance(view, NotReconstructable):
+            raise NotReconstructableError(view)
         if isinstance(view, ResourceLimited):
             raise StoreError(f"cannot explain: {view.reason.value}")
         seg = view.segment

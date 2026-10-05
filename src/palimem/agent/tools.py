@@ -459,7 +459,7 @@ def _is(tp: str, v: Any) -> bool:
 def _text_of(name: str, data: Mapping[str, Any]) -> str:
     if name == "recall":
         kind = data.get("kind")
-        if kind == "resolved" or kind == "resource_limited":
+        if kind in ("resolved", "resource_limited", "not_reconstructable"):
             return answer_text(data)
         if kind == "ambiguous":
             c = ", ".join(f"{x['entity']}/{x['attr']}" for x in data["candidates"])

@@ -287,9 +287,10 @@ def segment_v1(seg: PSegment, multi: bool) -> dict[str, Any]:
 
 def answer_v1(answer: Answer, *, multi: bool) -> dict[str, Any]:
     """Project a v2 value answer onto the v1 contract, from the **kernel's** segment (the policy's decision is not
-    part of the paper's contract). A ``ResourceLimited`` answer has no v1 form."""
+    part of the paper's contract). A ``ResourceLimited`` or ``NotReconstructable`` answer has no v1 form."""
     if not isinstance(answer, Resolved):
-        raise CompatError(f"ResourceLimited({answer.reason.value}) has no v1 projection")
+        what = "NotReconstructable" if answer.decision == "not_reconstructable" else f"ResourceLimited({answer.reason.value})"
+        raise CompatError(f"{what} has no v1 projection")
     return segment_v1(answer.justified.segment, multi)
 
 

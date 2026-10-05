@@ -310,7 +310,7 @@ refreshes the two triggers; a migrated file has exactly the shape of a fresh one
   `ctx.inputs`.
 * **Admission (D):** unchanged: return a record for the appended report, extra records change earlier admissions.
 * **Facade / query layer:** serve reads with `read_belief`, not `current_belief`. `LimitedRead.to_answer(valid_at)` is the
-  contract `ResourceLimited`. `NotReconstructable` has **no counterpart in the output contract** (see §14, Q2).
+  contract `ResourceLimited`. The store's `NotReconstructable(key, version, lsn)` is answered by `Memory` as the contract variant `palimem.types.NotReconstructable` (author ruling 2026-10-05; §14, Q2 resolved).
   `BeliefView.ref` resolves with `Engine.get_belief_by_ref`. Run `complete_pending` from the host (after a restart, on a timer,
   or when a read returns a limited result); it is cheap when nothing is pending. Subscribers get events through `deliver`.
 
@@ -335,8 +335,7 @@ Open, for the author:
 
 * **Q1.** Should an erasure **pseudonymise the key** of an orphaned key (sole evidence erased) across the derived tables? It
   would remove the last plain trace of a sensitive key name but touches primary keys and makes the key unaddressable.
-* **Q2.** `NotReconstructable` (a historical snapshot whose version was redacted) is a store-level result with no
-  `Answer` variant. The contract has `ResourceLimited` reasons for the barrier but nothing for "erased". Options: add a reason
-  (a contract change, needs your explicit line), or have the facade answer `unknown` for such a snapshot.
+* **Q2 (resolved 2026-10-05).** `NotReconstructable` (a historical snapshot whose version was redacted) is now a third
+  `Answer` variant: `Answer = Resolved | ResourceLimited | NotReconstructable` (additive; the author ruled yes).
 * **Q3.** The default **traversal budget** (D-C3) and whether it should be derived from the schema (declared maximum fan-out,
   as the design suggests).
