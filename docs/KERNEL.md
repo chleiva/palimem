@@ -211,10 +211,11 @@ withdrawn` rows.
    values (Setting 1 has 500; the Alex `residence` slot), the **cardinality of a derived attribute**, and the
    explicit `error_allowed` / `competing_values` flags. `KernelSchema.from_schema` maps what it can
    (`multi_set` -> multi, stable, non-competing) and the harness builds the full kernel schema directly.
-3. **`Attr.inertia=False` has no specified semantics.** S-08 kept the boolean but did not define the false
-   case; `from_schema` refuses it. The compat profile sets `inertia: true` on **all** attributes (the deposited
-   code applies persistence to every attribute); this differs from the S-08 decision text, which says stable
-   keys and sets do not hold.
+3. **`Attr.inertia=False` is specified but not implemented** (author ruling 14 of 2026-10-05, S-08): the value
+   holds only within its stated valid interval, with no extension. `from_schema` refuses it with that explanation
+   until it is implemented. The compat profile sets `inertia: true` on **all** attributes (the deposited code
+   applies persistence to every attribute) and parity with the oracle is the arbiter there; the S-08 decision
+   text ("stable keys and sets do not hold") is amended accordingly.
 4. **Source-scope withdraw** does not exist in the contract (see the one class above).
 5. **Admission flag** `acting_reports_must_be_live=false` is required by the compat profile (retracted
    corrections still withdraw their target: 387 in Setting 1); `CompatAdmission` implements it.

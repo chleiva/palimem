@@ -248,8 +248,8 @@ study checkout, no frozen cache and no deposit zip, on Python 3.11 and 3.13).
 6. **Open-world rule exceptions** (S-10: an unknown exception follows the exception attribute's completeness) are not implemented
    in the kernel (`s10-02`); `Rule` also has no `exceptions` field yet.
 7. **Authorised `dispute`** has no kernel semantics (S-02 open point): `EvidenceSet.disputes` is not read (`sec-41b`).
-8. **`inertia = false` on a changeable attribute** has no specified semantics (S-08); the kernel refuses it and the adapter reports
-   `ind-11` / `ind-12` as skipped.
+8. **`inertia = false` on a changeable attribute** is specified (the value holds only within its stated valid interval, no extension;
+   S-08, ruling 14 of 2026-10-05) but not implemented; the kernel refuses it and the adapter reports `ind-11` / `ind-12` as skipped.
 9. **Negative evidence, crash points other than the store's steps, tamper/restore hooks, extraction** are not in
    the pipeline; the adapter returns `NotImplemented` and those fixtures are skipped with a reason. (Entity merges and
    `find` are in the entity layer, `docs/ENTITIES.md`: three small hooks in `Pipeline`/`KernelReviser`/`Memory`.)

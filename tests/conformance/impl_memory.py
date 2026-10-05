@@ -127,7 +127,7 @@ def build_schemas(setup: dict[str, Any]) -> tuple[Schema, KernelSchema]:
             specs[name] = AttrSpec(name, "single", True, error_allowed=False, derived=True)
         elif cls is AttrClass.SINGLE_CHANGEABLE:
             if not inertia:
-                raise KernelUnsupported(f"{name}: inertia=false on a changeable attribute has no specified semantics (S-08)")
+                raise KernelUnsupported(f"{name}: inertia=false on a changeable attribute is specified (S-08, ruling 14) but not implemented")
             specs[name] = AttrSpec(name, "single", True)
         elif cls is AttrClass.SINGLE_STABLE:
             specs[name] = AttrSpec(name, "single", False)
