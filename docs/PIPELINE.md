@@ -84,19 +84,55 @@ Frozen Setting 1: 500 streams, 30,272 queries, **66,000-odd appends per backend*
 position (`belief_as_of` = LSN) from stored belief versions. Compared with `s1_NNNN.gold.json` on status, assertion and
 alternatives, under the paper's exact source-level retraction (the compat marker) and `acting_reports_must_be_live = false`.
 
-RESULT_TABLE
+| slot | queries | in-memory backend | SQLite backend |
+|---|---|---|---|
+| `current` | 8,782 | 0 disagreements | 0 disagreements |
+| `downstream` (derived keys, pinned through the store) | 14,643 | 0 | 0 |
+| `asof` | 1,339 | 0 | 0 |
+| `belief_asof` | 1,418 | 0 | 0 |
+| `reported` | 1,452 | 0 | 0 |
+| `yesno:holds` | 1,396 | 0 | 0 |
+| `yesno:erroneous` | 744 | 0 | 0 |
+| `yesno:changed` | 498 | 0 | 0 |
+| **all** | **30,272** | **0** (65,632 appends, 0 resource-limited, 373 s) | **0** (65,632 appends, 0 resource-limited, 418 s) |
+
+(One full run, both backends, 791 s on a laptop; the pull-request job runs every 10th stream, the nightly job all 500.)
 
 * `--source-retract expand` (the contract-expressible per-report withdraws) disagrees on exactly the queries the kernel alone
   does (the known `source-retract:late-assert` gap): admission, store and revision add no disagreement of their own
   (`tests/test_pipeline_diff.py`).
-* **Provenance is informational.** `Resolved.provenance` is empty until per-candidate supports land (T-B4, Lane B2); the
-  harness derives the paper's interim v1 provenance from the admitted evidence for base-key value slots and reports how
-  often it differs. It is not part of the pass criterion.
+* **Provenance is informational and not yet comparable.** `Resolved.provenance` is empty until per-candidate supports land
+  (T-B4, Lane B2). The frozen gold files carry `provenance` only for `reported` queries (0 of 1,452 differ, which is trivial:
+  that slot lists the admitted ids themselves); for the value slots the study's provenance comes from its oracle at scoring
+  time, not from the gold file, so strict provenance parity needs the oracle path that Lane B2's `--provenance strict` adds.
+  The interim v1 provenance the harness derives for base keys is reported but compares against nothing.
 * Self-test: `--inject-bug {mutate-answer, no-source-retraction, self-update}` must fail the run; CI checks it.
 
 ### Conformance suite against `Memory` (`tests/conformance/impl_memory.py`)
 
-CONFORMANCE_TABLE
+```
+implementation: palimem.Memory
+
+gate               total              pass              fail              skip  pending-decision             shell           not-run
+------------------------------------------------------------------------------------------------------------------------------------
+G0                     2                 2                 0                 0                 0                 0                 0
+G1                    80                17                17                10                14                 2                20
+G2                     7                 0                 0                 3                 4                 0                 0
+------------------------------------------------------------------------------------------------------------------------------------
+all                   89                19                17                13                18                 2                20
+```
+
+Of the 80 G1 fixtures: **17 pass**, 17 fail, 10 are skipped (an op or capability the pipeline does not have), 14 are
+pending a decision, 2 are shells, 20 are the trust-boundary fixtures that wait for the agent tool API. The 17 failures and their
+causes (all recorded in `tests/conformance/memory_status.json`):
+
+| cause | fixtures |
+|---|---|
+| per-candidate supports not computed yet (T-B4, Lane B2): `_environments`, `provenance`, `explanation: truncated` | `ind-01`, `ind-02`, `ind-05`, `ind-08b`, `ind-15` (environments half), `ind-16` (environments half), `s12-01`, `s12-02`, `sec-39a`, `sec-39b`, `sec-41a` |
+| fixture and a recorded decision disagree: row 20 store-wide dirty marker vs H4 component scope | `ind-20` |
+| fixture and a recorded store behaviour disagree: STORAGE §9.5 (completion at the same LSN answers a snapshot read) | `ind-22` |
+| the store does not expose it: erasure requester on the tombstone; keys stamped/skipped by a completion job | `ind-10`, `ind-21` |
+| not implemented in the kernel: open-world rule exceptions (S-10); semantics of an authorised `dispute` (S-02 open point) | `s10-02`, `sec-41b` |
 
 `tests/conformance/memory_status.json` is a **ratchet**: a fixture that passed must keep passing and a new failure must be
 listed with its cause. Fixtures are never edited to pass.
