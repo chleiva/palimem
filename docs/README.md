@@ -22,6 +22,7 @@ this page.
 | [`rfcs/0000-template.md`](rfcs/0000-template.md) | template for a contract-change proposal |
 | [`CONTRACT_PENDING.md`](CONTRACT_PENDING.md) | the six contract changes that needed an explicit author decision, and their outcomes |
 | [`decisions/README.md`](decisions/README.md) | index of decision records S-01 to S-13 with their status; the records themselves are listed below |
+| [`decisions/RULINGS-2026-10-05.md`](decisions/RULINGS-2026-10-05.md) | the author's rulings on the open contract and semantics points, with the lane that implements each |
 | [`decisions/S-01.md`](decisions/S-01.md) | `confirm` cue versus derived confirmation |
 | [`decisions/S-02.md`](decisions/S-02.md) | authority: origin versus source, and the study's retraction rules |
 | [`decisions/S-03.md`](decisions/S-03.md) | the study's `blocked` class versus `quarantined`, and the `excluded` outcome |
