@@ -56,6 +56,9 @@ from palimem.types import (
     Key,
     KeyScope,
     LogEntry,
+    MergeMarker,
+    MergeOp,
+    MergeRecord,
     NotMemberForm,
     NotValueForm,
     Origin,
@@ -66,6 +69,7 @@ from palimem.types import (
     Query,
     Report,
     Resolved,
+    ResolverInfo,
     ResourceLimited,
     ResourceLimitedReason,
     Rule,
@@ -276,8 +280,22 @@ def build_defs() -> dict[str, dict[str, Any]]:
         ["who", "may"],
         description=(
             "S-07 invariant (enforced by the types and by admission, not expressible here): no rule grants an "
-            "agent principal withdraw/correct over an external_observation."
+            "agent principal withdraw/correct over an external_observation, and none ever grants merge to an agent."
         ),
+        allOf=[
+            {
+                # merge is granted on its own, by identity, and has no target reports (author ruling 2026-10-05)
+                "if": {"properties": {"may": {"contains": {"const": "merge"}}}, "required": ["may"]},
+                "then": {
+                    "properties": {
+                        "may": {"maxItems": 1},
+                        "who": {"properties": {"kind": {"enum": ["principal", "any"]}}},
+                        "over_origins": {"type": "null"},
+                        "targets": {"const": "report"},
+                    }
+                },
+            }
+        ],
     )
     d["AuthorityTable"] = _obj(
         {"admission_version": _ref("Nat1"), "rules": _arr(_ref("AuthorityRule"))}, ["admission_version", "rules"]
@@ -361,6 +379,37 @@ def build_defs() -> dict[str, dict[str, Any]]:
             _when("reason", ["confirmed"], {"required": ["confirmed_by"], "properties": {"confirmed_by": {"minItems": 1}}}),
             _when("reason", [r for r in _vals(AdmissionReason) if r != "confirmed"], {"properties": {"confirmed_by": {"maxItems": 0}}}),
         ],
+    )
+
+    # ---- entity merges (author ruling 2026-10-05): the typed marker payload and the typed record
+    d["ResolverInfo"] = _obj({"method": nonempty, "score": {"type": "number"}, "version": nonempty}, ["method"])
+    d["MergeMarker"] = _obj(
+        {
+            "v": {"const": 2},
+            "op": _enum(_vals(MergeOp)),
+            "reason": nonempty,
+            "into": nonempty,
+            "target": _ref("Ulid"),
+            "resolver": _ref("ResolverInfo"),
+        },
+        ["v", "op", "reason", "resolver"],
+        description="The payload of a merge marker report. Payload version 1 (flat method/score) is read by the types, never written.",
+        allOf=[
+            _when("op", ["merge"], {"required": ["into"], "not": {"required": ["target"]}}),
+            _when("op", ["unmerge"], {"required": ["target"], "not": {"required": ["into"]}}),
+        ],
+    )
+    d["MergeRecord"] = _obj(
+        {
+            "id": _ref("Ulid"),
+            "members": _arr(nonempty, minItems=2, uniqueItems=True),
+            "representative": nonempty,
+            "reason": nonempty,
+            "resolver": _ref("ResolverInfo"),
+            "admission_version": _ref("Nat1"),
+            "reversed_by": _nullable(_ref("Ulid")),
+        },
+        ["id", "members", "representative", "reason", "resolver", "admission_version"],
     )
 
     # ---- beliefs
@@ -508,6 +557,8 @@ ROOTS: dict[str, str] = {
     "answer": "Answer",
     "log_entry": "LogEntry",
     "admission_record": "AdmissionRecord",
+    "merge_marker": "MergeMarker",
+    "merge_record": "MergeRecord",
     "authority_rule": "AuthorityRule",
     "authority_table": "AuthorityTable",
     "explain_query": "ExplainQuery",
@@ -664,6 +715,15 @@ def build_examples() -> list[tuple[str, str, Any]]:
             id=ADM1, report_id=R1, outcome=AdmissionOutcome.ADMISSIBLE, reason=AdmissionReason.CONFIRMED,
             admission_version=1, confirmed_by=(R2,))),
         ("authority_rule", "authority_rule", DEFAULT_RULES[1]),
+        ("authority_rule_merge", "authority_rule", AuthorityRule(
+            who=Who(kind=WhoKind.PRINCIPAL, value="connector:registry"), may=(Power.MERGE,),
+            on=KeyScope(attr="__entity_merge__", entity="acme*"))),
+        ("merge_marker", "merge_marker", MergeMarker(
+            op=MergeOp.MERGE, into="acme", reason="same registry id", resolver=ResolverInfo(method="lexical", score=0.91, version="1"))),
+        ("merge_marker_unmerge", "merge_marker", MergeMarker(op=MergeOp.UNMERGE, target=R1, reason="false merge: two Acmes")),
+        ("merge_record", "merge_record", MergeRecord(
+            id=R2, members=("acme", "acme inc"), representative="acme", reason="same registry id",
+            resolver=ResolverInfo(method="lexical", score=0.91, version="1"), admission_version=1, reversed_by=R3)),
         ("authority_table", "authority_table", AuthorityTable(admission_version=1, rules=DEFAULT_RULES)),
         ("explain_query", "explain_query", ExplainQuery(key=key, valid_at=_T0, mode=ExplainMode.ONE, depth=2)),
         ("explanation", "explanation", Explanation(

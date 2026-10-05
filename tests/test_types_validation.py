@@ -285,7 +285,7 @@ def test_agent_grants_that_are_allowed():
 
 def test_default_grant_is_own_source_plus_builtin_agent_rule():
     own, agent = DEFAULT_RULES
-    assert own.who.kind is WhoKind.TARGET_SOURCE and set(own.may) == set(Power)
+    assert own.who.kind is WhoKind.TARGET_SOURCE and set(own.may) == set(Power) - {Power.MERGE}  # merge is granted by identity
     assert agent.who.kind is WhoKind.TARGET_ACTOR and set(agent.may) == {Power.WITHDRAW, Power.CORRECT}
     assert Origin.EXTERNAL_OBSERVATION not in (agent.over_origins or ())
     assert all(o in {Origin.AGENT_HYPOTHESIS, Origin.AGENT_STATEMENT, Origin.PLAN, Origin.SIMULATION, Origin.COUNTERFACTUAL} for o in agent.over_origins or ())

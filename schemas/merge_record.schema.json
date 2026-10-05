@@ -1,0 +1,86 @@
+{
+  "$defs": {
+    "MergeRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "admission_version": {
+          "$ref": "#/$defs/Nat1"
+        },
+        "id": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "members": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 2,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "reason": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "representative": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "resolver": {
+          "$ref": "#/$defs/ResolverInfo"
+        },
+        "reversed_by": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ulid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "members",
+        "representative",
+        "reason",
+        "resolver",
+        "admission_version"
+      ],
+      "type": "object"
+    },
+    "Nat1": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "ResolverInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "score": {
+          "type": "number"
+        },
+        "version": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "method"
+      ],
+      "type": "object"
+    },
+    "Ulid": {
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+      "type": "string"
+    }
+  },
+  "$id": "urn:palimem:schema:merge_record:v2",
+  "$ref": "#/$defs/MergeRecord",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MergeRecord"
+}

@@ -1,0 +1,15 @@
+{
+  "may": [
+    "merge"
+  ],
+  "on": {
+    "attr": "__entity_merge__",
+    "entity": "acme*"
+  },
+  "over_origins": null,
+  "targets": "report",
+  "who": {
+    "kind": "principal",
+    "value": "connector:registry"
+  }
+}

@@ -72,6 +72,7 @@ class Power(str, Enum):
     CORRECT = "correct"
     WITHDRAW = "withdraw"
     DISPUTE = "dispute"
+    MERGE = "merge"  # entity merges (author ruling 2026-10-05): granted by principal id, never to an agent
 
 
 class WhoKind(str, Enum):

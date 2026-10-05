@@ -61,6 +61,7 @@ do not change.
 | Date | Change | Ruling |
 |---|---|---|
 | 2026-10-05 | `Report.change_from` (optional; only for cue `change`; omitted when absent) | `decisions/RULINGS-2026-10-05.md` item 5 |
+| 2026-10-05 | `Power.MERGE`, `MergeRecord`, typed `MergeMarker` (payload version 2; version 1 still read) | `decisions/RULINGS-2026-10-05.md` item 4 |
 
 ## 5. Deprecation
 

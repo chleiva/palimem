@@ -34,7 +34,7 @@ from palimem.entities.registry import (
     MergeDecision,
     MergeRegistry,
 )
-from palimem.types import AdmissionOutcome, Belief, Key, LogEntry, Pin
+from palimem.types import AdmissionOutcome, AuthorityRule, Belief, Key, LogEntry, Pin
 
 if TYPE_CHECKING:
     from palimem.admission import Attribution
@@ -63,6 +63,9 @@ class EntityLayer:
     def __init__(self) -> None:
         self.registry = MergeRegistry()
         self._view: StoreView | None = None
+        self.rules: tuple[AuthorityRule, ...] = ()
+        """``merge`` grants declared on the reserved attribute (``Attr.authority``); the built-in default is
+        ``system`` and ``user`` principals. Set by :func:`palimem.entities.api.attach_layer`."""
 
     # -- binding and log scanning
 
@@ -84,7 +87,8 @@ class EntityLayer:
                 continue
             recs = v.admissions_for_report(row.report.id)
             outcome = recs[-1].outcome if recs else None
-            dec = self.registry.decision_of(row, outcome)
+            version = recs[-1].admission_version if recs else None
+            dec = self.registry.decision_of(row, outcome, version, self.rules)
             if dec is not None:
                 self.registry.add(dec)
         self.registry.scanned = upto_lsn
@@ -170,11 +174,13 @@ class EntityLayer:
         if r.key.attr != ENTITY_MERGE_ATTR or r.id is None:
             return None
         outcome: AdmissionOutcome | None = None
+        version: int | None = None
         for rec in ctx.admissions:
             if rec.report_id == r.id:
                 outcome = rec.outcome
+                version = rec.admission_version
                 break
-        return self.registry.decision_of(ctx.entry, outcome)
+        return self.registry.decision_of(ctx.entry, outcome, version, self.rules)
 
     def revise_overlay(
         self, p: Pipeline, ctx: RevisionContext, ks: KernelSchema, overlay: dict[Key, Belief], entries_of: EntriesOf,

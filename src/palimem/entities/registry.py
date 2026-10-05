@@ -16,31 +16,29 @@ answered under the entity classes that were in force at that position.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass, field
-from enum import Enum
 
 from palimem.types import (
     AdmissionOutcome,
+    AuthorityRule,
     Cue,
     LogEntry,
     MemberProp,
+    MergeMarker,
+    MergeOp,
     Origin,
     PrincipalKind,
     Report,
+    ResolverInfo,
     ValidationError,
+    may_merge,
 )
 from palimem.types.authority import principal_kind
+from palimem.types.merge import MARKER_VERSION
 
 ENTITY_MERGE_ATTR = "__entity_merge__"
-MARKER_VERSION = 1
 HOST_KINDS = frozenset({PrincipalKind.SYSTEM, PrincipalKind.USER})
-
-
-class MergeOp(str, Enum):
-    MERGE = "merge"
-    UNMERGE = "unmerge"
 
 
 @dataclass(frozen=True)
@@ -58,12 +56,15 @@ class MergeDecision:
     method: str
     score: float | None
     proposer: str  # the marker's actor
+    admission_version: int | None = None  # the version the marker was admitted under (None when not yet known)
+    resolver_version: str | None = None
 
     def to_dict(self) -> dict[str, object]:
         return {
             "id": self.id, "lsn": self.lsn, "op": self.op.value, "alias": self.alias, "into": self.into,
             "target": self.target, "reason": self.reason, "method": self.method, "score": self.score,
-            "proposer": self.proposer,
+            "proposer": self.proposer, "admission_version": self.admission_version,
+            "resolver_version": self.resolver_version,
         }
 
 
@@ -72,66 +73,51 @@ class MergeDecision:
 
 def encode_marker(
     op: MergeOp, *, into: str | None = None, target: str | None = None, reason: str, method: str = "manual",
-    score: float | None = None,
+    score: float | None = None, resolver_version: str | None = None,
 ) -> str:
-    """The canonical JSON text carried as the marker's ``member`` value."""
-    body: dict[str, object] = {"v": MARKER_VERSION, "op": op.value, "reason": reason, "method": method}
-    if op is MergeOp.MERGE:
-        if not into:
-            raise ValueError("a merge names the entity it is merged into")
-        body["into"] = into
-    else:
-        if not target:
-            raise ValueError("an unmerge names the merge it undoes")
-        body["target"] = target
-    if score is not None:
-        body["score"] = round(float(score), 6)
-    return json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    """The canonical JSON text carried as the marker's ``member`` value: a typed :class:`MergeMarker`, payload version 2.
+    Payload version 1 (flat ``method`` / ``score``) is still read by :func:`decode_marker`."""
+    if op is MergeOp.MERGE and not into:
+        raise ValueError("a merge names the entity it is merged into")
+    if op is MergeOp.UNMERGE and not target:
+        raise ValueError("an unmerge names the merge it undoes")
+    return MergeMarker(
+        op=op, reason=reason, into=into, target=target,
+        resolver=ResolverInfo(method=method, score=score, version=resolver_version),
+    ).to_text()
 
 
-def decode_marker(report: Report) -> dict[str, object] | None:
-    """The decoded body of a marker report, or ``None`` when the report is not a well-formed marker (it is then
-    ignored by the registry: a malformed or foreign write on the reserved attribute has no effect)."""
+def decode_marker(report: Report) -> MergeMarker | None:
+    """The typed marker a report carries, or ``None`` when the report is not a well-formed marker (it is then ignored
+    by the registry: a malformed or foreign write on the reserved attribute has no effect). Reads payload versions 1
+    and 2."""
     if report.key.attr != ENTITY_MERGE_ATTR or report.cue is not Cue.ASSERT:
         return None
     prop = report.proposition
     if not isinstance(prop, MemberProp) or not isinstance(prop.value, str):
         return None
     try:
-        body = json.loads(prop.value)
-    except ValueError:
+        marker = MergeMarker.from_text(prop.value)
+    except ValidationError:
         return None
-    if not isinstance(body, dict) or body.get("v") != MARKER_VERSION:
+    if marker.op is MergeOp.MERGE and marker.into == report.key.entity:  # a self-merge
         return None
-    op = body.get("op")
-    if op == "merge":
-        into = body.get("into")
-        if not isinstance(into, str) or not into or into == report.key.entity:
-            return None
-    elif op == "unmerge":
-        if not isinstance(body.get("target"), str) or not body["target"]:
-            return None
-    else:
-        return None
-    if not isinstance(body.get("reason"), str) or not isinstance(body.get("method"), str):
-        return None
-    score = body.get("score")
-    if score is not None and not isinstance(score, (int, float)):
-        return None
-    return body
+    return marker
 
 
-def from_host(report: Report) -> bool:
-    """A marker is honoured only from a host principal: the actor and the source id are both ``system:`` or ``user:``
-    and the origin is an external observation (the host's own decision, never an agent's)."""
+def from_host(report: Report, rules: tuple[AuthorityRule, ...] = ()) -> bool:
+    """A marker is honoured only from a principal that may merge: ``system`` and ``user`` principals by default, any
+    other non-agent principal only with an explicit ``merge`` grant (``rules``), never an agent. The origin must be an
+    external observation (the host's own decision) and the source id of the same kind as the actor's authority."""
     if report.origin is not Origin.EXTERNAL_OBSERVATION:
         return False
     try:
-        if principal_kind(report.actor) not in HOST_KINDS:
-            return False
+        kind = principal_kind(report.actor)
     except ValidationError:
         return False
-    return report.source.id.split(":", 1)[0] in {k.value for k in HOST_KINDS}
+    if kind in HOST_KINDS:
+        return report.source.id.split(":", 1)[0] in {k.value for k in HOST_KINDS}
+    return may_merge(report.actor, rules, key=report.key)
 
 
 # --------------------------------------------------------------------------- classes at a log position
@@ -267,24 +253,24 @@ class MergeRegistry:
         self.scanned = 0
         self._states.clear()
 
-    def decision_of(self, entry: LogEntry, outcome: AdmissionOutcome | None) -> MergeDecision | None:
-        """The honoured decision a marker entry stands for, or ``None``."""
+    def decision_of(
+        self, entry: LogEntry, outcome: AdmissionOutcome | None, admission_version: int | None = None,
+        rules: tuple[AuthorityRule, ...] = (),
+    ) -> MergeDecision | None:
+        """The honoured decision a marker entry stands for, or ``None``. ``rules`` are the ``merge`` grants declared on
+        the reserved attribute (the built-in default is ``system`` and ``user`` principals)."""
         r = entry.report
         if r.key.attr != ENTITY_MERGE_ATTR or r.id is None:
             return None
-        if outcome is not AdmissionOutcome.ADMISSIBLE or not from_host(r):
+        if outcome is not AdmissionOutcome.ADMISSIBLE or not from_host(r, rules):
             return None
-        body = decode_marker(r)
-        if body is None:
+        marker = decode_marker(r)
+        if marker is None:
             return None
-        op = MergeOp(str(body["op"]))
-        score = body.get("score")
         return MergeDecision(
-            id=r.id, lsn=entry.lsn, op=op, alias=r.key.entity,
-            into=str(body["into"]) if op is MergeOp.MERGE else None,
-            target=str(body["target"]) if op is MergeOp.UNMERGE else None,
-            reason=str(body["reason"]), method=str(body["method"]),
-            score=float(score) if isinstance(score, (int, float)) else None, proposer=r.actor,
+            id=r.id, lsn=entry.lsn, op=marker.op, alias=r.key.entity, into=marker.into, target=marker.target,
+            reason=marker.reason, method=marker.resolver.method, score=marker.resolver.score, proposer=r.actor,
+            admission_version=admission_version, resolver_version=marker.resolver.version,
         )
 
     def add(self, op: MergeDecision) -> None:
@@ -327,6 +313,7 @@ def iter_markers(entries: Iterable[LogEntry]) -> Iterator[LogEntry]:
 __all__ = [
     "EMPTY_STATE",
     "ENTITY_MERGE_ATTR",
+    "MARKER_VERSION",
     "ClassState",
     "Edge",
     "MergeDecision",

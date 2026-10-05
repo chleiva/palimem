@@ -159,11 +159,26 @@ class AuthorityRule(Codec):
                 if not isinstance(o, Origin):
                     raise ValidationError("authority.over_origins: not an Origin")
             set_field(self, "over_origins", tuple(sorted(set(self.over_origins), key=lambda o: o.value)))
+        self._check_merge_shape()
         self._check_agent_invariant()
+
+    def _check_merge_shape(self) -> None:
+        """``merge`` is about entities, not about a target report: it is granted by identity (a named principal, or any
+        non-agent principal), on its own, and never over report origins or a wider extent."""
+        if Power.MERGE not in self.may:
+            return
+        if self.may != (Power.MERGE,):
+            raise ValidationError("authority: 'merge' must be granted on its own, not together with other powers")
+        if self.who.kind not in (WhoKind.PRINCIPAL, WhoKind.ANY):
+            raise ValidationError("authority: 'merge' is granted to a named principal or to any non-agent principal")
+        if self.over_origins is not None or self.targets is not Targets.REPORT:
+            raise ValidationError("authority: 'merge' has no target reports: over_origins and targets do not apply")
 
     def _check_agent_invariant(self) -> None:
         if self.who.kind is not WhoKind.PRINCIPAL or self.who.value is None:
             return
+        if principal_kind(self.who.value) is PrincipalKind.AGENT and Power.MERGE in self.may:
+            raise ValidationError(f"authority: agent principal '{self.who.value}' can never be granted 'merge' (S-07 invariant)")
         if principal_kind(self.who.value) is not PrincipalKind.AGENT:
             return
         acting = {p for p in self.may if p in (Power.WITHDRAW, Power.CORRECT)}
@@ -202,7 +217,32 @@ class AuthorityRule(Codec):
         )
 
 
-ALL_POWERS = (Power.CORRECT, Power.WITHDRAW, Power.DISPUTE)
+ALL_POWERS = (Power.CORRECT, Power.WITHDRAW, Power.DISPUTE)  # the report-targeting powers; ``merge`` is granted explicitly
+
+HOST_MERGE_KINDS = (PrincipalKind.SYSTEM, PrincipalKind.USER)
+"""Principal kinds that may merge by default (the host's own decision). Anyone else needs an explicit ``merge`` grant."""
+
+
+def may_merge(actor: str, rules: tuple[AuthorityRule, ...] = (), *, key: Key | None = None) -> bool:
+    """May ``actor`` record an entity merge (author ruling 2026-10-05)?
+
+    Never for an ``agent`` principal, whatever the rules say (the invariant is also enforced when a rule is built).
+    ``system`` and ``user`` principals may by default; any other principal needs an explicit ``merge`` grant naming it
+    (or ``any``, which is every non-agent principal), whose key scope matches ``key`` when one is given."""
+    kind = principal_kind(actor)
+    if kind is PrincipalKind.AGENT:
+        return False
+    if kind in HOST_MERGE_KINDS:
+        return True
+    for rule in rules:
+        if Power.MERGE not in rule.may:
+            continue
+        if rule.who.kind is WhoKind.PRINCIPAL and rule.who.value != actor:
+            continue
+        if key is not None and not rule.on.matches(key):
+            continue
+        return True
+    return False
 
 DEFAULT_RULES: tuple[AuthorityRule, ...] = (
     # default grant: the target's own source only (S-02), for every power

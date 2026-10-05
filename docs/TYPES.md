@@ -25,6 +25,7 @@ types and the schemas.
 | `LogEntry` (`report`) | Storage layout | `lsn`, `recorded_at`, `report`, optional `prev_hash` / `entry_hash` |
 | `AdmissionRecord` (`admission`) | Admission model | outcome, reason code, `admission_version`, `confirmed_by` |
 | `Attr`, `Completeness`, `CompletenessScope`, `Interval`, `Rule`, `Schema` (`attr`) | Schema entry | `check_proposition_for_attr` is the pure form-vs-class check |
+| `MergeOp`, `ResolverInfo`, `MergeMarker`, `MergeRecord` (`merge`) | Storage layout (entity merges) | author ruling 2026-10-05 (additive): `MergeMarker` is the typed payload of a merge marker report (payload version 2; version 1 is still read), `MergeRecord` is what a reader gets (id, members, representative, reason, resolver, `admission_version`, `reversed_by`); `Power.MERGE` is granted by identity and never to an agent (`may_merge`) |
 | `Principal` helpers, `KeyScope`, `Who`, `AuthorityRule`, `AuthorityTable`, `DEFAULT_RULES`, `REVISE_STREAM_V1_RULES` (`authority`) | Schema entry (authority), Write API | see decisions below |
 | `Support`, `Segment`, `Belief`, `BeliefView`, `Pin`, `Dependency`, `InvalidatedBy`, `Versions`, `SemanticConfig`, `Inference` (`belief`) | Belief record | `Belief.lsn` added (S-05) |
 | `Query`, `ExplainQuery`, `Explanation`, `Resolved`, `ResourceLimited`, `Answer`, `Inquiry`, `PolicyInfo`, `SegmentBounds`, `LastComplete` (`answer`) | Query and answer, Read API | output contract v2 |

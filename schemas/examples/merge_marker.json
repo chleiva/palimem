@@ -1,0 +1,11 @@
+{
+  "into": "acme",
+  "op": "merge",
+  "reason": "same registry id",
+  "resolver": {
+    "method": "lexical",
+    "score": 0.91,
+    "version": "1"
+  },
+  "v": 2
+}

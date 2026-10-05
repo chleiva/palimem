@@ -50,6 +50,9 @@ from palimem.types import (
     LastComplete,
     LogEntry,
     MemberProp,
+    MergeMarker,
+    MergeOp,
+    MergeRecord,
     NotMemberForm,
     NotMemberProp,
     NotValueForm,
@@ -64,6 +67,7 @@ from palimem.types import (
     Query,
     Report,
     Resolved,
+    ResolverInfo,
     ResourceLimited,
     ResourceLimitedReason,
     Rule,
@@ -365,15 +369,23 @@ def who(rng: random.Random, allow_origin_group: bool = True) -> Who:
     return Who(kind=k)
 
 
+REPORT_POWERS = [p for p in Power if p is not Power.MERGE]  # `merge` is granted on its own, by identity
+
+
 def authority_rule(rng: random.Random, allow_origin_group: bool = True) -> AuthorityRule:
     if rng.random() < 0.2:  # an agent grant that satisfies the S-07 invariant
         return AuthorityRule(
             who=Who(kind=WhoKind.PRINCIPAL, value=f"agent:{rng.choice(['a', 'planner'])}"),
-            may=tuple(rng.sample(list(Power), rng.randrange(1, 4))),
+            may=tuple(rng.sample(REPORT_POWERS, rng.randrange(1, 4))),
             over_origins=tuple(rng.sample(sorted(AGENT_CLASS_ORIGINS, key=lambda o: o.value), 2)),
         )
+    if rng.random() < 0.15:  # a merge grant: by identity, on its own
+        return AuthorityRule(
+            who=rng.choice([Who(kind=WhoKind.ANY), Who(kind=WhoKind.PRINCIPAL, value=f"{rng.choice(['user', 'system', 'connector'])}:ops")]),
+            may=(Power.MERGE,), on=KeyScope(attr=rng.choice(["*", "__entity_merge__"]), entity=rng.choice(["*", "acme*"])),
+        )
     return AuthorityRule(
-        who=who(rng, allow_origin_group), may=tuple(rng.sample(list(Power), rng.randrange(1, 4))),
+        who=who(rng, allow_origin_group), may=tuple(rng.sample(REPORT_POWERS, rng.randrange(1, 4))),
         on=KeyScope(attr=rng.choice(["*", "emp*", "city"]), entity=rng.choice(["*", "alice", "e:*"])),
         targets=rng.choice(list(Targets)),
         over_origins=maybe(rng, tuple(rng.sample(list(Origin), rng.randrange(1, 4)))),
@@ -396,7 +408,7 @@ def attr(rng: random.Random, name: str | None = None, cls: AttrClass | None = No
             interval=maybe(rng, Interval(start=maybe(rng, lo), end=maybe(rng, hi))),
         )
     rules = tuple(AuthorityRule(
-        who=who(rng), may=tuple(rng.sample(list(Power), rng.randrange(1, 3))), on=KeyScope(attr=rng.choice(["*", name[:2] + "*", name])),
+        who=who(rng), may=tuple(rng.sample(REPORT_POWERS, rng.randrange(1, 3))), on=KeyScope(attr=rng.choice(["*", name[:2] + "*", name])),
     ) for _ in range(rng.randrange(0, 3)))
     return Attr(
         name=name, attr_class=cls, value_type=rng.choice(list(ValueType)), inertia=rng.random() < 0.5,
@@ -423,6 +435,31 @@ def admission_record(rng: random.Random) -> AdmissionRecord:
     return AdmissionRecord(id=ulid(rng), report_id=ulid(rng), outcome=outcome, reason=reason, admission_version=rng.randrange(1, 9), confirmed_by=confirmed)
 
 
+def resolver_info(rng: random.Random) -> ResolverInfo:
+    return ResolverInfo(
+        method=rng.choice(["manual", "lexical", "embedding"]), score=maybe(rng, round(rng.random(), 4)),
+        version=maybe(rng, rng.choice(["1", "2"])),
+    )
+
+
+def merge_marker(rng: random.Random) -> MergeMarker:
+    if rng.random() < 0.5:
+        return MergeMarker(op=MergeOp.MERGE, into=rng.choice(["acme", "globex inc"]), reason="same entity", resolver=resolver_info(rng))
+    return MergeMarker(op=MergeOp.UNMERGE, target=ulid(rng), reason="false merge", resolver=resolver_info(rng))
+
+
+def merge_record(rng: random.Random) -> MergeRecord:
+    members = tuple(sorted(rng.sample(["acme", "acme inc", "acme corp", "globex", "globex inc"], rng.randrange(2, 5))))
+    rid = ulid(rng)
+    reversed_by = maybe(rng, ulid(rng))
+    if reversed_by == rid:
+        reversed_by = None
+    return MergeRecord(
+        id=rid, members=members, representative=rng.choice(members), reason="same entity", resolver=resolver_info(rng),
+        admission_version=rng.randrange(1, 9), reversed_by=reversed_by,
+    )
+
+
 def candidate_any(rng: random.Random) -> Candidate:
     return candidate(rng)
 
@@ -441,6 +478,8 @@ GENERATORS: dict[str, Any] = {
     "answer": answer,
     "log_entry": log_entry,
     "admission_record": admission_record,
+    "merge_marker": merge_marker,
+    "merge_record": merge_record,
     "authority_rule": authority_rule,
     "authority_table": authority_table,
     "explain_query": explain_query,
