@@ -59,3 +59,14 @@ Defaults taken where the contract is silent; none changes a decided item.
 - **Decisions taken:** `required_generation` is a column on `current_belief` backed by a `marks` history table (a named key with no belief yet gets a `version = 0` placeholder); completion/repair versions take the log head as their `lsn`; default traversal budget is 1000 keys (change if you prefer).
 - **Bug caught by tests and fixed:** on SQLite, erasing a report left the client idempotency key in the clear (now an HMAC).
 - **Open:** (1) the key text of an erased report stays in belief index columns while the key still exists; pseudonymise orphaned keys? (2) `NotReconstructable` (a redacted historical version) has no `Answer` variant: a contract change that needs your explicit line.
+
+## From the facade, agent API, MCP server and CLI (Lane F)
+
+- **Built:** `from palimem import Memory` (`observe`, `ask`, `withdraw`, `explain`, `find`, `subscribe`, `declare`, `verify`, `agent_session`), a zero-config profile (new attributes become open multi-valued sets; absence stays `unknown`), the agent tool API (host binds source, origin, actor and origin group; LLM-supplied identity fields are stripped and audited in a separate append-only JSONL file; `dispute` listed only for a granted principal), a stdio JSON-RPC MCP server (no network listener, agent tools only, `--read-only` option), the `palimem` CLI, and `docs/AGENT_GUIDE.md`. Trust-boundary fixtures: 18 of 20 pass.
+- **Decisions for you:**
+  1. **tb-12 vs the default policy:** the fixture expects `decision: abstain` on an unresolved key; the default `justified` policy gives `ask`. Which is right as the default?
+  2. **tb-18:** the kernel does not yet weigh an authorised dispute (the S-02 open point), so the answer stays `established` after a granted dispute.
+  3. **Zero-config schema growth:** an unconstrained agent session can declare new attributes. Bound it with `allowed_attrs`, or forbid declaration from agent calls entirely?
+  4. **`inertia=False`:** unspecified in the kernel, so zero-config attributes use `inertia=True` (harmless for a stable set).
+  5. **Deletion** needs a `store_secret` argument or `PALIMEM_STORE_SECRET`.
+- **Not covered:** the MCP server is tested against a subprocess and an in-process fake only, not real MCP clients; `find` is lexical only (T-G3 is separate); the `mcp` SDK is not used and the `mcp` extra is declared but unused.
