@@ -5,7 +5,7 @@ conformance without importing any palimem code. This directory is the home of ev
 
 | Directory | What it specifies | Runner | Status |
 |---|---|---|---|
-| `trust_boundary/` | The host/agent API split of `docs/API_TRUST_BOUNDARY.md` (tb-01 … tb-22): who may set `source`/`origin`/`actor`, agent retraction limits, dispute grants, caller-supplied chain fields ignored | none yet (lands with the facade, T-F2). `tests/test_trust_boundary_fixtures.py` only checks they are well-formed | specification |
+| `trust_boundary/` | The host/agent API split of `docs/API_TRUST_BOUNDARY.md` (tb-01 … tb-24): who may set `source`/`origin`/`actor`, agent retraction limits, dispute grants, caller-supplied chain fields ignored | none yet (lands with the facade, T-F2). `tests/test_trust_boundary_fixtures.py` only checks they are well-formed | specification |
 | `../conformance/fixtures/` | The independent acceptance suite of design v0.3 (22 rows), the decision-record fixtures (S-04, S-06, S-10, S-12), the behavioural SEC-xx fixtures and their index | `python -m tests.conformance.runner` (format and runner: `docs/CONFORMANCE.md`); the runner also loads `trust_boundary/` | written (T-A5); runs against a `ReferenceStub` until an implementation exists |
 | `../../schemas/examples/` | One canonical example per contract type, validated against `schemas/*.schema.json` and round-tripped by the tests | `tests/test_types_roundtrip.py` | in force |
 

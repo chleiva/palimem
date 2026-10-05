@@ -36,6 +36,8 @@ from palimem.agent import (
     Host,
     HostAppend,
     KeyRef,
+    Proposal,
+    ProposalQueue,
     SessionContext,
 )
 from palimem.extract import ExtractionContext, Extractor
@@ -141,7 +143,11 @@ class Memory:
         audit = AuditLog(
             audit_path if audit_path is not None else (None if str(path) == ":memory:" else f"{path}.audit.jsonl")
         )
-        self.host = Host(self._core, audit=audit, extractor=extractor, on_undeclared=self._declare_default)
+        proposals = ProposalQueue(None if str(path) == ":memory:" else f"{path}.proposals.jsonl")
+        self.host = Host(
+            self._core, audit=audit, extractor=extractor, on_undeclared=self._declare_default, proposals=proposals,
+            declare_attr=self._declare_for_host,
+        )
 
     # ------------------------------------------------------------------ construction helpers
 
@@ -161,6 +167,11 @@ class Memory:
         """Zero-config: declare an unseen attribute as a multi-valued, open-world stable set."""
         if self._zero_config:
             self.declare(name, AttrClass.MULTI_SET)
+
+    def _declare_for_host(self, name: str, attr_class: AttrClass | None) -> None:
+        """The host's own declaration, used for an attribute it approved (allowed_attrs, auto_declare, an accepted
+        proposal): a multi-valued, open-world set unless a class is given. Never reachable from a tool call."""
+        self.declare(name, attr_class or AttrClass.MULTI_SET)
 
     def declare(
         self, name: str, attr_class: AttrClass | str = AttrClass.SINGLE_CHANGEABLE, *, inertia: bool | None = None,
@@ -320,6 +331,24 @@ class Memory:
         ``incremental`` checks only what changed since the last successful incremental run."""
         ks = None if keys is None else [k if isinstance(k, Key) else Key(entity=k[1], attr=k[0]) for k in keys]
         return self.host.mem.verify(scope, keys=ks, incremental=incremental)
+
+    # ------------------------------------------------------------------ attribute proposals (host only, ruling 17)
+
+    def proposals(self, status: str | None = None) -> list[Proposal]:
+        """Attributes agents proposed and the host has not yet decided (``status="pending"``), or all of them."""
+        return self.host.proposals.list(None if status is None else status)  # type: ignore[arg-type]
+
+    def accept_proposal(
+        self, proposal_id: str, *, attr_class: AttrClass | str | None = None, apply: bool = True,
+        actor: str = "system:host",
+    ) -> Proposal:
+        """Declare the proposed attribute and (by default) record the queued fact as the agent's own report. Host only:
+        ``actor`` must be a ``user:`` or ``system:`` principal, and no agent tool reaches this."""
+        return self.host.accept_proposal(proposal_id, actor=actor, attr_class=attr_class, apply=apply)
+
+    def reject_proposal(self, proposal_id: str, *, reason: str | None = None, actor: str = "system:host") -> Proposal:
+        """Drop a proposal: nothing is declared or recorded, and the queued value is redacted."""
+        return self.host.reject_proposal(proposal_id, actor=actor, reason=reason)
 
     def agent_session(
         self, agent_principal: str, *, session_id: str | None = None, **limits: Any

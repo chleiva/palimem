@@ -22,6 +22,7 @@ from palimem.agent.host import (
     ReportRow,
     SessionContext,
 )
+from palimem.agent.proposals import Proposal, ProposalError, ProposalQueue
 from palimem.agent.render import (
     answer_json,
     answer_text,
@@ -47,6 +48,9 @@ __all__ = [
     "InvalidAuthorityRule",
     "KeyRef",
     "Notice",
+    "Proposal",
+    "ProposalError",
+    "ProposalQueue",
     "ReportRow",
     "SessionContext",
     "ToolError",

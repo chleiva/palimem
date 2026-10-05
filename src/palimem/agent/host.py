@@ -46,8 +46,10 @@ from palimem.types import (
     Report,
     Source,
     ValidationError,
+    check_proposition_for_attr,
 )
 from palimem.types.authority import check_principal, principal_kind
+from palimem.types.enums import AttrClass
 from palimem.types.values import (
     EnumerationProp,
     MemberProp,
@@ -57,6 +59,7 @@ from palimem.types.values import (
 )
 
 from .audit import AuditLog
+from .proposals import Proposal, ProposalError, ProposalQueue
 
 #: Ruling 16 (2026-10-05): the HOST default abstains on an unresolved key (and always says what would settle it) ...
 DEFAULT_POLICY_LABEL = "p-default"
@@ -164,6 +167,11 @@ class SessionContext:
     max_alternatives: int = 5
     max_text_length: int = 4000
     max_writes: int | None = None  # per bound session object; None = unlimited
+    # Ruling 17 (2026-10-05): an agent may never declare an attribute. An unknown attribute is queued as a proposal for the
+    # host, unless the host pre-approved it (`allowed_attrs` lists it) or opted this session into `auto_declare`. Only the
+    # host sets these: nothing in a tool call can.
+    auto_declare: bool = False
+    max_proposals: int = 10  # pending proposals a session may hold
 
     def __post_init__(self) -> None:
         if not self.session_id.strip():
@@ -270,9 +278,12 @@ class Host:
     def __init__(
         self, memory: CoreMemory, *, audit: AuditLog | None = None, extractor: Extractor | None = None,
         policies: Mapping[str, PolicyObject] | None = None, on_undeclared: Callable[[str], None] | None = None,
+        proposals: ProposalQueue | None = None, declare_attr: Callable[[str, AttrClass | None], None] | None = None,
     ) -> None:
         self.mem = memory
         self.on_undeclared = on_undeclared
+        self.declare_attr = declare_attr  # the host's own declaration hook (never reachable from a tool call)
+        self.proposals = proposals if proposals is not None else ProposalQueue()
         self.audit = audit if audit is not None else AuditLog()
         self.extractor = extractor
         self._policies: dict[str, PolicyObject] = {DEFAULT_POLICY_LABEL: ABSTAIN, DEFAULT_AGENT_POLICY_LABEL: JUSTIFIED, **PRESETS}
@@ -293,6 +304,93 @@ class Host:
         if self.on_undeclared is not None:
             self.on_undeclared(attr)
         return any(a.name == attr for a in self.mem.schema.attrs)
+
+    # ------------------------------------------------------------------ attribute declaration and proposals (ruling 17)
+
+    def is_declared(self, attr: str) -> bool:
+        return any(a.name == attr for a in self.mem.schema.attrs)
+
+    def declare_for_session(
+        self, attr: str, *, reason: Literal["allowed_attrs", "auto_declare", "proposal"], session_id: str,
+        attr_class: AttrClass | None = None,
+    ) -> bool:
+        """The HOST declares ``attr`` on behalf of a session it has approved. True when ``attr`` is declared afterwards."""
+        if self.is_declared(attr):
+            return True
+        if self.declare_attr is None:
+            return False
+        self.declare_attr(attr, attr_class)
+        if not self.is_declared(attr):
+            return False
+        self.audit.append("attr_declared", session=session_id, attr=attr, reason=reason)
+        return True
+
+    def propose_attr(
+        self, ctx: SessionContext, *, entity: str, attr: str, value: Any, kind: Literal["statement", "hypothesis"],
+        request_id: str | None,
+    ) -> tuple[Proposal, bool]:
+        """Queue an agent's proposal of an unknown attribute (see :mod:`palimem.agent.proposals`)."""
+        prop, created = self.proposals.propose(
+            session_id=ctx.session_id, agent_principal=ctx.agent_principal, entity=entity, attr=attr, value=value,
+            kind=kind, request_id=request_id, max_pending=ctx.max_proposals,
+        )
+        if created:
+            self.audit.append("attr_proposed", session=ctx.session_id, attr=attr, proposal=prop.id)
+        return prop, created
+
+    @staticmethod
+    def _require_owner(actor: str) -> None:
+        check_principal(actor, "actor")
+        if principal_kind(actor) not in (PrincipalKind.USER, PrincipalKind.SYSTEM):
+            raise HostError(
+                f"{actor!r}: only a user or system principal may decide an attribute proposal", code="not_authorised"
+            )
+
+    def accept_proposal(
+        self, proposal_id: str, *, actor: str, attr_class: AttrClass | str | None = None, apply: bool = True,
+    ) -> Proposal:
+        """Host-only: declare the proposed attribute and (by default) record the queued fact as the agent's own report."""
+        self._require_owner(actor)
+        prop = self.proposals.get(proposal_id)
+        if prop.status != "pending":
+            raise ProposalError(f"proposal {proposal_id!r} is already {prop.status}", code="proposal_decided")
+        cls = None if attr_class is None else (attr_class if isinstance(attr_class, AttrClass) else AttrClass(attr_class))
+        if cls is AttrClass.DERIVED:
+            raise HostError("a derived attribute needs a rule: declare it in the schema, not by proposal", code="derived_attr")
+        if not self.declare_for_session(prop.attr, reason="proposal", session_id=prop.session_id, attr_class=cls):
+            raise HostError(
+                f"cannot declare {prop.attr!r}: this host has no declaration hook; declare it in the schema",
+                code="declare_unavailable",
+            )
+        ids: tuple[str, ...] = ()
+        if apply:
+            a = self.mem.schema.attr(prop.attr)
+            if a.attr_class is AttrClass.DERIVED:
+                raise HostError(f"attribute {prop.attr!r} is derived and cannot be remembered directly", code="derived_attr")
+            proposition = MemberProp(value=prop.value) if a.attr_class is AttrClass.MULTI_SET else ValueProp(value=prop.value)
+            check_proposition_for_attr(a, proposition)
+            origin = Origin.AGENT_HYPOTHESIS if prop.kind == "hypothesis" else Origin.AGENT_STATEMENT
+            me = prop.agent_principal
+            rep = Report(
+                key=Key(entity=prop.entity, attr=prop.attr), cue=Cue.ASSERT, proposition=proposition,
+                source=Source(id=me, cls="agent"), origin=origin, origin_group=me, actor=me,
+            )
+            ha = self.append(rep, idempotency_key=f"proposal:{prop.id}")
+            ids = (ha.report_id,) if ha.report_id is not None else ()
+        decided = self.proposals.decide(
+            proposal_id, accepted=True, actor=actor, attr_class=None if cls is None else cls.value, applied_report_ids=ids
+        )
+        self.audit.append("attr_accepted", session=prop.session_id, proposal=proposal_id, actor=actor, attr=prop.attr,
+                          applied=len(ids))
+        return decided
+
+    def reject_proposal(self, proposal_id: str, *, actor: str, reason: str | None = None) -> Proposal:
+        """Host-only: drop a proposal (nothing is declared or recorded; the queued value is redacted)."""
+        self._require_owner(actor)
+        prop = self.proposals.get(proposal_id)
+        decided = self.proposals.decide(proposal_id, accepted=False, actor=actor, reason=reason)
+        self.audit.append("attr_rejected", session=prop.session_id, proposal=proposal_id, actor=actor, attr=prop.attr)
+        return decided
 
     # ------------------------------------------------------------------ registries
 

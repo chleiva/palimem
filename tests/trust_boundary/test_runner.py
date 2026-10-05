@@ -16,7 +16,7 @@ FIXTURES = load_fixtures()
 
 
 def test_every_fixture_is_covered() -> None:
-    assert len(FIXTURES) == 22
+    assert len(FIXTURES) == 24
     ids = {f["id"] for f in FIXTURES}
     assert set(FAILING) <= ids, "status.json lists a fixture that does not exist"
     assert all(FAILING.values()), "every failing fixture needs its cause"
