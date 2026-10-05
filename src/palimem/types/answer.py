@@ -304,7 +304,7 @@ class ResourceLimited(Codec):
     """No result is valid for the requested snapshot. Carries no segment and no kernel_status.
 
     ``environment_budget`` (S-06, decided): the key exceeded its environment budget (default
-    :data:`~palimem.types.limits.DEFAULT_ENVIRONMENT_BUDGET` = 7); a key above budget never
+    :data:`~palimem.types.limits.DEFAULT_ENVIRONMENT_BUDGET` = 12); a key above budget never
     degrades silently to a different kernel's answer."""
 
     reason: ResourceLimitedReason

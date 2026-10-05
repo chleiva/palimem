@@ -233,7 +233,7 @@ def test_inertia_is_a_boolean():
 
 
 def test_environment_budget_reason_and_default_budget():
-    assert DEFAULT_ENVIRONMENT_BUDGET == 7
+    assert DEFAULT_ENVIRONMENT_BUDGET == 12  # raised from 7 on the budget cross-check (docs/BUDGET_CROSSCHECK.md)
     assert ResourceLimitedReason.ENVIRONMENT_BUDGET.value == "environment_budget"
     ok = ResourceLimited(reason=ResourceLimitedReason.ENVIRONMENT_BUDGET, reason_key=KEY, required_generation=2, completed_generation=2)
     assert "kernel_status" not in ok.to_dict() and "segment" not in ok.to_dict()

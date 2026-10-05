@@ -1,19 +1,20 @@
 {
   "version": 1,
   "kind": "scenario",
-  "id": "s06-02-over-budget-is-never-unresolved",
-  "title": "Over the budget the answer is ResourceLimited even when the evidence is plainly conflicting",
+  "id": "s06-05-explicit-environment-budget-of-seven",
+  "title": "An explicit budget of 7 (the previously validated envelope) is still honoured",
   "gate": "G1",
   "area": "budget",
   "status": "active",
   "covers": [
-    "S-06",
-    "design-row-8"
+    "S-06"
   ],
-  "requires": [],
+  "requires": [
+    "budget_control"
+  ],
   "spec_dependencies": [],
-  "why": "Thirteen conflicting values from thirteen sources would be 'unresolved' for a kernel that could list them. Above the default budget of 12 the key must answer ResourceLimited(environment_budget) instead: no kernel_status, so it can never be mistaken for a legitimate 'unresolved' (S-06: a key above budget never degrades silently).",
-  "source": "S-06 decision (2026-10-04); default raised 2026-10-05",
+  "why": "The default is 12 (see s06-01) but a deployment may set a smaller budget: here 7, the envelope the study generator produces. Seven independent origin groups resolve, the eighth exceeds the budget and answers ResourceLimited(environment_budget), withdrawing it brings the key back to seven. This is the explicit-budget variant of what s06-01 tested as the default before 2026-10-05.",
+  "source": "S-06 decision (2026-10-04); budget variant",
   "setup": {
     "profile": "open-world",
     "schema": {
@@ -55,30 +56,16 @@
       "s8": {
         "class": "standard",
         "origin_group": "g_s8"
-      },
-      "s9": {
-        "class": "standard",
-        "origin_group": "g_s9"
-      },
-      "s10": {
-        "class": "standard",
-        "origin_group": "g_s10"
-      },
-      "s11": {
-        "class": "standard",
-        "origin_group": "g_s11"
-      },
-      "s12": {
-        "class": "standard",
-        "origin_group": "g_s12"
-      },
-      "s13": {
-        "class": "standard",
-        "origin_group": "g_s13"
       }
     }
   },
   "ops": [
+    {
+      "op": "configure",
+      "limits": {
+        "environment_budget": 7
+      }
+    },
     {
       "op": "append",
       "ref": "r1",
@@ -90,7 +77,7 @@
         },
         "proposition": {
           "form": "value",
-          "v": "emp1"
+          "v": "acme"
         },
         "cue": "assert",
         "target": null,
@@ -117,7 +104,7 @@
         },
         "proposition": {
           "form": "value",
-          "v": "emp2"
+          "v": "acme"
         },
         "cue": "assert",
         "target": null,
@@ -144,7 +131,7 @@
         },
         "proposition": {
           "form": "value",
-          "v": "emp3"
+          "v": "acme"
         },
         "cue": "assert",
         "target": null,
@@ -171,7 +158,7 @@
         },
         "proposition": {
           "form": "value",
-          "v": "emp4"
+          "v": "acme"
         },
         "cue": "assert",
         "target": null,
@@ -198,7 +185,7 @@
         },
         "proposition": {
           "form": "value",
-          "v": "emp5"
+          "v": "acme"
         },
         "cue": "assert",
         "target": null,
@@ -225,7 +212,7 @@
         },
         "proposition": {
           "form": "value",
-          "v": "emp6"
+          "v": "acme"
         },
         "cue": "assert",
         "target": null,
@@ -252,7 +239,7 @@
         },
         "proposition": {
           "form": "value",
-          "v": "emp7"
+          "v": "acme"
         },
         "cue": "assert",
         "target": null,
@@ -269,6 +256,25 @@
       }
     },
     {
+      "op": "query",
+      "name": "q7",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "acme"
+          }
+        }
+      }
+    },
+    {
       "op": "append",
       "ref": "r8",
       "at": "2026-02-08T10:00:00Z",
@@ -279,7 +285,7 @@
         },
         "proposition": {
           "form": "value",
-          "v": "emp8"
+          "v": "acme"
         },
         "cue": "assert",
         "target": null,
@@ -296,143 +302,8 @@
       }
     },
     {
-      "op": "append",
-      "ref": "r9",
-      "at": "2026-02-09T10:00:00Z",
-      "report": {
-        "key": {
-          "entity": "alice",
-          "attr": "employer"
-        },
-        "proposition": {
-          "form": "value",
-          "v": "emp9"
-        },
-        "cue": "assert",
-        "target": null,
-        "source": {
-          "id": "s9",
-          "class": "standard"
-        },
-        "origin": "external_observation",
-        "origin_group": "g_s9",
-        "actor": "connector:s9",
-        "valid_from": null,
-        "valid_to": null,
-        "precision": "day"
-      }
-    },
-    {
-      "op": "append",
-      "ref": "r10",
-      "at": "2026-02-10T10:00:00Z",
-      "report": {
-        "key": {
-          "entity": "alice",
-          "attr": "employer"
-        },
-        "proposition": {
-          "form": "value",
-          "v": "emp10"
-        },
-        "cue": "assert",
-        "target": null,
-        "source": {
-          "id": "s10",
-          "class": "standard"
-        },
-        "origin": "external_observation",
-        "origin_group": "g_s10",
-        "actor": "connector:s10",
-        "valid_from": null,
-        "valid_to": null,
-        "precision": "day"
-      }
-    },
-    {
-      "op": "append",
-      "ref": "r11",
-      "at": "2026-02-11T10:00:00Z",
-      "report": {
-        "key": {
-          "entity": "alice",
-          "attr": "employer"
-        },
-        "proposition": {
-          "form": "value",
-          "v": "emp11"
-        },
-        "cue": "assert",
-        "target": null,
-        "source": {
-          "id": "s11",
-          "class": "standard"
-        },
-        "origin": "external_observation",
-        "origin_group": "g_s11",
-        "actor": "connector:s11",
-        "valid_from": null,
-        "valid_to": null,
-        "precision": "day"
-      }
-    },
-    {
-      "op": "append",
-      "ref": "r12",
-      "at": "2026-02-12T10:00:00Z",
-      "report": {
-        "key": {
-          "entity": "alice",
-          "attr": "employer"
-        },
-        "proposition": {
-          "form": "value",
-          "v": "emp12"
-        },
-        "cue": "assert",
-        "target": null,
-        "source": {
-          "id": "s12",
-          "class": "standard"
-        },
-        "origin": "external_observation",
-        "origin_group": "g_s12",
-        "actor": "connector:s12",
-        "valid_from": null,
-        "valid_to": null,
-        "precision": "day"
-      }
-    },
-    {
-      "op": "append",
-      "ref": "r13",
-      "at": "2026-02-13T10:00:00Z",
-      "report": {
-        "key": {
-          "entity": "alice",
-          "attr": "employer"
-        },
-        "proposition": {
-          "form": "value",
-          "v": "emp13"
-        },
-        "cue": "assert",
-        "target": null,
-        "source": {
-          "id": "s13",
-          "class": "standard"
-        },
-        "origin": "external_observation",
-        "origin_group": "g_s13",
-        "actor": "connector:s13",
-        "valid_from": null,
-        "valid_to": null,
-        "precision": "day"
-      }
-    },
-    {
       "op": "query",
-      "name": "q1",
+      "name": "q8",
       "query": {
         "key": {
           "entity": "alice",
@@ -448,6 +319,49 @@
         "reason_key": {
           "entity": "alice",
           "attr": "employer"
+        }
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r9",
+      "at": "2026-02-09T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": null,
+        "cue": "withdraw",
+        "target": "$r8",
+        "source": {
+          "id": "s8",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_s8",
+        "actor": "connector:s8",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q7b",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "acme"
+          }
         }
       }
     }

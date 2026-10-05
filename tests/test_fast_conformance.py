@@ -24,8 +24,9 @@ from tests.conformance.impl_memory import STATUS_FILE, current_status
 
 BUDGET_FIXTURES = {
     "ind-08a-environment-budget-resource-limited",
-    "s06-01-default-environment-budget-is-seven",
+    "s06-01-default-environment-budget-is-twelve",
     "s06-02-over-budget-is-never-unresolved",
+    "s06-05-explicit-environment-budget-of-seven",
 }
 
 

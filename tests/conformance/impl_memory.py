@@ -57,6 +57,7 @@ from palimem.types import (
     ValidationError,
     ValueType,
 )
+from palimem.types.limits import DEFAULT_ENVIRONMENT_BUDGET
 
 _RULE = re.compile(r"^\s*(\w+)\(([^)]*)\)\s*<-\s*(.+?)\s*(?:unless\s+(.+))?$")
 _LIT = re.compile(r"(\w+)\(([^)]*)\)")
@@ -171,7 +172,7 @@ class MemoryImplementation:
             rules = tuple(AuthorityRule.from_dict(r) for r in setup.get("authority", ()))
             admission = AdmissionConfig(profile=profile, rules=rules)
             self._traversal: int | None = (setup.get("limits") or {}).get("traversal_budget")
-            self._env_budget: int = (setup.get("limits") or {}).get("environment_budget", 7)
+            self._env_budget: int = (setup.get("limits") or {}).get("environment_budget", DEFAULT_ENVIRONMENT_BUDGET)
             self._schema, self._ks, self._admission, self._profile = schema, ks, admission, profile
             self._build_memory()
         except KernelUnsupported as e:

@@ -194,11 +194,15 @@ def test_change_from_presupposes_the_previous_value() -> None:
 def test_above_budget_is_resource_limited_not_silently_degraded() -> None:
     ks = schema(single_changeable("employer"))
     key = Key(entity="alex", attr="employer")
-    es = [entry(i, "alex", "employer", f"v{i}", day=i, origin_group=f"g{i}", source=f"s{i}") for i in range(1, 9)]
-    r = justify_key(ks, key, es, P0C)
+    es = [entry(i, "alex", "employer", f"v{i}", day=i, origin_group=f"g{i}", source=f"s{i}") for i in range(1, 14)]
+    r = justify_key(ks, key, es, P0C)  # default budget 12 (raised from 7 on docs/BUDGET_CROSSCHECK.md)
     assert isinstance(r, ResourceLimitedResult)
-    assert r.reason is ResourceLimitedReason.ENVIRONMENT_BUDGET and r.n == 8 and r.budget == 7
-    assert isinstance(justify_key(ks, key, es, P0C, budget=8), Justification)
+    assert r.reason is ResourceLimitedReason.ENVIRONMENT_BUDGET and r.n == 13 and r.budget == 12
+    assert isinstance(justify_key(ks, key, es, P0C, budget=13), Justification)
+    # an explicit budget of 7 (the previously validated envelope) is still honoured
+    r7 = justify_key(ks, key, es[:8], P0C, budget=7)
+    assert isinstance(r7, ResourceLimitedResult) and r7.n == 8 and r7.budget == 7
+    assert isinstance(justify_key(ks, key, es[:7], P0C, budget=7), Justification)
 
 
 def test_reports_on_another_key_are_refused() -> None:
