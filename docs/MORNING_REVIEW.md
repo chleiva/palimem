@@ -112,3 +112,26 @@ One pass per model on the 69-item dev split with the frozen prompt; the frozen t
 - **Correction of Lane P's hypothesis:** unchanged derived versions were *not* mostly rewritten (only 42 of 1,821 derived writes, 2.3%, were forced by the store's marks alone).
 - **Not proven:** everything at 10^5 reports is an extrapolation (no run reached it); about half of the 5.2 KiB per report heap is accounted for by the profile.
 - **Housekeeping:** the branch had accidentally committed 2.3 MB of SQLite benchmark files; it was squash-merged so they never entered history, and `.bench/` is now ignored.
+
+## From the first symbolic RETRACT-ACT run (Lane J2)
+
+A fixed rule stands in for the agent (no LLM, no spend), so this is the H0 check "does the kernel reproduce the gold", not evidence that an agent behaves better: one author wrote the scenarios, the gold and the kernel. Test split (20 scenarios, 25 decision points), each system run once, both backends agreeing:
+
+| System | harmful-action rate | unnecessary-ask rate | exact |
+|---|---|---|---|
+| `palimem_justified` | 0.000 | 0.000 | 0.960 |
+| `palimem_recency` | 0.080 | 0.000 | 0.880 |
+| `palimem_lww` | 0.120 | 0.000 | 0.840 |
+| scripted `lww` | 0.560 | 0.000 | 0.440 |
+| scripted `lww_retract` | 0.360 | 0.133 | 0.560 |
+
+`palimem_justified` agrees with the gold on 15 of 16 points on dev and 24 of 25 on test; the zero-harm interval is degenerate (scenario-level upper bound 0.171). Full table, intervals and disclosures: `docs/eval/AGENT_BENCHMARK_RESULTS.md`.
+
+**Findings and decisions for you:**
+1. **Negative evidence is a kernel gap:** `not_value` is rejected, so RA-012 gets no answer from any palimem system (the one test miss). Listed, not worked around.
+2. **RA-007 vs S-02:** under the `authority_source` gold `palimem_justified` takes a harmful act, because a failed cross-source correction stays a competing assertion (the paper's A-CORR) instead of becoming `allege` as design v0.3 says. Which should the *product* profile do? Recommendation: follow the design (`allege`, no effect) in the product profile; keep the paper's behaviour in the compat profile only.
+3. **Attribution-only evidence is returned as an `established` candidate for a value query (RA-018).** A consumer reading only `kernel_status` would act on an attribution. Recommendation (conservative default I will implement after the admission work lands, with no `Answer` contract change): a value query over attribution-only evidence answers `unknown`, and attributions are available through a separate host call.
+4. **RA-026.d1's gold looks questionable** (it reads a later report's `since 400` as the change date, while the study's semantics make a day-300 query unresolved). Gold not edited; should it follow the study's gap semantics?
+5. The `recency` and `lww` presets now commit among unresolved alternatives (supports are wired); on RA-006 `recency` still asks because the trusted source outweighs the low-reliability one.
+6. Thin gold classes on test: 2 abstain points, 1 review point, 0 `revalidate`. Who is the second annotator for the test gold?
+7. Disclosed in the results doc: an adapter bug found on dev, one rule change after a dev result, and a cosmetic equivalence flag that prints `False` with an empty difference list (adapter left unedited so the registered hash still matches).
