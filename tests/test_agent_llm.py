@@ -16,6 +16,7 @@ import llm_agent as la
 import llm_report as lr
 import llm_systems as ls
 import score
+from registered_product_v1 import registered_product_v1
 
 from palimem.costs import BudgetExceeded, CostLedger
 
@@ -325,7 +326,10 @@ def test_committed_runs_rescore_offline_to_the_same_responses(path: Path) -> Non
     assert cache.exists(), f"missing cache {cache}"
     g = la.LedgerGate(None, la.ReplyCache(cache), None, "rescore")
     samples = tuple((int(s), v["temperature"]) for s, v in old["samples"].items())
-    new = la.run(old["split"], old["model"], old["system"], old["prompt_version"], samples, g, workers=1)
+    # the registered runs were made on the product behaviour of commit 034d520; the product has changed since
+    # (attribution safety, product-profile `allege`), so the replay pins the registered behaviour
+    with registered_product_v1():
+        new = la.run(old["split"], old["model"], old["system"], old["prompt_version"], samples, g, workers=1)
     # A memory-error notice embeds a log-assigned report id (a known, disclosed flaw of the registered adapter, which
     # is not edited after the test run): the prompts of those points differ on every replay, so only they may miss.
     skip = {(r["scenario"], r["point"]) for r in old["records"] if r["ingest_error"]}

@@ -286,3 +286,24 @@ A second test run of any (model, system) needs `--allow-test-rerun` and must be 
 2. The attribution-only rendering finding (RA-018, confirmed with a model): should `recall` say `unknown` for a value query answered only by an attribution (as already queued), and should a `memory error` notice be rendered more forcefully? Both change `src/palimem`, which this task did not touch.
 3. Should a tool-calling variant (the model chooses whether and how to call `recall`) be built before any claim about agents is made in the README?
 4. A second annotator for the test gold, and more abstain and `revalidate` scenarios, remain the largest threats to what these numbers can mean.
+
+## Product changes since registration (appended 2026-10-05; the registered numbers above are unchanged)
+
+These LLM-in-the-loop runs (and their cached model replies in `bench/agent/runs/2026-10-05/`) correspond to the **product
+behaviour of commit 034d520**. Lane Q later changed the attribution-only `recall` rendering, the policy's attribution rule and
+the product-profile authority default (see the same-named section of `AGENT_BENCHMARK_RESULTS.md`). Because the model sees the
+memory text, any change to it changes the prompt, and a cached reply only matches an identical prompt.
+
+**Reproducibility.** The offline re-score of every committed palimem run
+(`tests/test_agent_llm.py::test_committed_runs_rescore_offline_to_the_same_responses`) now runs inside
+`bench/agent/registered_product_v1.py` (frozen renderer, attribution rule off, `failed_correction_is_allege=False`); the
+registered adapters (`llm_agent.py`, `llm_systems.py`) and their hashes are not edited, and the `lww` and `raw_log` systems do not
+touch the changed code. Offline re-scoring from the command line: `python bench/agent/registered_rerun.py llm rescore <run.json> --cache <cache>`.
+Root cause of the six failing re-scores, confirmed by pinning each change separately: every one of the three changes is needed
+(without the authority pin the RA-007 prompt differs; without the renderer or the policy pin the RA-018 prompt differs).
+
+**Where a new LLM run on current main would not reproduce the cached replies** (prompts that differ, found by replaying every
+committed palimem run without the pin): `dev` (v1 and v2, both models): RA-007.d1 and RA-018.d1; `test` (both models):
+RA-006.d1 only. The test split's attribution scenario does not contain the attribution-only case, so the RA-018 change does not
+reach the registered test numbers; the RA-006 change does (symbolically it flips `ask` to `act fr`, see above). A new live run
+is a different run and would need its own registration; none was made.

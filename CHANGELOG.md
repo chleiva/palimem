@@ -11,6 +11,10 @@ checkout. What does not exist, was not measured or was not decided is in [`docs/
 numbers and their caveats are in the README (section 7).
 
 ### Added
+- **Registered-benchmark reproducibility** (`bench/agent/registered_product_v1.py`, `registered_render_v1.py`,
+  `registered_rerun.py`, `current_main_column.py`): the registered RETRACT-ACT runs (symbolic and LLM-in-the-loop) correspond
+  to the product behaviour of commit 034d520 and re-score offline to identical responses under a pin; a new run on current
+  main differs at RA-007 (dev) and RA-006 (test) symbolically (see the dated notes in `docs/eval/`).
 - **Contract**: `palimem.types` (frozen, validated dataclasses with canonical JSON) and generated JSON Schemas in `schemas/`,
   drift-checked in CI. Decision records S-01 to S-13 (all decided) and the six contract changes that needed an explicit
   author decision ([`docs/decisions/`](docs/decisions/), [`docs/CONTRACT_PENDING.md`](docs/CONTRACT_PENDING.md)).

@@ -244,3 +244,39 @@ python bench/agent/palimem_report.py sensitivity --split test bench/agent/result
 ```
 
 Re-running the test split needs `--allow-test-rerun` and must be disclosed; the registry shows `reruns: 0` for all four systems today.
+
+## Product changes since registration (appended 2026-10-05; the registered numbers above are unchanged)
+
+The registered symbolic runs correspond to the **product behaviour of commit 034d520**. After registration, three
+intentional product changes (Lane Q) reached the benchmark's adapters:
+
+1. **Attribution safety.** `decide()` never commits to a `belief_of` candidate (it asks), and the agent `recall` text marks
+   attribution-only answers and lists attributions apart (no `Answer` contract change).
+2. **Product-profile authority.** In the `open-world` profile a failed cross-source `correct` now lands as `allege` with no
+   effect (`AdmissionConfig.failed_correction_is_allege`; the compat profile keeps the paper's behaviour).
+3. The `recall` rendering above (frozen copy of the registered text: `bench/agent/registered_render_v1.py`).
+
+**Reproducibility.** `bench/agent/registered_product_v1.py` pins the registered behaviour inside a `with` block (frozen
+renderer, attribution rule off, `failed_correction_is_allege=False`); the registered adapters and their hashes are not edited.
+Under the pin all eight registered symbolic results (`dev`/`test` x `justified`, `recency`, `lww`, `justified_su_off`)
+reproduce their stored responses exactly (`tests/test_registered_product_v1.py`), and
+`python bench/agent/registered_rerun.py symbolic ...` re-runs a registered run that way. A **new** run on current main uses the
+runners directly (no pin) and is a different run.
+
+**What a new run on current main would show** (exploratory, unregistered, symbolic; `bench/agent/current_main_column.py`,
+`bench/agent/results/current-main-symbolic.json`; it calls `run_system` directly and does **not** consume the registered test
+run or touch `results/test_runs.json`; the test column is a comparison, not a second test result, and nothing was tuned on it).
+Only one decision point changes per split, identically for every system:
+
+| split | decision point | registered (034d520) | current main | why |
+|---|---|---|---|---|
+| dev | RA-007.d1 | `act manchester` | `act leeds` | a correction by a sibling source of the same origin group fails the source-level check and is `allege`; the registered run followed the paper's origin-group authority |
+| test | RA-006.d1 | `ask` | `act fr` | a cross-origin correction no longer acts as a competing report (it is `allege`), so the original stands and the model acts; the registered gold (`ask`) follows the paper's A-CORR rule |
+
+Scores for `justified` (harmful-action rate / exact match), default gold profile: dev 0.000 / 0.938 registered, 0.062 / 0.875
+on current main; test 0.000 / 0.960 registered, 0.040 / 0.920 on current main. Under the `authority_source` gold
+profile (which RA-007 defines) dev improves on current main (0.062 / 0.875 registered, 0.000 / 0.938 current), while test gets
+worse (0.000 / 0.960 registered, 0.040 / 0.920 current) because of RA-006. **The two scenarios' golds disagree on one
+situation**: RA-007's `authority_source` gold says a failed cross-source correction has no effect, RA-006's gold says a
+cross-origin correction is a competing report that forces `ask`. Gold was not edited; which one the *product* profile should
+follow is the author's decision (pending).
