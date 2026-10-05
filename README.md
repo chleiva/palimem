@@ -132,7 +132,7 @@ switched on; five promotion criteria are open ([`docs/FAST_KERNEL.md`](docs/FAST
 | Performance benchmarks | Targets declared; suite built; four of seven targets missed at the sizes reached | [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) |
 
 Everything not yet done, not measured or not decided is listed with its evidence in [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md).
-The index of all documents is [`docs/README.md`](docs/README.md). Versioning: [`docs/VERSIONING.md`](docs/VERSIONING.md).
+The index of all documents is [`docs/README.md`](docs/README.md); where every gate stands is [`docs/GATES.md`](docs/GATES.md). Versioning: [`docs/VERSIONING.md`](docs/VERSIONING.md).
 Releasing: [`docs/RELEASING.md`](docs/RELEASING.md).
 
 ## Contributing and licence

@@ -57,6 +57,7 @@ this page.
 |---|---|
 | [`HARNESS.md`](HARNESS.md) | the differential harness, the frozen-set guard and the cost ledger |
 | [`SETTINGS23.md`](SETTINGS23.md) | the study's Settings 2 and 3 replayed from cached extracted claims, the pinned data, and the authority-coincidence check on them |
+| [`GATES.md`](GATES.md) | every gate with its criterion as written, the evidence in the repository, its status and what is missing, plus what was re-run to write it |
 | [`CONFORMANCE.md`](CONFORMANCE.md) | the implementation-neutral fixture format and suite, with the ratchet |
 | [`PERFORMANCE.md`](PERFORMANCE.md) | declared performance targets, the benchmark method and every measured pass, with misses |
 | [`eval/AGENT_BENCHMARK.md`](eval/AGENT_BENCHMARK.md) | RETRACT-ACT: the agent-level benchmark's protocol, scenarios and scoring (a draft pre-registration) |
