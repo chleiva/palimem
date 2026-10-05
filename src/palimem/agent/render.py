@@ -17,6 +17,7 @@ from palimem.admission import normalise_value
 from palimem.types import (
     Answer,
     BeliefAsOf,
+    BeliefOfForm,
     Candidate,
     Decision,
     Explanation,
@@ -136,6 +137,21 @@ def answer_json(
         "explanation": ans.explanation.value,
         "notices": nj,
     }
+    seg_cands = ([ans.justified.segment.established] if ans.justified.segment.established is not None else []) + list(
+        ans.justified.segment.alternatives
+    )
+    attribution_only = bool(seg_cands) and all(isinstance(c.form, BeliefOfForm) for c in seg_cands)
+    out["attribution_only"] = attribution_only
+    if attribution_only:
+        # attributions establish what a third party believes, never the value itself (design v0.3, S-11): the
+        # content of this key is unknown, and the attributions are returned apart from any value
+        out["attributions"] = [
+            {
+                "holder": a.holder, "proposition": a.proposition.to_dict(), "origin_groups": list(a.origin_groups),
+                "report_ids": list(a.report_ids),
+            }
+            for a in host.mem.attributions(key, as_of)
+        ][:max_alternatives]
     if ans.inquiry is not None:
         out["inquiry"] = {
             "competing": [candidate_json(c) for c in ans.inquiry.competing[:max_alternatives]],
@@ -162,6 +178,20 @@ def answer_text(d: Mapping[str, Any]) -> str:
     status, decision = d["kernel_status"], d["decision"]
     a = d["assertion"]
     lines = []
+    if d.get("attribution_only"):
+        lines.append(f"{head}: CONTENT UNKNOWN. Only what other parties are reported to believe is established:")
+        for at in d.get("attributions") or []:
+            n = len(at["origin_groups"])
+            lines.append(
+                f"  - {at['holder']} is reported to believe {_assertion_text(at['proposition'])} "
+                f"({n} origin group{'s' if n != 1 else ''})."
+            )
+        lines.append(
+            "  That does not establish the value itself. Do not state it as a fact; ask a source that can confirm it, "
+            "or say it is unconfirmed."
+        )
+        lines.append(f"  decision={decision}; policy={d['policy']['version']}.")
+        return "\n".join(lines)
     if status == "established":
         lines.append(f"{head}: ESTABLISHED = {_assertion_text(a)}.")
     elif status == "established_empty":
