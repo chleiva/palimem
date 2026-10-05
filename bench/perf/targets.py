@@ -28,13 +28,20 @@ T6_FLATNESS_RATIO = 4.0
 T7_DISK_BYTES_PER_REPORT = 5 * 1024
 
 
+def _primary(runs: list[dict[str, Any]], workload: str) -> list[dict[str, Any]]:
+    """Runs that count towards a verdict: the workload at the default population scaling (people = reports / 4). A run
+    with an explicit ``--persons`` is supplementary evidence (it isolates log length from entity count) and is never
+    used to judge a target."""
+    return [r for r in runs if r.get("kind") == "workload" and r["workload"] == workload and r.get("params", {}).get("persons") is None]
+
+
 def _largest(runs: list[dict[str, Any]], workload: str) -> dict[str, Any] | None:
-    cands = [r for r in runs if r.get("kind") == "workload" and r["workload"] == workload]
+    cands = _primary(runs, workload)
     return max(cands, key=lambda r: r["reached"]["reports"]) if cands else None
 
 
 def _smallest(runs: list[dict[str, Any]], workload: str) -> dict[str, Any] | None:
-    cands = [r for r in runs if r.get("kind") == "workload" and r["workload"] == workload]
+    cands = _primary(runs, workload)
     return min(cands, key=lambda r: r["reached"]["reports"]) if cands else None
 
 
