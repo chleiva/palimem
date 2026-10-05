@@ -1,0 +1,1607 @@
+{
+ "adapter_sha256": "6592358e72b1165dedad71dd5822e877069bdc063a692f6a97eaeca2abed41e1",
+ "cache": "dev-cache-v2-ministral-14b.jsonl",
+ "calls": {
+  "cache_hits": 64,
+  "cost_usd": 0.0,
+  "input_tokens": 0,
+  "live": 0,
+  "output_tokens": 0
+ },
+ "estimate": {
+  "calls": 64,
+  "expected_usd": 0.01006,
+  "input_tokens_est": 45168,
+  "model": "ministral-14b",
+  "repairs_not_included": true,
+  "split": "dev",
+  "system": "llm+raw_log",
+  "worst_case_usd": 0.01799
+ },
+ "ingest_errors": {},
+ "model": "ministral-14b",
+ "model_id": "mistral.ministral-3-14b-instruct",
+ "parser_version": "p2",
+ "prompt_sha256": "519c5bcecc5ea532e3b6e0337b291828eac3aa23061780432d80a5192aa9d101",
+ "prompt_version": "v2",
+ "records": [
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-003.d1",
+   "reason": "The most recent report (day 6) indicates Dana's employer is now Globex, but the task requires confirmation before acting.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-003",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-003.d1",
+   "reason": "The most recent report (day 6) contradicts the earlier registry entry (day 1), requiring confirmation before acting.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-003",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-003.d1",
+   "reason": "The memory now shows conflicting information about Dana's current employer, requiring confirmation before acting.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-003",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-003.d1",
+   "reason": "The memory shows conflicting information about Dana's current employer, so confirmation is needed before acting.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-003",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-003.d2",
+   "reason": "The memory no longer supports a justified employer for Dana, as the only report (day 6) was withdrawn on day 9.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-003",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-003.d2",
+   "reason": "The memory no longer supports a current employer for Dana, as the only report (day 6) was withdrawn on day 9.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-003",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-003.d2",
+   "reason": "The memory no longer supports a current employer for Dana, as the only report (day 6) was withdrawn on day 9.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-003",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-003.d2",
+   "reason": "Press withdrew its report (day 9), leaving Dana\u2019s employer as unknown and requiring confirmation before proceeding with a required task.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-003",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-007.d1",
+   "reason": "The most recent report (day 6) from desk_b corrects the earlier report (day 2) and justifies the current value for Acme's office city.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "manchester"
+   },
+   "sample": 0,
+   "scenario": "RA-007",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-007.d1",
+   "reason": "The most recent report (day 6) from desk_b corrects the earlier report (day 2) and justifies the current value for Acme's office city.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "manchester"
+   },
+   "sample": 1,
+   "scenario": "RA-007",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-007.d1",
+   "reason": "The most recent and corrected report (day 6) justifies the use of Manchester as Acme's office city.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "manchester"
+   },
+   "sample": 2,
+   "scenario": "RA-007",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-007.d1",
+   "reason": "The most recent and corrected report (day 6) justifies the city as **manchester** for the courier booking.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "manchester"
+   },
+   "sample": 3,
+   "scenario": "RA-007",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-011.d1",
+   "reason": "The memory no longer supports the value 'acc-111' due to the dispute on day 5.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-011",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-011.d1",
+   "reason": "The memory no longer supports the value 'acc-111' due to the dispute on day 5, and the task is required.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-011",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-011.d1",
+   "reason": "The memory no longer supports the value 'acc-111' as the payee account for vendor9 due to the dispute on day 5.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-011",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-011.d1",
+   "reason": "The memory no longer supports the value *acc-111* as vendor9's payee account due to a dispute on day 5.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-011",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-014.d1",
+   "reason": "The latest two reports (day 10 and day 11) confirm the payee account is acc-999, overriding the earlier registry report.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-999"
+   },
+   "sample": 0,
+   "scenario": "RA-014",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-014.d1",
+   "reason": "The latest two reports (day 10 and day 11) confirm the current payee account as acc-999.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-999"
+   },
+   "sample": 1,
+   "scenario": "RA-014",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-014.d1",
+   "reason": "The latest two reports (day 10 and day 11) confirm the current payee account as acc-999.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-999"
+   },
+   "sample": 2,
+   "scenario": "RA-014",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-014.d1",
+   "reason": "The most recent confirmed report (day 11) by mail_y justifies the current payee account as acc-999.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acc-999"
+   },
+   "sample": 3,
+   "scenario": "RA-014",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-018.d1",
+   "reason": "Both reports on day 4 and day 5 confirm that Dave believes Acme Store\u2019s refund window is 30 days.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "30"
+   },
+   "sample": 0,
+   "scenario": "RA-018",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-018.d1",
+   "reason": "Both reports on day 4 and day 5 confirm that Dave believes the refund window is 30 days.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "30"
+   },
+   "sample": 1,
+   "scenario": "RA-018",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-018.d1",
+   "reason": "Both reports on day 4 and day 5 confirm that Dave believes Acme Store\u2019s refund window is 30 days.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "30"
+   },
+   "sample": 2,
+   "scenario": "RA-018",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-018.d1",
+   "reason": "Memory confirms consensus that acme_store's refund window days is 30, with no conflicting or withdrawn reports.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "30"
+   },
+   "sample": 3,
+   "scenario": "RA-018",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-021.d1",
+   "reason": "The latest report (day 3) contradicts the earlier one (day 2), so the correct address is unresolved.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-021",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-021.d1",
+   "reason": "The latest report from shop contradicts the earlier crm report, requiring confirmation before dispatch.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-021",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-021.d1",
+   "reason": "The latest report from shop contradicts the earlier crm report, requiring confirmation before dispatch.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-021",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-021.d1",
+   "reason": "The current delivery address for cust23 is ambiguous between conflicting reports.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-021",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-021.d2",
+   "reason": "The only remaining report (day 2) justifies dispatching to cust23's address as 4 oak rd.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "4 oak rd."
+   },
+   "sample": 0,
+   "scenario": "RA-021",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-021.d2",
+   "reason": "The only remaining report (day 2) justifies dispatching to cust23's address as 4 oak rd.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "4 oak rd."
+   },
+   "sample": 1,
+   "scenario": "RA-021",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-021.d2",
+   "reason": "The only remaining report (day 2) justifies dispatching to cust23's address as 4 oak rd.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "4 oak rd."
+   },
+   "sample": 2,
+   "scenario": "RA-021",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-021.d2",
+   "reason": "The most recent valid report (unwithdrawn) is from day 2 by crm, confirming cust23's address.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "4 oak rd."
+   },
+   "sample": 3,
+   "scenario": "RA-021",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-024.d1",
+   "reason": "The memory consistently justifies 'acme' as Jo's employer across all reports.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acme"
+   },
+   "sample": 0,
+   "scenario": "RA-024",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-024.d1",
+   "reason": "The memory consistently justifies 'acme' as Jo's employer across all reports.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acme"
+   },
+   "sample": 1,
+   "scenario": "RA-024",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-024.d1",
+   "reason": "The memory consistently and repeatedly confirms Jo's employer as 'acme' without contradiction or withdrawal.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acme"
+   },
+   "sample": 2,
+   "scenario": "RA-024",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-024.d1",
+   "reason": "The memory consistently and repeatedly justifies 'acme' as Jo\u2019s employer on all five days without corrections.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "acme"
+   },
+   "sample": 3,
+   "scenario": "RA-024",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-024.d2",
+   "reason": "The memory now shows the employer has been updated to Globex on day 9, replacing the earlier repeated reports of Acme.",
+   "repaired": false,
+   "response": {
+    "action": "revalidate",
+    "value": "globex"
+   },
+   "sample": 0,
+   "scenario": "RA-024",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-024.d2",
+   "reason": "The memory now justifies the current employer as 'globex' instead of 'acme'.",
+   "repaired": false,
+   "response": {
+    "action": "revalidate",
+    "value": "globex"
+   },
+   "sample": 1,
+   "scenario": "RA-024",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-024.d2",
+   "reason": "The most recent and valid report (day 9) confirms Jo's employer is now Globex, superseding earlier reports.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "globex"
+   },
+   "sample": 2,
+   "scenario": "RA-024",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-024.d2",
+   "reason": "The memory has been updated on day 9, withdrawing support for 'acme' as Jo's employer.",
+   "repaired": false,
+   "response": {
+    "action": "revalidate",
+    "value": "globex"
+   },
+   "sample": 3,
+   "scenario": "RA-024",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-026.d1",
+   "reason": "The tax statement for day 300 depends on Jo's residence, but the memory does not yet confirm whether the change to Paris is effective by day 300.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-026",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-026.d1",
+   "reason": "The tax statement for day 300 depends on Jo's residence, but the memory does not yet justify a value for that day (effective change to Paris is from day 400).",
+   "repaired": false,
+   "response": {
+    "action": "abstain",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-026",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-026.d1",
+   "reason": "The tax statement for day 300 depends on Jo's residence, but the memory does not yet confirm whether the change to Paris is effective by day 300.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-026",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-026.d1",
+   "reason": "Jo's residence on day 300 is still London, as Paris only takes effect from day 400.",
+   "repaired": false,
+   "response": {
+    "action": "act",
+    "value": "london"
+   },
+   "sample": 3,
+   "scenario": "RA-026",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-026.d2",
+   "reason": "The memory does not yet justify a residence for day 300, as the effective date for Paris (day 400) is after the task's required date.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-026",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-026.d2",
+   "reason": "The memory does not justify a residence for day 300, as the earliest effective date for a confirmed address (Paris) is day 400.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-026",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-026.d2",
+   "reason": "The memory does not justify a residence for day 300, as the effective date for Paris (day 400) is after the task's required date.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-026",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-026.d2",
+   "reason": "The memory shows a corrected residence effective from day 400, which means any active address before then depends on an earlier value for tax statement issuance tasks.",
+   "repaired": false,
+   "response": {
+    "action": "revalidate",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-026",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-026.d3",
+   "reason": "The memory now clarifies that Jo's residence was Paris on day 300 (correction on day 30), contradicting the earlier action's basis (London).",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-026",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-026.d3",
+   "reason": "The memory now clarifies that the residence change to Paris was effective from day 400, but the statement for day 300 was issued using London, which is no longer justified.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-026",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-026.d3",
+   "reason": "The memory now clarifies that the residence change to Paris was effective from day 400, but the statement for day 300 was issued using London, which is no longer justified.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-026",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-026.d3",
+   "reason": "The memory now clarifies Jo\u2019s residence was *Paris* from day 400 onward, but the issued statement (using London) was not yet invalidated by a corrected report until day 30, and the task requires revalidation due to this reversal.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-026",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-028.d1",
+   "reason": "The memory has been updated with a corrected address for order56.",
+   "repaired": false,
+   "response": {
+    "action": "revalidate",
+    "value": "22 mill ln"
+   },
+   "sample": 0,
+   "scenario": "RA-028",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-028.d1",
+   "reason": "The memory has been updated with a corrected address for order56.",
+   "repaired": false,
+   "response": {
+    "action": "revalidate",
+    "value": "22 mill ln"
+   },
+   "sample": 1,
+   "scenario": "RA-028",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-028.d1",
+   "reason": "The memory has been updated with a corrected address for order56, replacing the earlier value.",
+   "repaired": false,
+   "response": {
+    "action": "revalidate",
+    "value": "22 mill ln"
+   },
+   "sample": 2,
+   "scenario": "RA-028",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-028.d1",
+   "reason": "Memory now shows the shipment address for order56 was updated today to 22 mill ln, invalidating the earlier plan.",
+   "repaired": false,
+   "response": {
+    "action": "revalidate",
+    "value": "22 mill ln"
+   },
+   "sample": 3,
+   "scenario": "RA-028",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-030.d1",
+   "reason": "The memory has changed since the initial plan (lead is now erin, not dana).",
+   "repaired": false,
+   "response": {
+    "action": "revalidate",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-030",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-030.d1",
+   "reason": "The memory has changed since the initial plan (lead was dana@x.org but is now erin@x.org).",
+   "repaired": false,
+   "response": {
+    "action": "revalidate",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-030",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-030.d1",
+   "reason": "The memory has changed since the initial plan (lead was dana on day 2, now erin on day 6).",
+   "repaired": false,
+   "response": {
+    "action": "revalidate",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-030",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-030.d1",
+   "reason": "The memory has changed since the last plan: orion's lead was dana (day 2) but is now erin (day 6).",
+   "repaired": false,
+   "response": {
+    "action": "revalidate",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-030",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-030.d2",
+   "reason": "The memory no longer supports a valid lead for Orion's project after the withdrawal of the report that changed the lead to Erin.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 0,
+   "scenario": "RA-030",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-030.d2",
+   "reason": "The memory no longer supports a valid lead for Orion's project after the withdrawal of the report that changed the lead to Erin.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 1,
+   "scenario": "RA-030",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-030.d2",
+   "reason": "The memory no longer supports a current lead for Orion due to the withdrawal of the report that changed the lead to Erin.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 2,
+   "scenario": "RA-030",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.0
+  },
+  {
+   "error": null,
+   "ingest_error": false,
+   "missing": false,
+   "parse_error": null,
+   "point": "RA-030.d2",
+   "reason": "The memory no longer supports Erin's lead status due to the withdrawal of report r5, leaving Dana's lead role as the current justified value.",
+   "repaired": false,
+   "response": {
+    "action": "ask",
+    "value": null
+   },
+   "sample": 3,
+   "scenario": "RA-030",
+   "stop_reasons": [
+    "end_turn"
+   ],
+   "temperature": 0.7
+  }
+ ],
+ "samples": {
+  "0": {
+   "responses": {
+    "RA-003": {
+     "RA-003.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-003.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-007": {
+     "RA-007.d1": {
+      "action": "act",
+      "value": "manchester"
+     }
+    },
+    "RA-011": {
+     "RA-011.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-014": {
+     "RA-014.d1": {
+      "action": "act",
+      "value": "acc-999"
+     }
+    },
+    "RA-018": {
+     "RA-018.d1": {
+      "action": "act",
+      "value": "30"
+     }
+    },
+    "RA-021": {
+     "RA-021.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-021.d2": {
+      "action": "act",
+      "value": "4 oak rd."
+     }
+    },
+    "RA-024": {
+     "RA-024.d1": {
+      "action": "act",
+      "value": "acme"
+     },
+     "RA-024.d2": {
+      "action": "revalidate",
+      "value": "globex"
+     }
+    },
+    "RA-026": {
+     "RA-026.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-026.d2": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-026.d3": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-028": {
+     "RA-028.d1": {
+      "action": "revalidate",
+      "value": "22 mill ln"
+     }
+    },
+    "RA-030": {
+     "RA-030.d1": {
+      "action": "revalidate",
+      "value": null
+     },
+     "RA-030.d2": {
+      "action": "ask",
+      "value": null
+     }
+    }
+   },
+   "temperature": 0.0
+  },
+  "1": {
+   "responses": {
+    "RA-003": {
+     "RA-003.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-003.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-007": {
+     "RA-007.d1": {
+      "action": "act",
+      "value": "manchester"
+     }
+    },
+    "RA-011": {
+     "RA-011.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-014": {
+     "RA-014.d1": {
+      "action": "act",
+      "value": "acc-999"
+     }
+    },
+    "RA-018": {
+     "RA-018.d1": {
+      "action": "act",
+      "value": "30"
+     }
+    },
+    "RA-021": {
+     "RA-021.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-021.d2": {
+      "action": "act",
+      "value": "4 oak rd."
+     }
+    },
+    "RA-024": {
+     "RA-024.d1": {
+      "action": "act",
+      "value": "acme"
+     },
+     "RA-024.d2": {
+      "action": "revalidate",
+      "value": "globex"
+     }
+    },
+    "RA-026": {
+     "RA-026.d1": {
+      "action": "abstain",
+      "value": null
+     },
+     "RA-026.d2": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-026.d3": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-028": {
+     "RA-028.d1": {
+      "action": "revalidate",
+      "value": "22 mill ln"
+     }
+    },
+    "RA-030": {
+     "RA-030.d1": {
+      "action": "revalidate",
+      "value": null
+     },
+     "RA-030.d2": {
+      "action": "ask",
+      "value": null
+     }
+    }
+   },
+   "temperature": 0.0
+  },
+  "2": {
+   "responses": {
+    "RA-003": {
+     "RA-003.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-003.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-007": {
+     "RA-007.d1": {
+      "action": "act",
+      "value": "manchester"
+     }
+    },
+    "RA-011": {
+     "RA-011.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-014": {
+     "RA-014.d1": {
+      "action": "act",
+      "value": "acc-999"
+     }
+    },
+    "RA-018": {
+     "RA-018.d1": {
+      "action": "act",
+      "value": "30"
+     }
+    },
+    "RA-021": {
+     "RA-021.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-021.d2": {
+      "action": "act",
+      "value": "4 oak rd."
+     }
+    },
+    "RA-024": {
+     "RA-024.d1": {
+      "action": "act",
+      "value": "acme"
+     },
+     "RA-024.d2": {
+      "action": "act",
+      "value": "globex"
+     }
+    },
+    "RA-026": {
+     "RA-026.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-026.d2": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-026.d3": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-028": {
+     "RA-028.d1": {
+      "action": "revalidate",
+      "value": "22 mill ln"
+     }
+    },
+    "RA-030": {
+     "RA-030.d1": {
+      "action": "revalidate",
+      "value": null
+     },
+     "RA-030.d2": {
+      "action": "ask",
+      "value": null
+     }
+    }
+   },
+   "temperature": 0.0
+  },
+  "3": {
+   "responses": {
+    "RA-003": {
+     "RA-003.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-003.d2": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-007": {
+     "RA-007.d1": {
+      "action": "act",
+      "value": "manchester"
+     }
+    },
+    "RA-011": {
+     "RA-011.d1": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-014": {
+     "RA-014.d1": {
+      "action": "act",
+      "value": "acc-999"
+     }
+    },
+    "RA-018": {
+     "RA-018.d1": {
+      "action": "act",
+      "value": "30"
+     }
+    },
+    "RA-021": {
+     "RA-021.d1": {
+      "action": "ask",
+      "value": null
+     },
+     "RA-021.d2": {
+      "action": "act",
+      "value": "4 oak rd."
+     }
+    },
+    "RA-024": {
+     "RA-024.d1": {
+      "action": "act",
+      "value": "acme"
+     },
+     "RA-024.d2": {
+      "action": "revalidate",
+      "value": "globex"
+     }
+    },
+    "RA-026": {
+     "RA-026.d1": {
+      "action": "act",
+      "value": "london"
+     },
+     "RA-026.d2": {
+      "action": "revalidate",
+      "value": null
+     },
+     "RA-026.d3": {
+      "action": "ask",
+      "value": null
+     }
+    },
+    "RA-028": {
+     "RA-028.d1": {
+      "action": "revalidate",
+      "value": "22 mill ln"
+     }
+    },
+    "RA-030": {
+     "RA-030.d1": {
+      "action": "revalidate",
+      "value": null
+     },
+     "RA-030.d2": {
+      "action": "ask",
+      "value": null
+     }
+    }
+   },
+   "temperature": 0.7
+  }
+ },
+ "scenarios_sha256": "7f11bd8b4e50ba6e2d7c3af98eeeb03e638ad1fff5c75b12a5c429cb4c97f2c5",
+ "split": "dev",
+ "started_utc": "2026-10-05T15:59:26Z",
+ "system": "llm+raw_log"
+}
