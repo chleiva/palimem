@@ -9,7 +9,7 @@ tests/conformance/
   fixtures/independent/     the 22 independent acceptance rows of design v0.3 (+ 3 variants)
   fixtures/decisions/       S-06 budgets and collapsing, S-10 rule exceptions, S-12 explain, S-04 compat profile, compat checks
   fixtures/security/        behavioural SEC-xx fixtures + index.json (disposition of every SEC-01..44)
-  ../fixtures/trust_boundary/   tb-01..20, loaded by the runner, not copied (agent tool API; runner lands with T-F2)
+  ../fixtures/trust_boundary/   tb-01..20, loaded by the runner, not copied (run through the agent tool API by `tests/trust_boundary/runner.py`; ratchet in `tests/trust_boundary/status.json`)
   runner.py                 executes fixtures against an Implementation; prints a summary by gate and area
   matcher.py                the subset matcher and reference resolution
   checks.py                 non-scenario checks that read the frozen study data

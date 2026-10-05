@@ -33,7 +33,7 @@ All targets apply to this configuration unless a row says otherwise.
 | Backend | `SQLiteBackend` on a file on local SSD (WAL), one process, one writer |
 | Profile | product default `open-world`, policy preset `justified` |
 | Schema | one derived attribute through one rule (derivation depth 1, `work_city <- employer, hq_city`), plus single-valued, multi-valued and stable attributes |
-| Per-key history | at most the environment budget (7 reports per key) unless the workload says otherwise |
+| Per-key history | at most 7 reports per key in the measured workloads (the generator's cap; the default environment budget is now 12, raised after these targets were declared, see `docs/BUDGET_CROSSCHECK.md`) unless the workload says otherwise |
 | Store size | **10^5 reports** in the log (the "reference size"); three scales are run (see §5) |
 | Machine | a current laptop (8 cores, 16 GB); the report records the exact machine |
 
@@ -243,7 +243,7 @@ increasing cost per append; and the pending-job count is a cheap health signal. 
 
 Reported because the first results were discarded and re-run: (1) the generator undercounted live reports per key, because a
 correction aimed at a correction *restores* its target (S-02) and the generator did not model that; some keys exceeded the
-budget of 7, which also caused one intermittent failure of the recovery test in about 1 run in 50 (root cause found by
+budget of 7 (the default budget at the time; it is 12 now), which also caused one intermittent failure of the recovery test in about 1 run in 50 (root cause found by
 keeping the failing database; the generator now never targets a correction and caps corrections per key, and two end-to-end
 tests fail if a workload pushes any key over the budget, checked by mutation); (2) the first recovery timing included
 `verify_log` and `verify_beliefs`; T4 is now time to the first correct answer, with verification reported separately; (3)

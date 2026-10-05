@@ -10,7 +10,7 @@ Tests: `tests/test_pipeline.py`, `tests/test_compat_adapter.py`, `tests/test_pip
 ```
 append(Report)  ──►  Backend.append (one transaction)
                        1 log row (LSN, salted chain)
-                       2 StoreAdmitter ── palimem.admission.Admitter.evaluate(log prefix) ──► AdmissionRecords
+                       2 StoreAdmitter ── palimem.admission (incremental; whole-log Admitter.evaluate is the audit oracle) ──► AdmissionRecords
                        3 KernelReviser ── palimem.kernel (justify_key / justify_derived)    ──► Belief versions
                        4 barrier marks, completion jobs, outbox events
 query(Query)    ──►  Backend.read_belief (generation barrier) ──► palimem.policy.decide ──► Resolved | ResourceLimited
@@ -47,7 +47,7 @@ agent tool API binds them itself and is a separate task (T-F2). The three-call f
   appended report. One rule covers an assertion, a withdrawal, a self-correction, a derived confirmation and the compat
   source-level retraction.
 * **Base keys** are justified by `justify_key` from the admitted entries and stored as a new belief version. A key over the
-  environment budget (default **7**, S-06) gets an *incomplete* belief (`inference = incomplete(environment_budget …)`) and
+  environment budget (default **12** since the budget cross-check, S-06; it was 7) gets an *incomplete* belief (`inference = incomplete(environment_budget …)`) and
   reads answer `ResourceLimited(environment_budget)` naming the key; it never degrades to another answer.
 * **Derived keys** are rebuilt from the **stored base beliefs** (segments -> candidate families, the inverse of the
   kernel's classification), with this append's new versions overlaid. `depends_on` lists exactly the base versions whose
@@ -168,6 +168,8 @@ alternatives, under the paper's exact source-level retraction (the compat marker
 
 ### Conformance suite against `Memory` (`tests/conformance/impl_memory.py`)
 
+*Snapshot taken when supports were wired in (89 fixtures). The current run (90 fixtures, after the budget fixtures were updated for the default of 12) is: 27 pass, 10 fail, 13 skipped, 18 pending a decision, 2 shells, and the 20 trust-boundary fixtures are executed by their own runner, `tests/trust_boundary/runner.py` (18 pass, 2 fail with recorded causes). Refresh with `python -m tests.conformance.runner --impl tests.conformance.impl_memory:MemoryImplementation`.*
+
 ```
 implementation: palimem.Memory
 
@@ -181,8 +183,8 @@ all                   89                26                10                13  
 ```
 
 Of the 80 G1 fixtures: **24 pass** (it was 17 before supports were wired in), 10 fail, 10 are skipped (an op or capability the
-pipeline does not have), 14 are pending a decision, 2 are shells, 20 are the trust-boundary fixtures that wait for the agent
-tool API. Seven fixtures that failed for lack of supports now pass (`ind-02`, `ind-05`, `ind-15`, `s12-01`, `s12-02`, `sec-39a`,
+pipeline does not have), 14 are pending a decision, 2 are shells, 20 are the trust-boundary fixtures (now run through the agent tool API by
+`tests/trust_boundary/runner.py`, not by this runner). Seven fixtures that failed for lack of supports now pass (`ind-02`, `ind-05`, `ind-15`, `s12-01`, `s12-02`, `sec-39a`,
 `sec-41a`). The 10 failures and their causes (all recorded in `tests/conformance/memory_status.json`):
 
 | cause | fixtures |

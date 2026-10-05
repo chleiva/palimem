@@ -11,7 +11,7 @@ Records are grounded in the deposited study code (`~/palimpsest`, v1.0): `revise
 | [S-03](S-03.md) | `blocked` vs `quarantined` | Two classes: `excluded` and `quarantined` | no (unexercised) | accepted |
 | [S-04](S-04.md) | One status enum; paper's closed-world asymmetries | Five statuses; `possible` is adapter-only; profile defined per key class | **yes** | accepted |
 | [S-05](S-05.md) | Belief axis | LSN is canonical; `recorded_at` is an index; τ→LSN batch map | **yes** (adapter) | accepted |
-| [S-06](S-06.md) | Above the environment cap | `ResourceLimited`; collapse first; validated envelope is n ≤ 7 | no | accepted |
+| [S-06](S-06.md) | Above the environment cap | `ResourceLimited(environment_budget)`; default budget 12 after the `oracle_v2` cross-check (was 7); collapsing only for provably interchangeable reports | no | accepted |
 | [S-07](S-07.md) | Principal/authority model | Typed principal ids + declarative grant table; agents can never be granted withdraw/correct on external evidence | no | accepted |
 | [S-08](S-08.md) | Inertia | **Amended:** keep the `Attr.inertia` boolean; profile sets it per the paper | **yes** | amended |
 | [S-09](S-09.md) | Partial dates, `valid_to`, negative evidence | Staged; extended oracle written separately; none in 0.1 | no | accepted |
@@ -29,7 +29,7 @@ Records are grounded in the deposited study code (`~/palimpsest`, v1.0): `revise
 
 - **S-02:** wholesale source retraction (by `registry`, ~35% of generated streams) has no counterpart in the design; A-SELF also fires for retracted or blocked corrections; cross-origin corrections have an effect (A-CORR) that `allege` would erase.
 - **S-04:** the paper's closed world is per slot type and cardinality (single no-evidence → `unknown`; multi no-evidence → `established []`; yes/no absence → `established false`), so a blanket `declared(all)` profile is wrong.
-- **S-06:** the generator caps keys at 7 reports; the design's default of 12 is beyond anything validated, and replay is exponential too.
+- **S-06:** the generator caps keys at 7 reports; the design's default of 12 was beyond anything validated, and replay is exponential too (since cross-checked against `oracle_v2` on fresh streams: `docs/BUDGET_CROSSCHECK.md`; the default is now 12).
 - **S-09:** `until`/`interval` cues and negative polarity are *not implemented* in the deposited model (`NotImplementedError`), so they have no oracle at all.
 
 ## How to decide

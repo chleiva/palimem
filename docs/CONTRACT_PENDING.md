@@ -11,6 +11,8 @@ Status: 2026-10-04. The author's rule: S-01 to S-13 are accepted except where ov
 | 5 | `Proposition` nesting depth ≤ 1 | `belief_of(h, belief_of(h2, P))` disallowed | **Decided yes for 0.x.** Deeper nesting marked reserved in the schema. | S-11 |
 | 6 | Provenance and `explain` contract | `explain(key, valid_at, mode, depth)` gains `depth` (default full closure); provenance = all subset-minimal environments over **base** reports; `flatten(environments)` must equal the oracle's provenance exactly (G1 criterion) | **Decided yes.** G1 requires exact provenance equality on the frozen sets. | S-12 |
 
+**Update 2026-10-05:** the default environment budget in item 3 was raised from 7 to 12 after the `oracle_v2` cross-check, as the item specified (`docs/BUDGET_CROSSCHECK.md`).
+
 **Already decided (not pending):** `belief_as_of` accepts an LSN or a timestamp (S-05; the LSN is a log-row property); `Attr.inertia` stays a boolean (S-08); status enum has five values with `possible` adapter-only (S-04); the hash chain is a storage-layer property, not a `Report` field.
 
 ## Disagreements and risks flagged on the S-records

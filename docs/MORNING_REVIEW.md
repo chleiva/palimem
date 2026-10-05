@@ -149,7 +149,7 @@ A fixed rule stands in for the agent (no LLM, no spend), so this is the H0 check
 - **Caveats you should weigh:** `oracle_v2` has no P0cSU, so it was extended from the Addendum A text (the P0c half is independent, the P0cSU half is not); streams hold at most 12 admitted reports in total, so only one key per stream is at 8-12; the relaxation ladder was never exercised; a key at 12 reports costs about 80 ms per recompute in the enumeration, most of the 100 ms p99 append target (T2).
 - **Fast kernel (`palimem.kernel.fast`, T-B10) is built as a candidate, not switched on.** Class: single-valued changeable keys under P0c/P0cSU, everything else routes to enumeration with the route and reason explicit. Fast vs gold vs enumeration on 30,272 queries: 0 disagreements including provenance; full pipeline with the fast kernel swapped in: 0 disagreements, 0 provenance disagreements. Speed: n=12 2 ms vs 78 ms, n=16 4 ms vs 2.04 s, n=100 1.07 s (enumeration cannot run it).
 - **Promotion criteria still missing (author decision to promote):** (1) what `environment_budget` binds once the fast route answers keys the enumeration refuses; (2) provenance above the enumeration envelope (explanation truncated beyond it); (3) no common Protocol for `Justification` and `FastJustification`; (4) 16.1% of base justifications on Setting 1 still need enumeration; (5) no independent validation above n = 14 (enumeration cannot run there). Details: `docs/FAST_KERNEL.md`.
-- Some docs (e.g. `docs/PERFORMANCE.md`) still say per-key cap 7; to be updated.
+- The docs that still said per-key cap 7 were updated on 2026-10-05 (the doc-refresh pass).
 
 ## From incremental admission (Lane O2)
 

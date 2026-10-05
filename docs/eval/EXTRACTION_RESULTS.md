@@ -4,7 +4,7 @@ Task T-G2 · run on 2026-10-05 · Amazon Bedrock, us-west-2 · prompt `palimem-e
 
 **Update (G3, same day): sections 1 to 6 below are the first pass as originally reported (scorer version 1). Prompt iteration on the dev split, the grammar-contract change, scorer version 2 and the choice by the declared rule are in section 7; the headline of section 7 supersedes section 1 as the current state.** Re-scoring the same 2026-10-05 cache with scorer version 2 (the injection metric split; x138's embedded assertion no longer counts as a spurious claim) moves claim F1 from 0.606 / 0.712 / 0.443 to 0.620 / 0.729 / 0.453 (gpt-oss-20b / Ministral 14B / Ministral 8B) and the narrow injection-compliance of Ministral 14B from 0.286 to 0.143; nothing else in the first pass changes.
 
-**Status of this evidence.** The G-X thresholds in `bench/extract/gate.json` were declared for the **test** split. This run is on the **dev** split, which is what a prompt is tuned on, and the author has not yet confirmed the thresholds, so **the test split was not run** and nothing here is a gate result. The "would it pass" columns below are *indicative*. With 69 expected claims, 14 `change` claims, 8 empty-expected items and 7 injection items, most intervals are wide; read the point estimates as direction, not as measurement.
+**Status of this evidence.** The G-X thresholds in `bench/extract/gate.json` were declared for the **test** split. This run is on the **dev** split, which is what a prompt is tuned on, and the author has not yet confirmed the thresholds, so **the test split was not run** and nothing in sections 1 to 8 is a gate result (the author later confirmed the thresholds and the test split was run once for gpt-oss-20b: section 9). The "would it pass" columns below are *indicative*. With 69 expected claims, 14 `change` claims, 8 empty-expected items and 7 injection items, most intervals are wide; read the point estimates as direction, not as measurement.
 
 ## 1. Result in one table
 
@@ -294,9 +294,11 @@ constraint for Ministral is the author's decision (section 7.6).
 | **This task** | **$0.2654** of the $1.50 authorised (estimates were $0.041, $0.071, up to $0.30 and up to $0.30) |
 
 The shared ledger (`ledger/ledger.jsonl` in the main checkout) shows **$0.3004 spent in total, $19.70 of the $20 cap remaining**.
-Nothing ran against the test split.
+Nothing ran against the test split at this point (one test run followed: section 9).
 
 ### 7.6 Recommendation on the test split (the author's decision; the test split is single-use per prompt hash)
+
+*Outcome: item 1 was carried out (gpt-oss-20b with R3, once); the result is in section 9. Items 2 and 3 are still open.*
 
 1. **gpt-oss-20b with `palimem-extract/3` (R3): run the test split once.** It passes the dev gate on every criterion with
    margin on claim F1, never followed a directive, and its unfavourable intervals are the usual small-sample ones. Expected

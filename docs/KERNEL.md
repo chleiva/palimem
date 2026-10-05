@@ -193,8 +193,8 @@ withdrawn` rows.
 
 ### Limits
 
-* The environments are exact over the interpretations the kernel enumerates (default budget 7 reports per
-  key); they inherit the enumeration's 2^n cost (R4.1). `EnvBudget(minimal=False)` is a diagnostic mode and
+* The environments are exact over the interpretations the kernel enumerates (default budget 12 reports per
+  key since 2026-10-05, 7 before; see `docs/BUDGET_CROSSCHECK.md`); they inherit the enumeration's 2^n cost (R4.1). `EnvBudget(minimal=False)` is a diagnostic mode and
   never the product.
 * For derived keys the number of environments is a product across the keys read; the 256 cap keeps it bounded.
 * `always_err_ids` (used by the classification) is computed for base keys only; the harness aggregates it over

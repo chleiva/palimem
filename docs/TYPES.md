@@ -28,7 +28,7 @@ types and the schemas.
 | `Principal` helpers, `KeyScope`, `Who`, `AuthorityRule`, `AuthorityTable`, `DEFAULT_RULES`, `REVISE_STREAM_V1_RULES` (`authority`) | Schema entry (authority), Write API | see decisions below |
 | `Support`, `Segment`, `Belief`, `BeliefView`, `Pin`, `Dependency`, `InvalidatedBy`, `Versions`, `SemanticConfig`, `Inference` (`belief`) | Belief record | `Belief.lsn` added (S-05) |
 | `Query`, `ExplainQuery`, `Explanation`, `Resolved`, `ResourceLimited`, `Answer`, `Inquiry`, `PolicyInfo`, `SegmentBounds`, `LastComplete` (`answer`) | Query and answer, Read API | output contract v2 |
-| enums (`enums`), limits (`limits`) | throughout | `DEFAULT_ENVIRONMENT_BUDGET = 7`, `MAX_BELIEF_NESTING = 1` |
+| enums (`enums`), limits (`limits`) | throughout | `DEFAULT_ENVIRONMENT_BUDGET = 12`, `MAX_BELIEF_NESTING = 1` |
 
 ## Decisions applied (all decided; there are no pending markers)
 
@@ -39,7 +39,7 @@ types and the schemas.
 | **S-03 (decided):** outcomes `admissible \| quarantined \| excluded` | `AdmissionOutcome`; paper `blocked` ↔ `excluded` / `source_blocked` |
 | **S-04 (decided):** five statuses, `possible` adapter-only | `KernelStatus` has five values; `Segment` enforces the status ↔ candidate shape |
 | **S-05 (decided):** LSN is the belief axis; `belief_as_of` is an LSN or a timestamp | `LogEntry.lsn`, `Belief.lsn`, `Query.belief_as_of: int \| datetime` (JSON integer vs string) |
-| **S-06 (decided):** `environment_budget`, default budget 7 | `ResourceLimitedReason.ENVIRONMENT_BUDGET`, `limits.DEFAULT_ENVIRONMENT_BUDGET` |
+| **S-06 (decided):** `environment_budget`; default budget 7, raised to 12 on 2026-10-05 after the cross-check | `ResourceLimitedReason.ENVIRONMENT_BUDGET`, `limits.DEFAULT_ENVIRONMENT_BUDGET` |
 | **S-07 (decided):** principal kinds in the id prefix; typed grants; agent invariant; grant table versioned with the admission version | `PrincipalKind`, `check_principal`, `AuthorityRule`, `AuthorityTable.successor`; `AuthorityRule` raises on any agent grant of withdraw/correct over external evidence |
 | **S-08 (decided):** `Attr.inertia` stays a boolean | `Attr.inertia: bool` |
 | **S-11 (decided):** `belief_of` nests at most once, deeper nesting reserved | `limits.MAX_BELIEF_NESTING = 1`; schema `x-palimem-reserved` on `BeliefOfProp` |
@@ -84,3 +84,15 @@ types and the schemas.
 `check_proposition_for_attr`, `parse_principal` / `check_principal` / `principal_kind`,
 `default_authority_rules`, `validate_rules_for_profile`. `ValidationError` (a `ValueError`) is the only
 exception types raise. No type touches a store, a clock, or a hash chain.
+
+## Modules that build on the types
+
+The types are the contract; these packages produce and consume them and are described in their own documents:
+
+| Module | What it does with the types | Document |
+|---|---|---|
+| `palimem.extract` | `Extractor` protocol (text plus host context in, typed `Report`s out), `TypedPassthrough` (the no-LLM path), `LLMExtractor` over Bedrock and OpenAI-compatible transports (every call through `palimem.costs`), `build_reports` (the only place `source`, `origin`, `actor` and targets are bound: from the host's `ExtractionContext`, never from model output), strict claim parsing into the types. The output grammar has no field for source, origin, actor, authority, origin group or target ids | [`EXTRACTION.md`](EXTRACTION.md), [`eval/EXTRACTION_GATE.md`](eval/EXTRACTION_GATE.md) |
+| `palimem.admission` | `LogEntry` in, `AdmissionRecord` out (outcome, reason, `admission_version`); evaluates `AuthorityRule`s | [`API_TRUST_BOUNDARY.md`](API_TRUST_BOUNDARY.md) |
+| `palimem.kernel` | admitted reports in, `Belief` segments and `Support` environments out | [`KERNEL.md`](KERNEL.md) |
+| `palimem.store` | persists `LogEntry`, `AdmissionRecord` and `Belief` versions behind the `Backend` protocol | [`STORAGE.md`](STORAGE.md) |
+| `palimem.policy` | `Belief` view in, `decision` and `Resolved` fields out | [`PIPELINE.md`](PIPELINE.md) |
