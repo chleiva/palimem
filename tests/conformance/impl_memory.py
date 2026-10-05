@@ -18,10 +18,12 @@ Setup translation (compact schema -> contract ``Attr`` + kernel schema):
 
 from __future__ import annotations
 
+import json
 import os
 import re
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 from palimem.admission import AdmissionConfig
@@ -29,7 +31,6 @@ from palimem.kernel import AttrSpec, KernelSchema, KernelUnsupported, RuleSpec
 from palimem.memory import Memory, NotReconstructableError
 from palimem.policy import JUSTIFIED
 from palimem.store import (
-    APPEND_STEPS,
     ErasureReason,
     InMemoryBackend,
     SQLiteBackend,
@@ -44,14 +45,12 @@ from palimem.types import (
     Completeness,
     CompletenessMode,
     CompletenessScope,
-    Cue,
     ExplainQuery,
     Key,
     LogEntry,
     Profile,
     Query,
     Report,
-    Resolved,
     Rule,
     Schema,
     SemanticConfig,
@@ -163,6 +162,9 @@ class MemoryImplementation:
         return {"budget_control", "completion_jobs", "delete", "hash_chain", "profile_revise_stream_v1", "outbox"}
 
     def start(self, setup: dict[str, Any]) -> Any:
+        self.clock = _Clock()
+        self._last_events = []
+        self._seen_entities = set()
         profile = Profile(setup.get("profile", "open-world"))
         try:
             schema, ks = build_schemas(setup)
@@ -368,4 +370,24 @@ class MemoryImplementation:
 
 
 Implementation = MemoryImplementation
-_UNUSED = (APPEND_STEPS, Cue, Resolved)
+
+STATUS_FILE = Path(__file__).parent / "memory_status.json"
+
+
+def current_status() -> dict[str, Any]:
+    """Run the suite against this adapter and summarise: ids that pass, ids that fail with their first failure line,
+    ids skipped with the reason. ``memory_status.json`` is the recorded baseline (a ratchet: see test_impl_memory)."""
+    from .runner import FAIL, PASS, SKIP, run_all
+
+    out = run_all(MemoryImplementation())
+    return {
+        "implementation": MemoryImplementation.name,
+        "pass": sorted(o.id for o in out if o.status == PASS),
+        "fail": {o.id: (o.failures[0] if o.failures else o.reason) for o in out if o.status == FAIL},
+        "skip": {o.id: o.reason for o in out if o.status == SKIP},
+    }
+
+
+if __name__ == "__main__":  # python -m tests.conformance.impl_memory  -> rewrite the recorded baseline
+    STATUS_FILE.write_text(json.dumps(current_status(), indent=1, sort_keys=True) + "\n")
+    print(f"wrote {STATUS_FILE}")

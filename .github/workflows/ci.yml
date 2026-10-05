@@ -77,6 +77,18 @@ jobs:
             fi
           done
       - run: pytest -q tests/test_frozen_guard.py tests/test_differential.py tests/test_kernel_diff.py tests/test_kernel_oracle_property.py tests/test_convert.py tests/conformance/test_runner.py::test_compat_authority_check_runs_or_skips
+      - name: Pipeline differential (the FULL pipeline through Memory, both backends), bounded on push/PR, full on the nightly schedule
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then ARGS=""; else ARGS="--stride 10"; fi
+          python -m harness.pipeline_diff $ARGS --backend both --out pipeline-diff-report.json
+      - name: Pipeline self-test, the gate must fail on injected bugs
+        run: |
+          for bug in mutate-answer no-source-retraction self-update; do
+            if python -m harness.pipeline_diff --limit 25 --backend memory --inject-bug "$bug"; then
+              echo "::error::pipeline_diff did not detect injected bug '$bug'"; exit 1
+            fi
+          done
+      - run: pytest -q tests/test_pipeline_diff.py tests/test_pipeline.py tests/test_compat_adapter.py tests/conformance/test_impl_memory.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -84,3 +96,4 @@ jobs:
           path: |
             differential-report.json
             kernel-diff-report.json
+            pipeline-diff-report.json
