@@ -1,0 +1,13 @@
+resolver lexical/1 on test: 66 pairs (33 same, 33 different; 2 alias_only excluded from lexical recall)
+    t   prec  recall    FMR  FMR 95% Wilson     recall 95% Wilson   (TP/FP/FN)
+  0.5  0.938   0.968  0.061  [0.017, 0.196]   [0.838, 0.994]   (30/2/1)
+  0.6  0.938   0.968  0.061  [0.017, 0.196]   [0.838, 0.994]   (30/2/1)
+  0.7  0.938   0.968  0.061  [0.017, 0.196]   [0.838, 0.994]   (30/2/1)
+  0.8  1.000   0.742  0.000  [0.000, 0.104]   [0.568, 0.863]   (23/0/8)
+  0.9  1.000   0.581  0.000  [0.000, 0.104]   [0.408, 0.736]   (18/0/13)
+ 0.95  1.000   0.581  0.000  [0.000, 0.104]   [0.408, 0.736]   (18/0/13)
+  1.0  1.000   0.581  0.000  [0.000, 0.104]   [0.408, 0.736]   (18/0/13)
+alias_only pairs: 2; resolved with a declared alias 2; by lexical rules at 0.6: 0
+  FALSE 0.738 aligned                            'Amazon' ~ 'Amazonas' (shared_token)
+  FALSE 0.726 aligned                            'J. Smith' ~ 'Jane Smith' (initial_conflict)
+  MISS  0.400 blocked:distinct_qualifier         'Priya Nairr' ~ 'Priya Nair' (typo)

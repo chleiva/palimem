@@ -235,8 +235,9 @@ study checkout, no frozen cache and no deposit zip, on Python 3.11 and 3.13).
 7. **Authorised `dispute`** has no kernel semantics (S-02 open point): `EvidenceSet.disputes` is not read (`sec-41b`).
 8. **`inertia = false` on a changeable attribute** has no specified semantics (S-08); the kernel refuses it and the adapter reports
    `ind-11` / `ind-12` as skipped.
-9. **Negative evidence, merges, crash points other than the store's steps, tamper/restore hooks, `find`, extraction** are not in
-   the pipeline; the adapter returns `NotImplemented` and those fixtures are skipped with a reason.
+9. **Negative evidence, crash points other than the store's steps, tamper/restore hooks, extraction** are not in
+   the pipeline; the adapter returns `NotImplemented` and those fixtures are skipped with a reason. (Entity merges and
+   `find` are in the entity layer, `docs/ENTITIES.md`: three small hooks in `Pipeline`/`KernelReviser`/`Memory`.)
 10. **Source-scope withdraw.** The contract still has none; the compat marker is the only representation. Whether the product
     wants one is the author's decision (see `docs/MORNING_REVIEW.md`).
 

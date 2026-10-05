@@ -1,0 +1,66 @@
+{"a": "Acme", "b": "Veltran", "category": "unrelated", "id": "p0bb16a9573", "kind": "org", "label": "different"}
+{"a": "World Health Organization", "b": "WHO", "category": "acronym", "id": "p171f10fc30", "kind": "org", "label": "same"}
+{"a": "Veltrann Inc", "b": "Veltran Inc", "category": "typo", "id": "p253c40d62b", "kind": "org", "label": "same"}
+{"a": "Łukasz Nowak", "b": "Lukasz Nowak", "category": "accent", "id": "p26ab738a1d", "kind": "person", "label": "same"}
+{"a": "Elena Rossi", "b": "Marco Rossi", "category": "same_surname", "id": "p2a37b2696a", "kind": "person", "label": "different"}
+{"a": "Birmingham, Alabama", "b": "Birmingham, England", "category": "place", "id": "p31342e2640", "kind": "other", "label": "different"}
+{"a": "Stark Industries", "b": "Spark Industries", "category": "near_name", "id": "p365b736bbc", "kind": "org", "label": "different"}
+{"a": "A. Kowalski", "b": "Jan Kowalski", "category": "initial_conflict", "id": "p37c8008f23", "kind": "person", "label": "different"}
+{"a": "Soylent Company", "b": "Soylent Co", "category": "corporate", "id": "p3bcfcf1343", "kind": "org", "label": "same"}
+{"a": "Margaret Hill", "b": "Peggy Hill", "category": "alias_only", "id": "p3d5d91178d", "kind": "person", "label": "same"}
+{"a": "United Airlines", "b": "United Nations", "category": "org_qualifier", "id": "p3d6a4a26d7", "kind": "org", "label": "different"}
+{"a": "Facebook", "b": "Meta Platforms", "category": "alias_only", "id": "p42d19c60c2", "kind": "org", "label": "same"}
+{"a": "A. Kowalski", "b": "Anna Kowalski", "category": "initial", "id": "p4b421456c0", "kind": "person", "label": "same"}
+{"a": "Hannh Weiss", "b": "Hannah Weiss", "category": "typo", "id": "p4ef9011f29", "kind": "person", "label": "same"}
+{"a": "Initech", "b": "Innotech", "category": "near_name", "id": "p54bdfca8e8", "kind": "org", "label": "different"}
+{"a": "Delta Airlines", "b": "Delta Faucet", "category": "org_qualifier", "id": "p59d928780d", "kind": "org", "label": "different"}
+{"a": "Paris", "b": "Paris Hilton", "category": "shared_token", "id": "p608ec3dd39", "kind": "other", "label": "different"}
+{"a": "Katherine Moore", "b": "Kate Moore", "category": "nickname", "id": "p63ab6cb523", "kind": "person", "label": "same"}
+{"a": "Umbrella Ltd", "b": "Umbrella", "category": "corporate", "id": "p686635a215", "kind": "org", "label": "same"}
+{"a": "Anna Kowalski", "b": "Jan Kowalski", "category": "same_surname", "id": "p6965b005aa", "kind": "person", "label": "different"}
+{"a": "Acme Bank", "b": "Acme Bakery", "category": "org_qualifier", "id": "p6dc992539b", "kind": "org", "label": "different"}
+{"a": "Idris Okafor", "b": "Chidi Okafor", "category": "same_surname", "id": "p6ff2abd34a", "kind": "person", "label": "different"}
+{"a": "Ft. Worth", "b": "Fort Worth", "category": "abbrev", "id": "p706ac2a5c3", "kind": "other", "label": "same"}
+{"a": "Portland, Oregon", "b": "Portland, Maine", "category": "place", "id": "p743197e3ac", "kind": "other", "label": "different"}
+{"a": "Leiva Beltran, Christian", "b": "Christian Leiva Beltran", "category": "word_order", "id": "p757e8592bd", "kind": "person", "label": "same"}
+{"a": "John Smith Jr", "b": "John Smith Sr", "category": "generation", "id": "p7682126dd6", "kind": "person", "label": "different"}
+{"a": "International Business Machines", "b": "IBM", "category": "acronym", "id": "p7cf404f8d7", "kind": "org", "label": "same"}
+{"a": "Sector 9", "b": "Sector 7", "category": "numeric", "id": "p7dcf55b833", "kind": "other", "label": "different"}
+{"a": "Prof. Idris Okafor", "b": "Idris Okafor", "category": "honorific", "id": "p7f99bc756b", "kind": "person", "label": "same"}
+{"a": "John Smith", "b": "Jane Smith", "category": "homonym_person", "id": "p849a6fba6b", "kind": "person", "label": "different"}
+{"a": "Wayne Enterprises", "b": "Wayne Foods", "category": "org_qualifier", "id": "p86207a7f28", "kind": "org", "label": "different"}
+{"a": "Globex", "b": "Globe", "category": "near_name", "id": "p8c6a8f8073", "kind": "org", "label": "different"}
+{"a": "Cambridge", "b": "Cambridge Analytica", "category": "shared_token", "id": "p8c843552bb", "kind": "other", "label": "different"}
+{"a": "William Clarke", "b": "Bill Clarke", "category": "nickname", "id": "p92f4f87b2c", "kind": "person", "label": "same"}
+{"a": "Amazon", "b": "Amazonas", "category": "shared_token", "id": "p95165136f5", "kind": "other", "label": "different"}
+{"a": "Intl. Rescue Committee", "b": "International Rescue Committee", "category": "abbrev", "id": "p9a1cc05f5c", "kind": "org", "label": "same"}
+{"a": "Veltran Inc.", "b": "veltran inc", "category": "case_punct", "id": "p9e6eeafa49", "kind": "org", "label": "same"}
+{"a": "Acme 1", "b": "Acme 2", "category": "numeric", "id": "pa4cd7d8595", "kind": "org", "label": "different"}
+{"a": "Okafor Idirs", "b": "Okafor Idris", "category": "typo", "id": "pa7681001d8", "kind": "person", "label": "same"}
+{"a": "Weiss, Hannah", "b": "Hannah Weiss", "category": "word_order", "id": "pb78d08e5b3", "kind": "person", "label": "same"}
+{"a": "St. Mary's Hospital", "b": "St Marys Hospital", "category": "case_punct", "id": "pb81f0c046b", "kind": "org", "label": "same"}
+{"a": "José García", "b": "Jose Garcia", "category": "accent", "id": "pc441a76f81", "kind": "person", "label": "same"}
+{"a": "Building 7", "b": "Building 17", "category": "numeric", "id": "pc58e4206b3", "kind": "other", "label": "different"}
+{"a": "Maria Lopez", "b": "Mario Lopez", "category": "homonym_person", "id": "pc66258aeff", "kind": "person", "label": "different"}
+{"a": "Michael Chen", "b": "Mike Chen", "category": "nickname", "id": "pca430310b0", "kind": "person", "label": "same"}
+{"a": "Wayne Enterprises", "b": "Payne Enterprises", "category": "near_name", "id": "pcf666d6094", "kind": "org", "label": "different"}
+{"a": "Stark Industries GmbH", "b": "Stark Industries", "category": "corporate", "id": "pd01dae2cbe", "kind": "org", "label": "same"}
+{"a": "Christian Leiva", "b": "Carolina Leiva", "category": "same_surname", "id": "pd20b1bd33f", "kind": "person", "label": "different"}
+{"a": "Robert Brown", "b": "Bob Brown", "category": "nickname", "id": "pd38f4192ba", "kind": "person", "label": "same"}
+{"a": "Christian Leiva", "b": "Hannah Weiss", "category": "unrelated", "id": "pd97bd6fe56", "kind": "person", "label": "different"}
+{"a": "Veltran Inc", "b": "Veltran", "category": "corporate", "id": "pdd61fe62bb", "kind": "org", "label": "same"}
+{"a": "Dept. of Health", "b": "Department of Health", "category": "abbrev", "id": "pe24ae89194", "kind": "org", "label": "same"}
+{"a": "J. Smith", "b": "John Smith", "category": "initial", "id": "pe4dedf68d5", "kind": "person", "label": "same"}
+{"a": "Stark Industries", "b": "Umbrella", "category": "unrelated", "id": "pe54a1f607d", "kind": "org", "label": "different"}
+{"a": "Alice Johnson", "b": "ALICE  JOHNSON", "category": "case_punct", "id": "pe6b8f29a0d", "kind": "person", "label": "same"}
+{"a": "J. Smith", "b": "Jane Smith", "category": "initial_conflict", "id": "pe6c8ff0267", "kind": "person", "label": "different"}
+{"a": "Priya Nairr", "b": "Priya Nair", "category": "typo", "id": "pe706338197", "kind": "person", "label": "same"}
+{"a": "Ms. Priya Nair", "b": "Priya Nair", "category": "honorific", "id": "pe784921fd5", "kind": "person", "label": "same"}
+{"a": "Hanna Weiss", "b": "Hans Weiss", "category": "near_name", "id": "pec33000f8a", "kind": "person", "label": "different"}
+{"a": "Maria Lopez", "b": "Maria Lopez Garcia", "category": "extra_name", "id": "ped5c43b0d5", "kind": "person", "label": "same"}
+{"a": "Globex Corporation", "b": "Globex", "category": "corporate", "id": "pf561d0dc60", "kind": "org", "label": "same"}
+{"a": "Lyon, France", "b": "Lyon, Texas", "category": "place", "id": "pf73ddaa6c7", "kind": "other", "label": "different"}
+{"a": "Björk Guðmundsdóttir", "b": "Bjork Gudmundsdottir", "category": "accent", "id": "pf8a04e9966", "kind": "person", "label": "same"}
+{"a": "Alice Johnson", "b": "Alice Peterson", "category": "same_given", "id": "pfa0d302625", "kind": "person", "label": "different"}
+{"a": "Alice Johnson", "b": "Alison Johnson", "category": "homonym_person", "id": "pfa8ef6a6cf", "kind": "person", "label": "different"}
+{"a": "Veltran Systems", "b": "Veltran Capital", "category": "org_qualifier", "id": "pfb346a1c1c", "kind": "org", "label": "different"}
