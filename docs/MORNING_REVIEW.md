@@ -208,3 +208,7 @@ The pack is generated on this machine and is gitignored: `bench/agent/annotation
 ## Second annotation, as recorded (2026-10-05)
 
 Instructed and reviewed by the author, executed by the model GPT 6 Astra (as stated by the author); no fully human evaluation will exist. Recorded as such in `docs/eval/ANNOTATION.md`, `docs/LIMITATIONS.md`, `docs/GATES.md`, both RETRACT-ACT results documents and ruling 22 (amended). Agreement with the registered gold 27 of 29 (kappa 0.866, bootstrap [0.630, 1.000]); the two disagreements and the RA-026.d1 question await your written adjudication; the instruction given to the executing model is recorded verbatim ("Please complete all the annotations required in this file."); blindness of the executing model cannot be verified (its file access is not recorded).
+
+### Adjudications recorded (2026-10-05)
+
+RA-006.d1 keep gold `ask`; RA-023.d1 keep P0cSU as the benchmark default and gold `act porto` (assumption documented; `self_update_off` retained as the separate condition); RA-026.d1 erratum `act london` -> `ask`, applied as a versioned overlay (`bench/agent/gold_errata.md`). The annotation is classified a **model third opinion** (self-reported blind, not certified); agreement figures qualified accordingly. Open on your side after this: publishing setup, the study-repo push, and the backup deletion.

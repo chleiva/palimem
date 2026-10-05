@@ -90,4 +90,4 @@ roadmap; items move off it only when the cited evidence changes.
 
 ## How the second annotation was produced
 
-The RETRACT-ACT second annotation (29 decision points; kappa 0.866 against the registered gold, interval [0.630, 1.000]) was instructed and reviewed by the author but **executed by a model (GPT 6 Astra)**. No fully human annotation exists or is planned. It is weaker than an independent human annotator; the extraction-quality labels and the entity-resolution pairs have no second annotation at all. Evidence: [`eval/ANNOTATION.md`](eval/ANNOTATION.md).
+The RETRACT-ACT second annotation (29 decision points; kappa 0.866 against the registered gold, interval [0.630, 1.000]) was instructed and reviewed by the author but **executed by a model (GPT 6 Astra)**, and is classified as a **model third opinion** (its blindness is a self-report, not certified). No fully human annotation exists or is planned. It is weaker than an independent human annotator; the extraction-quality labels and the entity-resolution pairs have no second annotation at all. Evidence: [`eval/ANNOTATION.md`](eval/ANNOTATION.md).

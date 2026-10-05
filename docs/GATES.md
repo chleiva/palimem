@@ -251,7 +251,7 @@ confirmatory).
 | `Rule.exceptions`, authorised-dispute semantics, `not_value`, source-scope withdraw, `change_from` | G0, G1 | [`MORNING_REVIEW.md`](MORNING_REVIEW.md) |
 | Which gold the product follows, RA-006 or RA-007 | G-A | [`MORNING_REVIEW.md`](MORNING_REVIEW.md) |
 | Ministral on the test split | G-X | [`MORNING_REVIEW.md`](MORNING_REVIEW.md) |
-| A second annotator for the gold (agent benchmark, extractor set, entity pairs): the agent benchmark has a **model-executed, author-instructed, author-reviewed** second annotation (kappa 0.866; two disagreements awaiting adjudication); no human annotator; none for the extractor set or the entity pairs | G-A, G-X | [`LIMITATIONS.md`](LIMITATIONS.md) |
+| A second annotator for the gold (agent benchmark, extractor set, entity pairs): the agent benchmark has a **model third opinion** (model-executed, author-instructed, author-reviewed; self-reported blind, not certified; kappa 0.866 against the registered gold; adjudicated 2026-10-05, one erratum RA-026.d1); no human annotator; none for the extractor set or the entity pairs | G-A, G-X | [`LIMITATIONS.md`](LIMITATIONS.md) |
 | Wording of G2's "empty report-by-report diff" for a different extractor | G2 | section 4 |
 
 ## 11. What was re-run for this document, and what was not
