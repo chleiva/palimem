@@ -307,3 +307,7 @@ committed palimem run without the pin): `dev` (v1 and v2, both models): RA-007.d
 RA-006.d1 only. The test split's attribution scenario does not contain the attribution-only case, so the RA-018 change does not
 reach the registered test numbers; the RA-006 change does (symbolically it flips `ask` to `act fr`, see above). A new live run
 is a different run and would need its own registration; none was made.
+
+## Annotation update (2026-10-05)
+
+A second annotation of the test gold now exists, but it was **executed by a model (GPT 6 Astra), instructed and reviewed by the author**; there is no human second annotator and none is planned. Agreement with the registered gold: 27 of 29 (0.931), kappa 0.866 [0.630, 1.000]; two disagreements (RA-006.d1, RA-023.d1) await the author's adjudication. The registered numbers above are unchanged. See `ANNOTATION.md`.

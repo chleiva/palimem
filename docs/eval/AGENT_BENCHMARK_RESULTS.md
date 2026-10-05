@@ -280,3 +280,7 @@ worse (0.000 / 0.960 registered, 0.040 / 0.920 current) because of RA-006. **The
 situation**: RA-007's `authority_source` gold says a failed cross-source correction has no effect, RA-006's gold says a
 cross-origin correction is a competing report that forces `ask`. Gold was not edited; which one the *product* profile should
 follow is the author's decision (pending).
+
+## Annotation update (2026-10-05)
+
+A second annotation of the test gold now exists, but it was **executed by a model (GPT 6 Astra), instructed and reviewed by the author**; there is no human second annotator and none is planned. Agreement with the registered gold: 27 of 29 (0.931), kappa 0.866 [0.630, 1.000]; two disagreements (RA-006.d1, RA-023.d1) await the author's adjudication. The registered numbers above are unchanged. See `ANNOTATION.md`.

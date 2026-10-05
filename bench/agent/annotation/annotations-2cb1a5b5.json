@@ -1,0 +1,153 @@
+{
+  "format": "retract-act-annotation/1",
+  "pack_hash": "2cb1a5b52a7d9afe12e6332ca4f31eff26aa074da2faecfe9bb39c39c719637b",
+  "annotator": "Christian Leiva Beltran",
+  "saved_at": "2026-10-05T20:37:38.084Z",
+  "items": {
+    "I-4f8ef2": {
+      "action": "ask",
+      "value": null,
+      "reason": "The portal withdrew the only address supporting the earlier plan; ask the portal or customer for the current shipping address."
+    },
+    "I-6c1895": {
+      "action": "act",
+      "value": "fr",
+      "reason": "The authoritative registry supports fr; a low-reliability blog cannot justify replacing its report with de."
+    },
+    "I-603f6b": {
+      "action": "ask",
+      "value": null,
+      "reason": "Withdrawal of the employer report breaks the employer-to-work-city-to-tax-city chain; ask Alex or HR to establish his employer."
+    },
+    "I-9723db": {
+      "action": "act",
+      "value": "paris",
+      "reason": "The registry correction makes Paris effective from day 150, so Paris applies to the requested day 300."
+    },
+    "I-2e6ec4": {
+      "action": "act",
+      "value": "acc-222",
+      "reason": "The independent, ordinary vendor portal explicitly confirms the account change to acc-222; the change is no longer supported only by the quarantined mailer."
+    },
+    "I-bbb9ed": {
+      "action": "ask",
+      "value": null,
+      "reason": "The corrected effective date makes the issued London statement unsupported for day 300; raise the issue with the people responsible for the statement."
+    },
+    "I-5a27f3": {
+      "action": "act",
+      "value": "oslo",
+      "reason": "HR identifies Orbit as the employer and the authoritative registry places Orbit headquarters in Oslo, establishing the derived work city."
+    },
+    "I-15a2e0": {
+      "action": "abstain",
+      "value": null,
+      "reason": "The two ordinary sources give conflicting addresses without an explicit change or correction; omit the optional suggestion."
+    },
+    "I-2d9a7b": {
+      "action": "act",
+      "value": "porto",
+      "reason": "The same source explicitly reports a change from Lisbon to Porto, establishing the current home city."
+    },
+    "I-ffea6c": {
+      "action": "ask",
+      "value": null,
+      "reason": "The ordinary CRM and shop reports conflict and neither establishes a change; ask the customer or the responsible sources to confirm the delivery address."
+    },
+    "I-5f03bd": {
+      "action": "act",
+      "value": "acc-111",
+      "reason": "The authoritative registry account remains supported; the unverified email does not justify replacing it."
+    },
+    "I-c183ee": {
+      "action": "ask",
+      "value": null,
+      "reason": "The registry itself has now withdrawn its account report, leaving no justified payment account; ask the registry or vendor to confirm it."
+    },
+    "I-ad82dd": {
+      "action": "ask",
+      "value": null,
+      "reason": "The source reports two different cities without identifying the later report as a change or correction; ask it to resolve which city is current."
+    },
+    "I-1d6919": {
+      "action": "act",
+      "value": "manchester",
+      "reason": "The explicit correction comes from a sister desk in the same upstream origin group and replaces that origin’s earlier Leeds report."
+    },
+    "I-363b6d": {
+      "action": "act",
+      "value": "acc-111",
+      "reason": "A low-reliability forum cannot withdraw the authoritative registry’s report; acc-111 remains justified."
+    },
+    "I-a0f886": {
+      "action": "act",
+      "value": "acc-111",
+      "reason": "Only the quarantined mailer claims an account change; the registry’s acc-111 remains the justified account."
+    },
+    "I-425a9d": {
+      "action": "act",
+      "value": "ben",
+      "reason": "The authoritative registry explicitly reports the CEO change to Ben, superseding the earlier low-reliability report."
+    },
+    "I-f8457c": {
+      "action": "ask",
+      "value": null,
+      "reason": "The dispatched shipment rests on an address whose sole source has withdrawn it; raise the issue with the shipment owner and confirm the address."
+    },
+    "I-0978fd": {
+      "action": "act",
+      "value": "london",
+      "reason": "London is effective from day 100 and Paris only from day 400, so London applies to the requested day 300."
+    },
+    "I-030184": {
+      "action": "act",
+      "value": "tessaly",
+      "reason": "The independent HR feed still supports Veltran as employer after the press withdrawal, and the registry supports Tessaly as its headquarters."
+    },
+    "I-272de4": {
+      "action": "act",
+      "value": "tessaly",
+      "reason": "The employer and headquarters reports support the complete derivation from work city to local tax city: Tessaly."
+    },
+    "I-21c533": {
+      "action": "act",
+      "value": "b12",
+      "reason": "The calendar supplies observed room information; repeated agent hypotheses do not establish a change to c3."
+    },
+    "I-8a3636": {
+      "action": "ask",
+      "value": null,
+      "reason": "The portal withdrew the only address report; the earlier dispatch does not independently establish a valid address for the replacement shipment."
+    },
+    "I-64edff": {
+      "action": "abstain",
+      "value": null,
+      "reason": "The only home-city report was withdrawn, so omit the optional weather note without interrupting anyone."
+    },
+    "I-b81b46": {
+      "action": "act",
+      "value": "1980-02-03",
+      "reason": "The original source explicitly corrects the birth date, replacing its earlier report."
+    },
+    "I-77743c": {
+      "action": "ask",
+      "value": null,
+      "reason": "Billing explicitly disputes the CRM address, and no alternative is established; ask the customer or responsible sources for the correct address."
+    },
+    "I-97b5f7": {
+      "action": "act",
+      "value": "acc-111",
+      "reason": "The low-reliability forum’s attempted withdrawal does not invalidate the authoritative registry account."
+    },
+    "I-e8b06f": {
+      "action": "act",
+      "value": "14",
+      "reason": "The authoritative policy specifies 14 days; reports about Dave’s belief do not establish a different refund policy."
+    },
+    "I-81f246": {
+      "action": "act",
+      "value": "bergen",
+      "reason": "The registry explicitly corrects Orbit’s headquarters to Bergen; Hana’s derived work city changes accordingly."
+    }
+  }
+}

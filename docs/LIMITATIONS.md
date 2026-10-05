@@ -87,3 +87,7 @@ roadmap; items move off it only when the cited evidence changes.
   ([`RELEASING.md`](RELEASING.md))
 - Contracts may break at any 0.x release; 1.0 means the gate-G2 acceptance suite passes, which it does not yet
   ([`VERSIONING.md`](VERSIONING.md)).
+
+## How the second annotation was produced
+
+The RETRACT-ACT second annotation (29 decision points; kappa 0.866 against the registered gold, interval [0.630, 1.000]) was instructed and reviewed by the author but **executed by a model (GPT 6 Astra)**. No fully human annotation exists or is planned. It is weaker than an independent human annotator; the extraction-quality labels and the entity-resolution pairs have no second annotation at all. Evidence: [`eval/ANNOTATION.md`](eval/ANNOTATION.md).
