@@ -510,13 +510,18 @@ class Pipeline:
     def incremental_append(self, entry: LogEntry) -> AdmissionDelta:
         """Admission of one appended report by update, not by re-evaluation (the state first settles the previous
         append: committed in the log, or rolled back)."""
-        inc = self._inc
-        if inc is None or inc.admitter is not self.admitter:
-            inc = self._inc = IncrementalAdmission(self.admitter)
-        inc.sync(self.log, before_lsn=entry.lsn)
+        inc = self.synced_incremental(entry.lsn - 1)
         delta = inc.append(entry)
         self._delta = delta
         return delta
+
+    def synced_incremental(self, head_lsn: int) -> IncrementalAdmission:
+        """The incremental state brought to the committed log prefix ``<= head_lsn`` (settle, catch up or rebuild)."""
+        inc = self._inc
+        if inc is None or inc.admitter is not self.admitter:
+            inc = self._inc = IncrementalAdmission(self.admitter)
+        inc.sync(self.log, before_lsn=head_lsn + 1)
+        return inc
 
     def incremental_state(self) -> IncrementalAdmission:
         assert self._inc is not None, "no incremental admission state (admit has not run)"
@@ -833,13 +838,28 @@ class KernelReviser:
         p.drop_index()  # its result becomes a stored belief outside a revision
         head = view.head()
         lsn = max(head.lsn, 1)
-        ev = p.evaluate(head.lsn)
-        ks = p.kernel_schema(ev)
         cur = view.current_belief(key)
         version = (cur.version if cur is not None else 0) + 1
-        recorded_at = ev.entries[-1].recorded_at if ev.entries else datetime.now(UTC)
         inputs = {k: v for k, v in _inputs_of(view).items()}
         gen = max(head.generation, 0)
+        if p.incremental_enabled:
+            # the incremental state is brought to the head (usually it already is: completion runs right after the
+            # append), so a completion job costs the key it recomputes, not a whole-log evaluation
+            inc = p.synced_incremental(head.lsn)
+            ks = p.kernel_schema_for(inc.entities)
+            recorded_at = inc.entries[-1].recorded_at if inc.entries else datetime.now(UTC)
+            if ks.spec(key.attr).derived:
+                return p.derived_belief(
+                    ks, key, Resolver(view), version=version, lsn=lsn, generation=gen, inputs=inputs,
+                    recorded_at=recorded_at,
+                )
+            return p.base_belief(
+                ks, key, inc.direct_of(key), version=version, lsn=lsn, generation=gen, inputs=inputs,
+                recorded_at=recorded_at, attributions=inc.attributions_of(key) if inc.belief_of_count else (),
+            )
+        ev = p.evaluate(head.lsn)
+        ks = p.kernel_schema(ev)
+        recorded_at = ev.entries[-1].recorded_at if ev.entries else datetime.now(UTC)
         if ks.spec(key.attr).derived:
             return p.derived_belief(
                 ks, key, Resolver(view), version=version, lsn=lsn, generation=gen, inputs=inputs,

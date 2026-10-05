@@ -25,6 +25,7 @@ decision in the equivalence tests and, in ``crosscheck`` mode, after every appen
 
 from __future__ import annotations
 
+from collections import Counter
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Protocol
@@ -108,6 +109,10 @@ class IncrementalAdmission:
         self.admitter = admitter
         self._tx: list[Callable[[], object]] | None = None
         self._pending: _Pending | None = None
+        self.work: Counter[str] = Counter()
+        """Operation counts (never wall-clock) of the *slow paths*: ``actors`` entries scanned by a withdrawal recompute,
+        ``covered`` reports of a source-level withdrawal, ``confirm_keys`` keys re-confirmed, ``confirm_reports``
+        reports looked at while re-confirming. A plain append adds nothing here."""
         self.rebuilds = 0
         """How many times the state had to be rebuilt from the log (a cold start, a rewritten log). A rolled-back append
         is undone from the journal and must not count."""
@@ -273,6 +278,7 @@ class IncrementalAdmission:
         """The whole-log ``_withdrawals`` over the actors only: identical order, identical ``setdefault`` ownership."""
         cfg = self.admitter.config
         actors = list(self.actors.values())  # ascending LSN (insertion order)
+        self.work["actors"] += len(actors)
         if cfg.must_be_live:
             actors.reverse()  # newest first; a withdrawn actor no longer acts
         out: dict[str, Withdrawal] = {}
@@ -285,7 +291,9 @@ class IncrementalAdmission:
             for t in d.withdraws:
                 out.setdefault(t, Withdrawal(by=rid, kind=kind))
             if d.withdraws_source is not None:
-                for x in self.by_source.get(d.withdraws_source, ()):
+                covered = self.by_source.get(d.withdraws_source, ())
+                self.work["covered"] += len(covered)
+                for x in covered:
                     out.setdefault(_rid(x), Withdrawal(by=rid, kind="source_withdraw"))
         return out
 
@@ -368,6 +376,8 @@ class IncrementalAdmission:
     def _reconfirm(self, key: Key) -> list[LogEntry]:
         """Recompute the derived confirmations of one key; return the entries whose (outcome, reason, confirmers) changed."""
         ents = self.by_key.get(key, ())
+        self.work["confirm_keys"] += 1
+        self.work["confirm_reports"] += len(ents)
         quars = [
             q
             for q in ents
