@@ -1,0 +1,131 @@
+{
+ "report_version": 1,
+ "kind": "workload",
+ "workload": "w1",
+ "params": {
+  "n_reports": 10000,
+  "r": 3.0,
+  "seed": 1,
+  "persons": null,
+  "max_seconds": 1200.0,
+  "db": "file"
+ },
+ "env": {
+  "python": "3.13.7",
+  "implementation": "CPython",
+  "sqlite": "3.50.4",
+  "os": "Darwin 25.3.0",
+  "machine": "arm64",
+  "cpu": "Apple M3",
+  "cpu_count": 8,
+  "git_commit": "9a8d0bb"
+ },
+ "reached": {
+  "reports": 72,
+  "stopped_early": true,
+  "elapsed_s": 1204.6
+ },
+ "digest": "9b1a52e3f8429fd192d037984ac634311c9bb360c442549f969af5c909bf72ca",
+ "appends": {
+  "count": 0,
+  "mean_ms": 0.0,
+  "p50_ms": 0.0,
+  "p95_ms": 0.0,
+  "p99_ms": 0.0,
+  "max_ms": 0.0,
+  "warmup": {
+   "count": 72,
+   "mean_ms": 16730.095,
+   "p50_ms": 16486.3818,
+   "p95_ms": 17319.935,
+   "p99_ms": 17544.1907,
+   "max_ms": 17544.1907
+  },
+  "sustained_per_s": 0.06
+ },
+ "appends_by_attr_cue": {
+  "hq_city:assert": {
+   "count": 72,
+   "mean_ms": 16730.095,
+   "p50_ms": 16486.3818,
+   "p95_ms": 17319.935,
+   "p99_ms": 17544.1907,
+   "max_ms": 17544.1907
+  }
+ },
+ "queries": {
+  "count": 213,
+  "mean_ms": 0.1353,
+  "p50_ms": 0.1207,
+  "p95_ms": 0.1882,
+  "p99_ms": 0.2006,
+  "max_ms": 0.2933,
+  "by_kind": {
+   "current": {
+    "count": 182,
+    "mean_ms": 0.135,
+    "p50_ms": 0.1207,
+    "p95_ms": 0.1882,
+    "p99_ms": 0.2006,
+    "max_ms": 0.2933
+   },
+   "historical": {
+    "count": 31,
+    "mean_ms": 0.1368,
+    "p50_ms": 0.1213,
+    "p95_ms": 0.1875,
+    "p99_ms": 0.2241,
+    "max_ms": 0.2241
+   },
+   "derived": {
+    "count": 0,
+    "mean_ms": 0.0,
+    "p50_ms": 0.0,
+    "p95_ms": 0.0,
+    "p99_ms": 0.0,
+    "max_ms": 0.0
+   }
+  }
+ },
+ "integrity": {
+  "resource_limited_answers": 0,
+  "visibility_checks": 2,
+  "not_visible_after_append": 0,
+  "pending_completion_jobs_at_end": 0
+ },
+ "memory": {
+  "rss_start_bytes": 31047680,
+  "rss_end_bytes": 36044800,
+  "rss_peak_bytes": 40321024,
+  "slope_bytes_per_report": null,
+  "heap": null
+ },
+ "disk": {
+  "bytes": 6447064,
+  "bytes_per_report": 89542.6
+ },
+ "checkpoints": [
+  {
+   "reports": 72,
+   "elapsed_s": 1204.6,
+   "rss_bytes": 35913728,
+   "db_bytes": 6447064,
+   "append": {
+    "count": 72,
+    "mean_ms": 16730.095,
+    "p50_ms": 16486.3818,
+    "p95_ms": 17319.935,
+    "p99_ms": 17544.1907,
+    "max_ms": 17544.1907
+   },
+   "query": {
+    "count": 213,
+    "mean_ms": 0.1353,
+    "p50_ms": 0.1207,
+    "p95_ms": 0.1882,
+    "p99_ms": 0.2006,
+    "max_ms": 0.2933
+   }
+  }
+ ]
+}
