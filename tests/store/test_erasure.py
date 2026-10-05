@@ -2,8 +2,10 @@
 
 Row: 'Deletion of a report with dependants -> content gone, tombstone present, dependants repaired'.
 No plain value, actor, source, raw reference or client idempotency key may remain in ANY table. The key text of the
-erased report is removed from the log, the admissions, the jobs and the tombstone; it remains in the belief index
-columns of a key that still exists (documented residual, docs/STORAGE.md section 7).
+erased report is removed from the log, the admissions, the jobs and the tombstone. When the erased report was the only
+evidence about its entity, the entity name is also pseudonymised in the belief index columns and every other table that
+names an entity (author ruling 2026-10-05, tests/store/test_pseudonym.py); the key of an entity that still has live
+evidence keeps its name in those index columns, because the key still exists (docs/STORAGE.md section 7).
 """
 
 from __future__ import annotations
@@ -84,16 +86,19 @@ def test_erasing_the_only_evidence_repairs_every_dependant_and_leaves_no_trace(h
     assert_no_secret_values(h)  # values, source, actor, raw_ref, client idempotency key: gone from every table
     t = tables(h)
     assert P not in t["log"] and P not in t["admissions"] and P not in t["completion_jobs"] and P not in repr(tomb.to_dict())
-    assert P in t["beliefs"]  # documented residual: the key's own index columns, because the key still exists
+    for name, text in t.items():  # the entity was orphaned (its only evidence is gone): its name is pseudonymised everywhere
+        assert P not in text, f"the orphaned entity name survives in table {name}"
+    assert P not in "".join(b.export_jsonl()) and "erased:" in t["beliefs"] and "erased:" in t["current_belief"]
 
     for k in (A, B, C):  # dependants repaired: the derived values rested only on the erased report
-        got = b.read_belief(k)
+        got = b.read_belief(k)  # still addressable by its plain key; the stored form carries the pseudonym
         assert isinstance(got, Belief) and got.version == 2 and status(got) is KernelStatus.UNKNOWN
+        assert got.key.entity.startswith("erased:") and got.key.attr == k.attr
         assert got.required_generation == got.completed_generation == 2 and got.lsn == b.head().lsn
-        row1 = b.storage.belief_row(k, 1)
+        row1 = b._s.belief_row(k, 1)  # the translating view of the storage: plain keys work
         assert row1 is not None and row1.reconstructable is False  # the old version is redacted and flagged
         assert b.belief_version(k, 1) is None and b.get_belief_by_ref(belief_ref(k, 1)) is None
-        assert b.storage.belief_row(k, 2).origin == "repair"  # type: ignore[union-attr]
+        assert b._s.belief_row(k, 2).origin == "repair"  # type: ignore[union-attr]
     assert status(b.read_belief(A, as_of=1)) is KernelStatus.UNKNOWN  # type: ignore[arg-type,union-attr]  # history as the log now justifies it
 
     events = b.pending_events()

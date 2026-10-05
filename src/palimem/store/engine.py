@@ -20,7 +20,7 @@ from collections import deque
 from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
 from dataclasses import replace
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, cast
 
 from palimem.store import barrier, chain, portable
 from palimem.store._storage import (
@@ -72,6 +72,15 @@ from palimem.store.barrier import (
     JobPayload,
 )
 from palimem.store.ids import UlidFactory
+from palimem.store.pseudonym import (
+    META_NAME as _PSEUDONYMS_META,
+)
+from palimem.store.pseudonym import (
+    EntityPseudonyms,
+    EntityRewrite,
+    PseudoStorage,
+    rekey_belief,
+)
 from palimem.store.views import belief_view, parse_belief_ref
 from palimem.types import (
     AdmissionRecord,
@@ -118,7 +127,9 @@ class Engine:
     ) -> None:
         if traversal_budget < 1:
             raise ValueError("traversal_budget must be at least 1")
-        self._s = storage
+        self._raw = storage  # the primitives; ``_s`` translates plain keys to their stored form (pseudonymised entities)
+        self._pseudo = EntityPseudonyms.load(store_secret, storage.get_meta(_PSEUDONYMS_META))
+        self._s = cast(Storage, PseudoStorage(storage, self._pseudo))
         self._chain = chain_enabled
         self._secret = store_secret
         self._clock = clock or _utcnow
@@ -370,11 +381,12 @@ class Engine:
             if existing is not None:
                 return self._replay(existing, report)
             result: AppendResult
-            with self._s.transaction():
+            with self._pseudo.guard(), self._s.transaction():
                 self._fault("begin")
                 existing = self._find_idem(idempotency_key)  # re-check under the write lock
                 if existing is not None:
                     return self._replay(existing, report)
+                self._reidentify(report.key.entity)
                 result = self._append_in_txn(report, idempotency_key, admitter, reviser)
                 self._fault("before_commit")
             self._fault("after_commit")
@@ -864,7 +876,7 @@ class Engine:
         if self._secret is None:
             raise CapabilityError("erase needs a host-supplied store_secret (it is never stored in the data tables)")
         secret = self._secret
-        with self._lock, self._s.transaction():
+        with self._lock, self._pseudo.guard(), self._s.transaction():
             row = self._s.log_by_report(report_id)
             if row is None:
                 raise StoreError(f"unknown report {report_id}")
@@ -905,8 +917,33 @@ class Engine:
                     )
                 else:
                     self._repair(closure, reviser, generation, head)
+            self._pseudonymise_if_orphaned(row.key.entity)
             self._fault("erase_after_repair")
             return tomb
+
+    # ------------------------------------------------------------------ orphaned entities (author ruling 2026-10-05, item 8)
+
+    def _pseudonymise_if_orphaned(self, entity: str) -> None:
+        """If no live log row names ``entity`` any more, replace its name by a keyed pseudonym in every index table and
+        in stored JSON, so the name no longer sits anywhere in the database (see :mod:`palimem.store.pseudonym`)."""
+        if self._secret is None or self._pseudo.is_ref(entity) or self._raw.entity_has_log_rows(entity):
+            return
+        ref = self._pseudo.ref_of(entity)
+        self._raw.rename_entity(EntityRewrite(entity, ref))
+        self._pseudo.add(ref)
+        self._s.set_meta(_PSEUDONYMS_META, self._pseudo.dump())
+
+    def _reidentify(self, entity: str) -> None:
+        """A report about a pseudonymised entity arrives: its name is in the log again, so rename its rows back and stop
+        translating. A live entity never has pseudonymised index rows."""
+        if not self._pseudo.active:
+            return
+        ref = self._pseudo.entity(entity)
+        if ref == entity:
+            return
+        self._raw.rename_entity(EntityRewrite(ref, entity))
+        self._pseudo.discard(ref)
+        self._s.set_meta(_PSEUDONYMS_META, self._pseudo.dump())
 
     def _repair(self, keys: Sequence[Key], reviser: Reviser, generation: int, head: int) -> None:
         """Recompute ``keys`` (dependencies first) without the erased evidence and store the repaired versions."""
@@ -1060,9 +1097,11 @@ class Engine:
                     continue
                 checked += 1
                 stored = self.current_belief(key)
-                if stored is not None and (stored.version != v or stored.key != key):
+                if stored is not None and (stored.version != v or stored.key != self._pseudo.key(key)):
                     problems.append(VerifyProblem(kind="belief_row_mismatch", key=key, version=v, detail="the stored belief names a different key or version than its row"))
                 fresh = reviser.recompute(key, self)
+                if fresh is not None and self._pseudo.active:
+                    fresh = rekey_belief(fresh, self._pseudo.key)  # compare in stored form
                 if stored is None and fresh is None:
                     continue
                 if fresh is None and stored is not None and _is_empty_unknown(stored):

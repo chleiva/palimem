@@ -58,7 +58,7 @@ Defaults taken where the contract is silent; none changes a decided item.
 
 - **Decisions taken:** `required_generation` is a column on `current_belief` backed by a `marks` history table (a named key with no belief yet gets a `version = 0` placeholder); completion/repair versions take the log head as their `lsn`; default traversal budget is 1000 keys (change if you prefer).
 - **Bug caught by tests and fixed:** on SQLite, erasing a report left the client idempotency key in the clear (now an HMAC).
-- **Open:** (1) the key text of an erased report stays in belief index columns while the key still exists; pseudonymise orphaned keys? (2) `NotReconstructable` (a redacted historical version) has no `Answer` variant: a contract change that needs your explicit line.
+- **Both decided 2026-10-05 and implemented** (RULINGS items 6 and 8): orphaned entities are pseudonymised after an erasure, and `NotReconstructable` is a third `Answer` variant.
 
 ## From the facade, agent API, MCP server and CLI (Lane F)
 

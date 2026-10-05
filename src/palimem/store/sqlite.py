@@ -29,6 +29,7 @@ from palimem.store._storage import (
     AdmRow,
     BeliefRow,
     DirtyRow,
+    EntityRewriter,
     InputRow,
     JobRow,
     LogRow,
@@ -145,6 +146,14 @@ CREATE TABLE IF NOT EXISTS outbox (
 """
 
 
+_BELIEFS_FLAG_ONLY = """CREATE TRIGGER IF NOT EXISTS beliefs_flag_only BEFORE UPDATE ON beliefs
+WHEN NEW.entity IS NOT OLD.entity OR NEW.attr IS NOT OLD.attr OR NEW.version IS NOT OLD.version OR NEW.lsn IS NOT OLD.lsn
+  OR (NEW.belief IS NOT OLD.belief AND NEW.reconstructable != 0) OR NEW.reconstructable > OLD.reconstructable
+  OR NEW.required_generation IS NOT OLD.required_generation OR NEW.origin IS NOT OLD.origin
+  OR NEW.completed_generation IS NOT OLD.completed_generation OR NEW.recorded_us IS NOT OLD.recorded_us
+BEGIN SELECT RAISE(ABORT, 'palimem: belief versions are append-only'); END;"""
+
+
 _TRIGGERS = """
 -- append-only protection (defence in depth; see module docstring)
 CREATE TRIGGER IF NOT EXISTS log_no_delete BEFORE DELETE ON log
@@ -161,13 +170,8 @@ CREATE TRIGGER IF NOT EXISTS admissions_no_update BEFORE UPDATE ON admissions
 BEGIN SELECT RAISE(ABORT, 'palimem: the admission log is append-only'); END;
 CREATE TRIGGER IF NOT EXISTS beliefs_no_delete BEFORE DELETE ON beliefs
 BEGIN SELECT RAISE(ABORT, 'palimem: belief versions are append-only'); END;
-CREATE TRIGGER IF NOT EXISTS beliefs_flag_only BEFORE UPDATE ON beliefs
-WHEN NEW.entity IS NOT OLD.entity OR NEW.attr IS NOT OLD.attr OR NEW.version IS NOT OLD.version OR NEW.lsn IS NOT OLD.lsn
-  OR (NEW.belief IS NOT OLD.belief AND NEW.reconstructable != 0) OR NEW.reconstructable > OLD.reconstructable
-  OR NEW.required_generation IS NOT OLD.required_generation OR NEW.origin IS NOT OLD.origin
-  OR NEW.completed_generation IS NOT OLD.completed_generation OR NEW.recorded_us IS NOT OLD.recorded_us
-BEGIN SELECT RAISE(ABORT, 'palimem: belief versions are append-only'); END;
 """
+_TRIGGERS += _BELIEFS_FLAG_ONLY + "\n"
 
 
 def _key(r: Any) -> Key:
@@ -572,6 +576,45 @@ class SqliteStorage:
             f"UPDATE outbox SET payload = NULL WHERE entity = ? AND attr = ? AND (new_version IN ({marks}) OR old_version IN ({marks}))",
             (key.entity, key.attr, *versions, *versions),
         )
+
+    # -- entity pseudonymisation
+    def entity_has_log_rows(self, entity: str) -> bool:
+        return bool(self._q("SELECT 1 FROM log WHERE key_entity = ? LIMIT 1", (entity,)))
+
+    def rename_entity(self, rw: EntityRewriter) -> None:
+        """Rename an entity in every table that names one. Runs inside the caller's write transaction. The append-only
+        trigger on ``beliefs`` is dropped and re-created *inside that transaction* (DDL is transactional in SQLite), so
+        a failure anywhere rolls the whole rename back and the trigger is never left missing."""
+        old, new = rw.old, rw.new
+        # beliefs whose stored JSON names the entity: its own rows, and rows of other keys that depend on it
+        rows = {
+            (e, a, v)
+            for e, a, v in self._q("SELECT entity, attr, version FROM beliefs WHERE entity = ?", (old,))
+        } | {
+            (e, a, v)
+            for e, a, v in self._q("SELECT entity, attr, version FROM belief_deps WHERE dep_entity = ?", (old,))
+        }
+        self._x("DROP TRIGGER IF EXISTS beliefs_flag_only")
+        for e, a, v in sorted(rows):
+            got = self._q("SELECT belief FROM beliefs WHERE entity = ? AND attr = ? AND version = ?", (e, a, v))
+            if got:
+                rewritten = rw.belief(got[0][0])
+                if rewritten != got[0][0]:
+                    self._x("UPDATE beliefs SET belief = ? WHERE entity = ? AND attr = ? AND version = ?", (rewritten, e, a, v))
+        self._x("UPDATE beliefs SET entity = ? WHERE entity = ?", (new, old))
+        self._x("UPDATE belief_pins SET entity = ? WHERE entity = ?", (new, old))
+        self._x("UPDATE belief_deps SET entity = ? WHERE entity = ?", (new, old))
+        self._x("UPDATE belief_deps SET dep_entity = ? WHERE dep_entity = ?", (new, old))
+        self._x("UPDATE current_belief SET entity = ? WHERE entity = ?", (new, old))
+        self._x("UPDATE marks SET entity = ? WHERE entity = ?", (new, old))
+        self._x("UPDATE subscriptions SET entity = ? WHERE entity = ?", (new, old))
+        for seq, payload in self._q("SELECT seq, payload FROM outbox WHERE entity = ?", (old,)):
+            self._x("UPDATE outbox SET entity = ?, payload = ? WHERE seq = ?", (new, rw.outbox(payload), seq))
+        for gen, payload in self._q("SELECT generation, payload FROM completion_jobs"):
+            rewritten = rw.job(payload)
+            if rewritten != payload:
+                self._x("UPDATE completion_jobs SET payload = ? WHERE generation = ?", (rewritten, gen))
+        self._x(_BELIEFS_FLAG_ONLY)
 
     # -- inputs
     def put_input(self, row: InputRow) -> None:

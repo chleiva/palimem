@@ -197,11 +197,23 @@ repaired version: that is what the log now justifies.)
 
 **Residuals, stated plainly.**
 
-* The **key text** of the erased report remains in the belief index columns (`beliefs`, `belief_pins`, `current_belief`,
-  `marks`, `outbox`, `subscriptions`) *of a key that still exists*. It is removed from the log, the admissions, the
-  tombstone and finished jobs. If the erased report was the only evidence about its key, the key's name is still visible in
-  those index columns. Pseudonymising an orphaned key across derived tables is possible but invasive (primary keys); it is an
-  open decision (§14, Q1).
+* **Orphaned entities are pseudonymised** (author ruling 2026-10-05; §14, Q1 resolved). If the erased report was the **only**
+  live evidence about its entity (no live log row names the entity any more), the entity name is replaced by a keyed pseudonym
+  `erased:<HMAC(store_secret, entity)>` in every table that names an entity (`beliefs`, `belief_pins`, `belief_deps`
+  incl. `dep_entity`, `current_belief`, `marks`, `subscriptions`, `outbox`) and inside stored belief, outbox and job JSON, in
+  the same transaction as the erasure. Only the *entity* moves: the attribute name is schema vocabulary, already stored in
+  the clear. The set of pseudonyms (never a plain name) is kept in `meta` (`entity_pseudonyms`). Every keyed storage call is
+  translated plain to stored form by `store/pseudonym.PseudoStorage`, so the key stays addressable by its plain name, beliefs
+  of *other* entities that depended on it keep working (their `depends_on` is rewritten to the stored form and a recomputed
+  belief is compared in stored form), and a **new report about the entity re-identifies it** (its rows are renamed back, since
+  its name is legitimately in the log again). SQLite: the append-only trigger on `beliefs` is dropped and re-created *inside*
+  the erasure transaction, so a failure rolls the whole rename back and the trigger is never left missing; no store-format bump.
+  Tests: `tests/store/test_pseudonym.py`, `tests/test_pipeline_pseudonym.py`.
+* The **key text of an entity that still has live evidence** remains in those index columns (the key still exists); it is
+  removed from the log row, the admissions, the tombstone and finished jobs.
+* **Free-text diagnostics** (`Inference.reason`, a blocked job's reason) are rewritten at the moment of the rename but not when
+  written afterwards: the plain name of an already pseudonymised entity is not stored and cannot be searched for in free text.
+  A belief or job that names an orphaned key only in such a diagnostic keeps that text.
 * **Backups** are outside the engine: erasure from a backup needs the host's backup retention procedure. An export made
   before the erasure still contains the content and salt.
 * `recorded_at`, LSNs, generation numbers and the chain hashes stay (they carry no content).
@@ -336,7 +348,7 @@ Recorded by this work (conservative defaults; change any of them by editing here
 
 Open, for the author:
 
-* **Q1.** Should an erasure **pseudonymise the key** of an orphaned key (sole evidence erased) across the derived tables? It
+* **Q1 (resolved 2026-10-05: yes; see §7).** Should an erasure **pseudonymise the key** of an orphaned key (sole evidence erased) across the derived tables? It
   would remove the last plain trace of a sensitive key name but touches primary keys and makes the key unaddressable.
 * **Q2 (resolved 2026-10-05).** `NotReconstructable` (a historical snapshot whose version was redacted) is now a third
   `Answer` variant: `Answer = Resolved | ResourceLimited | NotReconstructable` (additive; the author ruled yes).

@@ -110,6 +110,19 @@ class OutboxRow:
     delivered_us: int | None = None
 
 
+class EntityRewriter(Protocol):
+    """How a storage renames one entity (``old`` to ``new``): which keys move and how each kind of stored JSON is
+    rewritten (author ruling 2026-10-05, item 8; see :mod:`palimem.store.pseudonym`)."""
+
+    old: str
+    new: str
+
+    def key(self, k: Key) -> Key: ...
+    def belief(self, text: str) -> str: ...
+    def outbox(self, text: str | None) -> str | None: ...
+    def job(self, text: str) -> str: ...
+
+
 class Storage(Protocol):
     def transaction(self) -> AbstractContextManager[None]:
         """Atomic write transaction holding the single-writer lock. Not re-entrant."""
@@ -196,6 +209,17 @@ class Storage(Protocol):
     def ack_outbox(self, event_id: str, plan_id: str, delivered_us: int) -> None: ...
     def redact_outbox(self, key: Key, versions: tuple[int, ...]) -> None:
         """Drop the embedded views of events that mention these (key, version) pairs (erasure)."""
+        ...
+
+    # entity pseudonymisation (author ruling 2026-10-05, item 8)
+    def entity_has_log_rows(self, entity: str) -> bool:
+        """True while some live (not erased) log row has a key naming ``entity``."""
+        ...
+
+    def rename_entity(self, rewrite: EntityRewriter) -> None:
+        """Rename ``rewrite.old`` to ``rewrite.new`` in every table that names an entity (belief index, pins,
+        dependencies, current-version index, marks, subscriptions, outbox, jobs) and rewrite the key text inside stored
+        belief, outbox and job JSON with ``rewrite``. Must run inside a write transaction."""
         ...
 
     # versioned inputs

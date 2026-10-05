@@ -32,7 +32,7 @@ roadmap; items move off it only when the cited evidence changes.
 | **Fixture versus decision disagreements** | `ind-20` expects a store-wide dirty marker while the decided design is component-scoped; `ind-22` disagrees with the store's own notes (STORAGE §9.5) | [`PIPELINE.md`](PIPELINE.md), [`STORAGE.md`](STORAGE.md) |
 | **Store does not expose** | The erasure requester on a tombstone (`ind-10`) and the keys a completion job stamped or skipped (`ind-21`) | [`PIPELINE.md`](PIPELINE.md) |
 | **Provenance criterion** | The product rule (subset-minimal environments over base reports) is *not* what the oracle computes: it equals the oracle's flat set on 19,613 of 27,578 segment queries and differs on 7,965 (all classified). G1's provenance criterion is met through the compat projection; whether that is the right criterion is the author's call | [`KERNEL.md`](KERNEL.md), [`decisions/S-12.md`](decisions/S-12.md) |
-| **Erased key text in index columns** | After an erasure the key text of a still-existing key stays in the belief index columns; whether to pseudonymise orphaned keys is open. No legal review of the deletion design has been done | [`STORAGE.md`](STORAGE.md) §7 and Q1 |
+| **Erased key text in index columns** | Orphaned entities (the erased report was the only live evidence) are pseudonymised since 2026-10-05; the key text of an entity that still has live evidence stays in the belief index columns, and free-text diagnostics written after a rename may still name an orphaned key. No legal review of the deletion design has been done | [`STORAGE.md`](STORAGE.md) §7 and Q1 |
 
 ## 3. Not measured
 

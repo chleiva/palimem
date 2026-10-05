@@ -18,6 +18,7 @@ from palimem.store._storage import (
     AdmRow,
     BeliefRow,
     DirtyRow,
+    EntityRewriter,
     InputRow,
     JobRow,
     LogRow,
@@ -265,6 +266,27 @@ class MemoryStorage:
         for k, r in list(self.outbox.items()):
             if r.key == key and (r.new_version in versions or (r.old_version is not None and r.old_version in versions)):
                 self.outbox[k] = replace(r, payload=None)
+
+    # -- entity pseudonymisation
+    def entity_has_log_rows(self, entity: str) -> bool:
+        return any(r.key is not None and r.key.entity == entity for r in self.log.values())
+
+    def rename_entity(self, rw: EntityRewriter) -> None:
+        key = rw.key
+        self.beliefs = {
+            (key(r.key).entity, r.key.attr, r.version): replace(
+                r, key=key(r.key), deps=tuple((key(k), v) for k, v in r.deps), belief=rw.belief(r.belief)
+            )
+            for r in self.beliefs.values()
+        }
+        self.current = {key(k): v for k, v in self.current.items()}
+        self.required = {key(k): v for k, v in self.required.items()}
+        self.marks = [replace(m, key=key(m.key)) for m in self.marks]
+        self.job_rows = {g: replace(j, payload=rw.job(j.payload)) for g, j in self.job_rows.items()}
+        self.subs = {(p, key(k)) for p, k in self.subs}
+        self.outbox = {
+            ids: replace(o, key=key(o.key), payload=rw.outbox(o.payload)) for ids, o in self.outbox.items()
+        }
 
     # -- inputs
     def put_input(self, row: InputRow) -> None:
