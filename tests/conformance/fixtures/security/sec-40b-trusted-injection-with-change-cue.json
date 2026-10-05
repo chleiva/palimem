@@ -2,10 +2,10 @@
   "version": 1,
   "kind": "scenario",
   "id": "sec-40b-trusted-injection-with-change-cue",
-  "title": "A change-cued injection from a trusted source against an EARLIER contradicting report",
+  "title": "A change-cued injection from a trusted source against an EARLIER contradicting report is established and marked single-origin",
   "gate": "G1",
   "area": "poisoning",
-  "status": "pending-decision",
+  "status": "active",
   "covers": [
     "SEC-40",
     "T-17",
@@ -13,7 +13,7 @@
   ],
   "requires": [],
   "spec_dependencies": [],
-  "why": "The study's attack used change cues. Under P0c a report with a change cue is not disputed by competitors anchored strictly earlier, so a legitimate update and an injection look identical: the injected Globex becomes established while the press's EARLIER Acme 'contradicts' it only in the sense of an earlier value. The decided gate wording ('never established while another origin group contradicts it') does not say whether an earlier-anchored report counts. This fixture records P0c's behaviour plus the single-origin marking, and asks the author to settle the wording.",
+  "why": "The study's attack used change cues. AUTHOR RULING 13 of 2026-10-05 settles the gate wording: an earlier-anchored report does NOT contradict a change-cued claim under P0c (a change says the value was X and is now Y), and only a report anchored at or after the claimed change does. The press says Acme from 1 Jan (r1); the trusted registry then reports Globex with a change cue from 1 Mar (r2). At 15 Mar the key is established Globex (the legitimate update and the injection look identical to the kernel) and, as the gate requires, the commit rests on a single origin group and is visibly marked as such (one environment {r2}). Contrast sec-40a: a report anchored at the SAME time as the claim contradicts it, so the key is unresolved.",
   "source": "docs/THREAT_MODEL.md §7 (SEC-40)",
   "setup": {
     "profile": "open-world",
@@ -113,6 +113,5 @@
         }
       }
     }
-  ],
-  "status_reason": "Gate wording undecided for earlier-anchored contradictions under P0c cue shielding (see why)."
+  ]
 }

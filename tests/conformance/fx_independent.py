@@ -541,13 +541,15 @@ def build() -> list[dict[str, Any]]:
 
     # 20 ----------------------------------------------------------------------------------------
     out.append(scen(
-        "ind-20-traversal-budget-store-dirty", "Traversal budget exhausted mid-cascade: store-wide dirty marker, every read ResourceLimited(store_dirty)",
+        "ind-20-traversal-budget-store-dirty", "Traversal budget exhausted mid-cascade: the dirty marker is scoped to the component, every read in it is ResourceLimited(store_dirty)",
         "G1", "resource_limits", ["design-row-20", "S-06", "H4"],
         "The per-append traversal (marking) budget is 1 key, but the dependency closure of employer(alice) has two derived keys (work_city, "
-        "local_tax_city). The commit cannot mark the closure, so it sets the store-wide dirty marker instead of a partial marking: EVERY read, "
-        "including a key in an unrelated component (site(bob)), returns ResourceLimited(store_dirty) until the completion job clears it. "
-        "This is the design as written; the threat model's proposal to scope the marker to a component (SEC-22, H4) contradicts it and is "
-        "tracked as a pending decision.",
+        "local_tax_city). The commit cannot mark the closure, so it sets a dirty marker instead of a partial marking. RECONCILED with the author's "
+        "decision H4 and ruling 15 of 2026-10-05: the marker is scoped to the CONNECTED COMPONENT of the attribute dependency graph (known statically "
+        "from the schema rules), with a store-wide marker only as a last resort. So every read in alice's component (employer, work_city, "
+        "local_tax_city) returns ResourceLimited(store_dirty) until the completion job clears it, while a key in an unrelated component (site(bob)) is "
+        "unaffected and keeps answering. (Design row 20 as first written said the marker is store-wide; that wording is superseded. A store-wide marker "
+        "remains the fallback when the component cannot be determined.)",
         {**CHAIN, "site": A("single_stable")},
         [
             append("r1", d(2, 1), "alice", "employer", V("veltran"), source="press"),
@@ -557,13 +559,12 @@ def build() -> list[dict[str, Any]]:
             withdraw("r4", d(2, 10), "$r1", "alice", "employer", source="press"),
             query("q_touched", Q("alice", "employer"), limited("store_dirty")),
             query("q_dependant", Q("alice", "local_tax_city"), limited("store_dirty")),
-            query("q_unrelated", Q("bob", "site"), limited("store_dirty")),
+            query("q_unrelated", Q("bob", "site"), resolved("established", assertion=c_value("north"))),
             op("complete_jobs", name="jobs"),
             query("q_touched2", Q("alice", "employer"), NOT_FOUND),
             query("q_unrelated2", Q("bob", "site"), resolved("established", assertion=c_value("north"))),
         ],
         requires=["budget_control", "completion_jobs"],
-        deps=["H4: component-scoped dirty marker (SEC-22) vs the store-wide marker of design row 20 is undecided."],
         source=ROW.format(20)))
 
     # 21 ----------------------------------------------------------------------------------------

@@ -426,8 +426,9 @@ def security() -> list[dict[str, Any]]:
 
     f = sec("sec-22-component-scoped-dirty-marker", "Traversal-budget exhaustion marks only the affected dependency component",
             "G1", "resource_limits", ["SEC-22", "T-20", "H4"],
-            "Same set-up as ind-20 but expecting the PROPOSED behaviour: only the component whose closure could not be marked answers "
-            "ResourceLimited; an unrelated key (site(bob)) keeps serving. This contradicts design row 20 (store-wide marker) and waits for decision H4.",
+            "Same set-up as ind-20, now the DECIDED behaviour (H4, reaffirmed by author ruling 15 of 2026-10-05): only the component whose closure "
+            "could not be marked answers ResourceLimited; an unrelated key (site(bob)) keeps serving. A store-wide marker remains the last resort. "
+            "Design row 20 as first written (store-wide) is superseded; ind-20 is reconciled with this.",
             {"employer": A("single_changeable", vt="entity"), "hq_city": A("single_stable", vt="entity"), "work_city": WORK_CITY,
              "local_tax_city": A("derived", vt="entity", reads=["work_city"], fn="local_tax_city(e,c) <- work_city(e,c)"), "site": A("single_stable")},
             [append("r1", d(2, 1), "alice", "employer", V("veltran"), source="press"), append("r2", d(2, 2), "veltran", "hq_city", V("tessaly")),
@@ -435,7 +436,7 @@ def security() -> list[dict[str, Any]]:
              withdraw("r4", d(2, 10), "$r1", "alice", "employer", source="press"),
              query("q_dependant", Q("alice", "local_tax_city"), limited("store_dirty")),
              query("q_unrelated", Q("bob", "site"), resolved("established", assertion=c_value("north")))],
-            requires=["budget_control"], status=P, reason="H4 (component-scoped dirty marker) is not decided; design row 20 says store-wide.")
+            requires=["budget_control"])
     del f
 
     srcs7 = GRP(7)
@@ -575,17 +576,17 @@ def security() -> list[dict[str, Any]]:
               append("r2", d(2, 5), "alice", "employer", V("globex"), valid_from=day(1, 1)),
               query("q1", Q("alice", "employer"), resolved("unresolved", _candidates=unordered(c_value("acme"), c_value("globex"))))])
 
-    sec("sec-40b-trusted-injection-with-change-cue", "A change-cued injection from a trusted source against an EARLIER contradicting report",
+    sec("sec-40b-trusted-injection-with-change-cue", "A change-cued injection from a trusted source against an EARLIER contradicting report is established and marked single-origin",
         "G1", "poisoning", ["SEC-40", "T-17", "poisoning-gate-trusted"],
-        "The study's attack used change cues. Under P0c a report with a change cue is not disputed by competitors anchored strictly earlier, so a "
-        "legitimate update and an injection look identical: the injected Globex becomes established while the press's EARLIER Acme 'contradicts' "
-        "it only in the sense of an earlier value. The decided gate wording ('never established while another origin group contradicts it') does "
-        "not say whether an earlier-anchored report counts. This fixture records P0c's behaviour plus the single-origin marking, and asks the author to "
-        "settle the wording.",
+        "The study's attack used change cues. AUTHOR RULING 13 of 2026-10-05 settles the gate wording: an earlier-anchored report does NOT contradict a "
+        "change-cued claim under P0c (a change says the value was X and is now Y), and only a report anchored at or after the claimed change "
+        "does. The press says Acme from 1 Jan (r1); the trusted registry then reports Globex with a change cue from 1 Mar (r2). At 15 Mar the key is "
+        "established Globex (the legitimate update and the injection look identical to the kernel) and, as the gate requires, the commit rests on a "
+        "single origin group and is visibly marked as such (one environment {r2}). Contrast sec-40a: a report anchored at the SAME time as the "
+        "claim contradicts it, so the key is unresolved.",
         EMP, [append("r1", d(2, 1), "alice", "employer", V("acme"), source="press", valid_from=day(1, 1)),
               append("r2", d(3, 5), "alice", "employer", V("globex"), cue="change", valid_from=day(3, 1)),
-              query("q1", Q("alice", "employer", valid_at=day(3, 15)), resolved("established", assertion=c_value("globex"), provenance=length(1)))],
-        status=P, reason="Gate wording undecided for earlier-anchored contradictions under P0c cue shielding (see why).")
+              query("q1", Q("alice", "employer", valid_at=day(3, 15)), resolved("established", assertion=c_value("globex"), provenance=length(1)))])
 
     ws = {**BASE, "work_city": WORK_CITY}
     sec("sec-41a-source-withdraws-its-own-single-origin-report", "A trusted source withdrawing its own report repairs everything downstream",
