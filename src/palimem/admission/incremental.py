@@ -108,6 +108,9 @@ class IncrementalAdmission:
         self.admitter = admitter
         self._tx: list[Callable[[], object]] | None = None
         self._pending: _Pending | None = None
+        self.rebuilds = 0
+        """How many times the state had to be rebuilt from the log (a cold start, a rewritten log). A rolled-back append
+        is undone from the journal and must not count."""
         self._reset()
 
     # ------------------------------------------------------------------ state
@@ -210,6 +213,7 @@ class IncrementalAdmission:
         self._rebuild(log, target)
 
     def _rebuild(self, log: SyncLog, target: int) -> None:
+        self.rebuilds += 1
         self._reset()
         for e in log.entries(upto_lsn=target):
             self._apply(e)

@@ -144,6 +144,21 @@ def incremental_mismatches(inc: IncrementalAdmission, ev: Evaluation) -> list[st
     return problems
 
 
+def whole_log_records(prev: Evaluation | None, ev: Evaluation, rid: str) -> list[AdmissionRecord]:
+    """The admission records of the append that took ``prev`` to ``ev``: the new report's first, then every earlier
+    report whose (outcome, reason, confirmers) changed, in log order. The whole-log definition the incremental
+    delta is compared with."""
+    out = [ev.decisions[rid].record]
+    if prev is not None:
+        for e in prev.entries:
+            r2 = e.report.id
+            assert r2 is not None
+            a, b = prev.decisions[r2].record, ev.decisions[r2].record
+            if (a.outcome, a.reason, a.confirmed_by) != (b.outcome, b.reason, b.confirmed_by):
+                out.append(b)
+    return out
+
+
 def attribution_support(a: Attribution) -> tuple[Support, ...]:
     """The support of an attributed claim: one environment per **origin group** (its earliest report). Independent
     groups each suffice to establish ``belief_of(holder, P)``, and a second report of the same group is only a copy
@@ -522,15 +537,8 @@ class Pipeline:
         problems = incremental_mismatches(inc, ev)
         if problems:
             raise AssertionError("incremental admission differs from the whole-log evaluation: " + "; ".join(problems[:5]))
-        expect = [ev.decisions[delta.report_id].record]
-        if delta.lsn > 1:
-            prev = self.admitter.evaluate(self.log, as_of_lsn=delta.lsn - 1)
-            for e in prev.entries:
-                r2 = e.report.id
-                assert r2 is not None
-                a, b = prev.decisions[r2].record, ev.decisions[r2].record
-                if (a.outcome, a.reason, a.confirmed_by) != (b.outcome, b.reason, b.confirmed_by):
-                    expect.append(b)
+        prev = self.admitter.evaluate(self.log, as_of_lsn=delta.lsn - 1) if delta.lsn > 1 else None
+        expect = whole_log_records(prev, ev, delta.report_id)
         if list(delta.records) != expect:
             raise AssertionError("incremental admission records differ from the whole-log diff")
         direct_ev = direct_entries(ev)
