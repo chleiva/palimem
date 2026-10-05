@@ -33,7 +33,7 @@ passes.
 * Executable contract: `palimem.types` and 19 generated JSON Schemas with 32 examples, drift-checked in CI ([`TYPES.md`](TYPES.md)).
 * 13 decision records, all decided; the six contract changes that needed an explicit author line were decided on 2026-10-04
   ([`decisions/README.md`](decisions/README.md), [`CONTRACT_PENDING.md`](CONTRACT_PENDING.md)).
-* Fixtures: 90 conformance fixtures (3 tagged G0, 80 G1, 7 G2) plus 20 trust-boundary fixtures ([`CONFORMANCE.md`](CONFORMANCE.md)).
+* Fixtures: 90 conformance fixtures (3 tagged G0, 80 G1, 7 G2) plus 24 trust-boundary fixtures ([`CONFORMANCE.md`](CONFORMANCE.md)).
   **(re-run today)** the 3 G0 fixtures pass.
 * Versioning and the RFC process: [`VERSIONING.md`](VERSIONING.md).
 
@@ -72,9 +72,9 @@ compatibility profile, provenance identical, every independent test green, recov
 * **Recovery.** The store test suite kills a separate process at every step of the transaction and a retry converges with no
   duplicate and no partial revision (`tests/store/test_crash.py`, `test_crash_wave2.py`); a whole-pipeline crash test exists
   (`tests/test_pipeline.py`). **(re-run today)** `tests/store`: 214 passed, 2 skipped.
-* **Independent tests.** **(re-run today)** against `palimem.Memory`, of the 100 G1 fixtures (80 plus the 20 trust-boundary
-  ones): **53 pass, 5 fail, 6 skipped, 12 pending a decision, 4 shells, 20 not run by this runner** (the 20 trust-boundary
-  fixtures have their own runner: 19 pass, 1 fails, below).
+* **Independent tests.** **(re-run today)** against `palimem.Memory`, of the 114 fixtures the runner lists (3 G0, 104 G1 including the 24 trust-boundary
+  ones, 7 G2): **57 pass, 5 fail, 8 skipped, 16 pending a decision, 4 shells, 24 not run by this runner** (the 24 trust-boundary
+  fixtures have their own runner: 24 pass, below).
 * Static exactness check, the {A,B,∅} counter-example as a regression test, and the equivalence suite of incremental admission
   against the whole-log oracle (2,040 random streams, compared after every append): [`KERNEL.md`](KERNEL.md), [`PIPELINE.md`](PIPELINE.md).
 
@@ -190,10 +190,7 @@ independent validation above n = 14. The environment budget is 12 after a cross-
 | 5 | The hash chain and `verify_log` exist and SEC-25, SEC-26, SEC-30 pass | store tests `test_sec25_…`, `test_sec26_…` (two forms), `test_sec30_…` pass on both backends (**re-run today**, `tests/store`: 237 passed, 4 skipped); the `Memory` conformance runner skips them for lack of a tamper or restore hook | met at the store level |
 | 6 | `SECURITY.md` in force; releases use trusted publishing with 2FA | `SECURITY.md` and `release.yml` exist; the PyPI trusted publisher is configured and the account-wide token used for the 0.0.1 reservation is revoked (author-reported, 2026-10-05; environments, private vulnerability reporting and branch protection verified through the GitHub API); `release.yml` has never run | partly |
 
-Trust-boundary fixtures: 21 tests pass **(re-run today)**; 19 of 20 fixtures pass; the one ratcheted failure is `tb-12` (the
-fixture expects `abstain` on an unresolved key, the default policy answers `ask`; the author's ruling 16 of 2026-10-05, the host
-API abstains with `inquiry` populated and agent sessions default to `ask`, is not yet implemented). `tb-18` (authorised dispute)
-passes since the semantics rulings.
+Trust-boundary fixtures: 25 tests pass **(re-run today)**; all 24 fixtures pass, nothing is ratcheted as failing. `tb-12` passes since ruling 16 was implemented (the host API abstains with `inquiry` populated; agent sessions default to `ask`), and `tb-18` (authorised dispute) passes since the semantics rulings; `tb-21` to `tb-24` cover ruling 16 and the proposal queue of ruling 17, including an LLM trying to declare an attribute, to auto-declare and to accept its own proposal.
 
 **Status: partly met.** The agent cannot forge identity, the log is tamper-evident and erasable, and the threat model exists; the
 poisoning gate has never been run and most security fixtures are waiting on decisions.
@@ -259,7 +256,6 @@ kernel's text; the third-party half is unmet and the analysis is not confirmator
 | Retire the `authority_source` gold for RA-007 as superseded by ruling 1, or keep it as a documented alternative profile | G-A | [`eval/RA-007_TRACE.md`](eval/RA-007_TRACE.md) |
 | Cardinality of derived attributes; explicit `error_allowed` / `competing_values` | G0 | section 2 |
 | Wording of G2's "empty report-by-report diff" for a different extractor | G2 | section 4 |
-| Whether `tb-12`'s expectation or the default policy is right once ruling 16 is implemented | G-S | section 7 |
 
 Decided on 2026-10-05 and no longer blocking: the contract additions and semantics rulings ([`decisions/RULINGS-2026-10-05.md`](decisions/RULINGS-2026-10-05.md)), no Ministral test run this cycle, the second annotation accepted as a model third opinion (self-reported blind, not certified; no human annotator exists or is planned; none for the extractor labels or the entity pairs, [`LIMITATIONS.md`](LIMITATIONS.md)).
 
@@ -273,8 +269,8 @@ data extracted from the published deposit:
 | `python -m harness.pipeline_diff --stride 20 --backend both --provenance strict` | 25 streams, 1,522 queries per backend, 0 disagreements, 0 provenance disagreements, 1,295 stored-versus-audit supports checked, 0 mismatches |
 | `python -m harness.kernel_diff --stride 20 --source-retract sidetable --strict --provenance strict` | exit 0: PASS, 1,522 queries, 0 disagreements, 0 unexplained |
 | `python -m harness.exclusion_diff --stride 20 --backend both` | 0 disagreements |
-| `python -m tests.conformance.runner --impl tests.conformance.impl_memory:MemoryImplementation` | 110 fixtures listed (3 G0, 100 G1 including the 20 trust-boundary ones, 7 G2): 57 pass, 5 fail, 8 skipped, 16 pending a decision, 4 shells, 20 not run by this runner |
-| `pytest tests/trust_boundary` | 21 passed; 19 of 20 fixtures pass, `tb-12` ratcheted |
+| `python -m tests.conformance.runner --impl tests.conformance.impl_memory:MemoryImplementation` | 114 fixtures listed (3 G0, 104 G1 including the 24 trust-boundary ones, 7 G2): 57 pass, 5 fail, 8 skipped, 16 pending a decision, 4 shells, 24 not run by this runner |
+| `pytest tests/trust_boundary` | 25; all 24 fixtures pass, none ratcheted |
 | `pytest tests/store` | 237 passed, 4 skipped |
 | `python -m harness.replay_s23 --dataset all` | Setting 2: 6,737 queries, 0; stronger backbone: 994, 0; Setting 3: 690 of 714, 0; both backends |
 | `pytest` with study data and the cached Setting 2/3 files | 2,537 passed, 4 skipped, 2 xfailed |
