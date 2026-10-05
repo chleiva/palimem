@@ -90,12 +90,14 @@ def marker_report(text: str, *, attr: str = ENTITY_MERGE_ATTR, cue: Cue = Cue.AS
 def test_marker_round_trip_and_strict_decoding() -> None:
     good = encode_marker(MergeOp.MERGE, into="Real", reason="same", method="lexical", score=0.91)
     body = decode_marker(marker_report(good))
-    assert body is not None and body["into"] == "Real" and body["score"] == 0.91
+    assert body is not None and body.into == "Real" and body.resolver.score == 0.91
     assert decode_marker(marker_report(encode_marker(MergeOp.UNMERGE, target=ULIDS[0], reason="r"))) is not None
     # everything else is ignored, never raised
     assert decode_marker(marker_report("not json")) is None
     assert decode_marker(marker_report('{"v":1,"op":"merge","reason":"r","method":"m"}')) is None  # no `into`
-    assert decode_marker(marker_report('{"v":2,"op":"merge","into":"x","reason":"r","method":"m"}')) is None  # version
+    assert decode_marker(marker_report('{"v":3,"op":"merge","into":"x","reason":"r","method":"m"}')) is None  # version
+    assert decode_marker(marker_report('{"v":2,"op":"merge","into":"x","reason":"r","method":"m"}')) is None  # v2 needs the typed resolver
+    assert decode_marker(marker_report('{"v":1,"op":"merge","into":"x","reason":"r","method":"m","score":0.5}')) is not None  # legacy v1
     assert decode_marker(marker_report('{"v":1,"op":"merge","into":"Alias","reason":"r","method":"m"}')) is None  # self-merge
     assert decode_marker(marker_report('{"v":1,"op":"frobnicate","reason":"r","method":"m"}')) is None
     assert decode_marker(marker_report(good, prop=ValueProp(value=good))) is None  # not a member proposition

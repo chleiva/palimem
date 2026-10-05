@@ -59,7 +59,7 @@ class Converted:
     arrival_ts: list[datetime]  # recorded_at of every log position in arrival order (index = lsn - 1)
     source_retractions: list[tuple[int, str]]  # (lsn, source id); only in "sidetable" mode
     blocked_sources: frozenset[str]
-    change_from: dict[str, Value]
+    change_from: dict[str, Value]  # legacy view {report id -> previous value}; the reports carry it in Report.change_from
     study_id: dict[str, str]  # ulid -> study observation id
     ulid_of: dict[str, str]  # study observation id -> ulid
     stats: dict[str, int] = field(default_factory=dict)
@@ -190,7 +190,10 @@ def to_converted(stream: Any, source_retract: str = "expand") -> Converted:
                     change_from[u] = o.op_from
             else:
                 cue, target = Cue.ASSERT, None
-            rep = Report(key=key, cue=cue, proposition=prop, target=target, valid_from=valid_from, **common)
+            rep = Report(
+                key=key, cue=cue, proposition=prop, target=target, valid_from=valid_from,
+                change_from=o.op_from if cue is Cue.CHANGE else None, **common,
+            )
         entries.append(LogEntry(lsn=lsn, recorded_at=ts, report=rep))
     blocked = frozenset(sid for sid, s in stream.sources.items() if s.cls == "blocked")
     return Converted(stream_id=stream.stream_id, kschema=kschema, entries=entries, arrival_ts=arrival_ts,

@@ -1,0 +1,12 @@
+{
+  "belief_as_of": 3,
+  "current_available": true,
+  "decision": "not_reconstructable",
+  "key": {
+    "attr": "employer",
+    "entity": "alice"
+  },
+  "lsn": 3,
+  "reason": "erased",
+  "version": 2
+}

@@ -1,0 +1,27 @@
+{
+  "actor": "connector:registry",
+  "change_from": "Acme",
+  "cue": "change",
+  "extractor": null,
+  "id": null,
+  "key": {
+    "attr": "employer",
+    "entity": "alice"
+  },
+  "observed_at": null,
+  "origin": "external_observation",
+  "origin_group": "registry-group",
+  "precision": "day",
+  "proposition": {
+    "form": "value",
+    "v": "Globex"
+  },
+  "raw_ref": null,
+  "source": {
+    "class": "trusted",
+    "id": "registry"
+  },
+  "target": null,
+  "valid_from": "2026-06-01T00:00:00Z",
+  "valid_to": null
+}

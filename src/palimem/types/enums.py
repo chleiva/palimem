@@ -72,6 +72,7 @@ class Power(str, Enum):
     CORRECT = "correct"
     WITHDRAW = "withdraw"
     DISPUTE = "dispute"
+    MERGE = "merge"  # entity merges (author ruling 2026-10-05): granted by principal id, never to an agent
 
 
 class WhoKind(str, Enum):
@@ -163,6 +164,10 @@ class ResourceLimitedReason(str, Enum):
     STALE_DEPENDENCY = "stale_dependency"
     STORE_DIRTY = "store_dirty"
     ENVIRONMENT_BUDGET = "environment_budget"  # S-06, decided: a key exceeded the environment budget
+
+
+class NotReconstructableReason(str, Enum):
+    ERASED = "erased"  # the belief version in force at the snapshot was redacted by an erasure (S-13)
 
 
 class InvalidatedKind(str, Enum):

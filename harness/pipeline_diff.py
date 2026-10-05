@@ -57,7 +57,6 @@ from palimem.compat import (
     PROFILE,
     CompatAdmitter,
     answer_v1,
-    change_from_of,
     compat_admission_config,
     compat_semantic,
     erroneous_provenance_v1,
@@ -67,7 +66,6 @@ from palimem.compat import (
     reported_v1,
     schema_from_kernel,
     source_retraction_report,
-    with_change_from,
     yesno_v1,
 )
 from palimem.kernel import (
@@ -79,7 +77,7 @@ from palimem.kernel import (
 from palimem.memory import Memory
 from palimem.policy import JUSTIFIED
 from palimem.store import Backend, InMemoryBackend, SQLiteBackend
-from palimem.types import Cue, Key, LogEntry, Query, Resolved, ResourceLimited
+from palimem.types import Key, LogEntry, Query, Resolved, ResourceLimited
 
 STREAM_RE = re.compile(r"^s1_\d+\.json$")
 BACKENDS = ("memory", "sqlite")
@@ -123,7 +121,7 @@ def build_memory(conv: Converted, backend: Backend, inject: str) -> Memory:
     return Memory(
         backend, schema_from_kernel(ks), kernel_schema=ks, entities=conv.kschema.entities,
         semantic=compat_semantic(self_update=inject == "self-update"),
-        admission=compat_admission_config(), policy=JUSTIFIED, change_from_of=change_from_of, admitter_class=cls,
+        admission=compat_admission_config(), policy=JUSTIFIED, admitter_class=cls,
     )
 
 
@@ -138,8 +136,6 @@ def replay(conv: Converted, mem: Memory, clock: _Clock) -> Ids:
         if entry is not None:
             r = entry.report
             rep = replace(r, id=None, target=ids.assigned[r.target] if r.target else None)
-            if r.cue is Cue.CHANGE and r.id in conv.change_from:
-                rep = with_change_from(rep, conv.change_from[r.id])
         else:
             rep = source_retraction_report(retract[lsn])
         res = mem.append(rep, idempotency_key=f"{conv.stream_id}:{lsn}")

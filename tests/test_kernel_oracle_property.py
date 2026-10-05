@@ -129,7 +129,7 @@ def test_kernel_interpretations_equal_oracle_v1(st: Any, policy: str, self_updat
         for attr in stream.attributes:
             key = Key(entity="e", attr=attr)
             entries = by_key.get(key, [])
-            j = justify_key(conv.kschema, key, entries, sem, change_from=conv.change_from)
+            j = justify_key(conv.kschema, key, entries, sem)
             assert isinstance(j, Justification)
             oracle = oracle_v1.key_interpretations(stream, 10**9, ("e", attr, ""), policy)
             assert _norm_kernel(j, conv) == _norm_oracle(oracle), (attr, [vars(o) for o in stream.observations])

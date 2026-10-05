@@ -8,7 +8,7 @@ import pytest
 
 from palimem.memory import Memory
 from palimem.policy import LWW
-from palimem.store import APPEND_STEPS, ErasureReason, StoreError
+from palimem.store import APPEND_STEPS, ErasureReason
 from palimem.types import KernelStatus, Key, Query, Resolved, ResourceLimited
 from tests._pipeline_helpers import (
     Clock,
@@ -259,15 +259,15 @@ def _support_shape(segment: object) -> object:
     return {cid: tuple((len(s.environment), s.valid_from, s.valid_to, s.precision) for s in sups) for cid, sups in support.items()}
 
 
-def test_not_reconstructable_snapshot_raises_until_the_contract_has_a_variant(mem: Memory) -> None:
-    from palimem.memory import NotReconstructableError
+def test_not_reconstructable_snapshot_answers_with_the_contract_variant(mem: Memory) -> None:
+    from palimem.types import Cue, NotReconstructable
 
     r1 = mem.append(assertion("alex", "employer", "veltran", source="press"))
-    mem.append(assertion("alex", "employer", "acme", source="press", cue=__import__("palimem.types", fromlist=["Cue"]).Cue.CHANGE))
+    mem.append(assertion("alex", "employer", "acme", source="press", cue=Cue.CHANGE))
     assert r1.entry is not None and r1.entry.report.id is not None
     mem.delete(r1.entry.report.id)
-    with pytest.raises((NotReconstructableError, StoreError)):
-        current(mem, "alex", "employer", belief_as_of=1)
+    ans = current(mem, "alex", "employer", belief_as_of=1)
+    assert isinstance(ans, NotReconstructable) and ans.current_available  # ruling 2026-10-05: a third Answer variant
 
 
 def _q(name: str, value: str, group: str) -> object:

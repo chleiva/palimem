@@ -311,11 +311,39 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "cue": {
+                "enum": [
+                  "assert",
+                  "correct",
+                  "withdraw",
+                  "dispute",
+                  "allege"
+                ]
+              }
+            },
+            "required": [
+              "cue"
+            ]
+          },
+          "then": {
+            "properties": {
+              "change_from": {
+                "type": "null"
+              }
+            }
+          }
         }
       ],
       "properties": {
         "actor": {
           "$ref": "#/$defs/Principal"
+        },
+        "change_from": {
+          "$ref": "#/$defs/Value"
         },
         "cue": {
           "enum": [

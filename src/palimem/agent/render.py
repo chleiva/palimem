@@ -24,6 +24,7 @@ from palimem.types import (
     KernelStatus,
     Key,
     LogEntry,
+    NotReconstructable,
     Resolved,
     ResourceLimited,
     SetForm,
@@ -31,6 +32,7 @@ from palimem.types import (
     ValueForm,
 )
 from palimem.types._codec import ts_to_str
+from palimem.types.answer import belief_as_of_to_json
 from palimem.types.values import (
     EnumerationProp,
     MemberProp,
@@ -112,6 +114,12 @@ def answer_json(
             },
             "notices": nj,
         }
+    if isinstance(ans, NotReconstructable):
+        return {
+            **base, "kind": "not_reconstructable", "decision": "not_reconstructable", "reason": ans.reason.value,
+            "belief_as_of": belief_as_of_to_json(ans.belief_as_of), "version": ans.version, "lsn": ans.lsn,
+            "current_available": ans.current_available, "notices": nj,
+        }
     assert isinstance(ans, Resolved)
     groups = origin_groups(host, ans, key, as_of)
     settled = ans.kernel_status in (
@@ -175,6 +183,13 @@ def answer_text(d: Mapping[str, Any]) -> str:
         if d.get("last_complete"):
             lines.append("  An older snapshot exists; it is labelled as such and is not the current belief.")
         return "\n".join(lines)
+    if d["kind"] == "not_reconstructable":
+        nr: list[str] = [f"{head}: CANNOT BE RECONSTRUCTED for that snapshot (belief_as_of {d['belief_as_of']}): it was erased."]
+        if d.get("current_available"):
+            nr.append("  Do not guess the old value. The current belief of this key is readable: ask without belief_as_of.")
+        else:
+            nr.append("  Do not guess the old value; nothing readable remains for this key.")
+        return "\n".join(nr)
     status, decision = d["kernel_status"], d["decision"]
     a = d["assertion"]
     lines = []

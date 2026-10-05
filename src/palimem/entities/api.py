@@ -29,13 +29,17 @@ from palimem.entities.resolver import (
     similarity,
 )
 from palimem.types import (
+    AuthorityRule,
     BeliefAsOf,
     Cue,
     Key,
     LogEntry,
     MemberProp,
+    MergeRecord,
     Origin,
+    Power,
     Query,
+    ResolverInfo,
     Source,
 )
 from palimem.types import Report as _Report
@@ -68,7 +72,16 @@ def attach_layer(memory: Memory) -> EntityLayer:
         layer = EntityLayer()
         memory.pipeline.layer = layer
         layer.bind(memory.backend)
+    layer.rules = _merge_rules(memory)
     return layer
+
+
+def _merge_rules(memory: Memory) -> tuple[AuthorityRule, ...]:
+    """The ``merge`` grants declared on the reserved attribute (``Attr.authority``), if any."""
+    for a in memory.schema.attrs:
+        if a.name == ENTITY_MERGE_ATTR:
+            return tuple(r for r in a.authority if Power.MERGE in r.may)
+    return ()
 
 
 def merge_attr_spec() -> object:
@@ -92,8 +105,10 @@ def enable_entity_merges(schema: object) -> object:
 
 
 @dataclass(frozen=True)
-class MergeRecord:
-    """A merge the host recorded (the honoured decision plus the entity classes it produced)."""
+class MergeOutcome:
+    """What a host call that recorded a merge or an unmerge returns: the honoured decision, the entity classes it
+    produced, and the beliefs it rewrote. The typed, readable contract record of a merge is
+    :class:`palimem.types.MergeRecord` (see :meth:`Entities.records`)."""
 
     decision: MergeDecision
     representative: str
@@ -194,6 +209,30 @@ class Entities:
         self.layer.sync(lsn)
         return self.layer.registry.history(lsn)
 
+    def records(self, as_of: BeliefAsOf | None = None) -> tuple[MergeRecord, ...]:
+        """The typed :class:`~palimem.types.MergeRecord` of every honoured merge up to a snapshot, active or reversed,
+        in log order. ``members`` and ``representative`` are those of the class the merge produced at its own log
+        position; ``reversed_by`` names the unmerge decision that undid it as of the snapshot."""
+        lsn = self.mem.lsn_of(as_of)
+        self.layer.sync(lsn)
+        reg = self.layer.registry
+        hist = reg.history(lsn)
+        undone = {d.target: d.id for d in hist if d.op is MergeOp.UNMERGE and d.target is not None}
+        out: list[MergeRecord] = []
+        for d in hist:
+            if d.op is not MergeOp.MERGE or d.into is None:
+                continue
+            st = reg.state_at(d.lsn)
+            if not any(e.merge_id == d.id for e in st.edges):  # a recorded no-op merge (already one class)
+                continue
+            joined = tuple(sorted({*st.members(d.alias), *st.members(d.into)}))
+            out.append(MergeRecord(
+                id=d.id, members=joined, representative=st.canon(d.into), reason=d.reason,
+                resolver=ResolverInfo(method=d.method, score=d.score, version=d.resolver_version),
+                admission_version=d.admission_version or 1, reversed_by=undone.get(d.id),
+            ))
+        return tuple(out)
+
     # -- decisions
 
     def _append(self, entity: str, text: str, idempotency_key: str | None) -> tuple[str, tuple[Key, ...]]:
@@ -208,8 +247,8 @@ class Entities:
     def merge(
         self, alias: str, into: str, *, reason: str, method: str = "manual", score: float | None = None,
         idempotency_key: str | None = None,
-    ) -> MergeRecord:
-        """Record that ``alias`` and ``into`` are one entity (the class of ``alias`` joins the class of ``into``).
+    ) -> MergeOutcome:
+        """Record that ``alias` and ``into`` are one entity (the class of ``alias`` joins the class of ``into``).
 
         The decision is a marker report in the evidence log (its report id is the merge id), so it is chained,
         idempotent and reversible. Raises :class:`UnknownEntity` for a name that appears in no report and
@@ -229,7 +268,7 @@ class Entities:
         )
         return self._record_of(mid, written)
 
-    def unmerge(self, merge_id: str, *, reason: str, idempotency_key: str | None = None) -> MergeRecord:
+    def unmerge(self, merge_id: str, *, reason: str, idempotency_key: str | None = None) -> MergeOutcome:
         """Undo a merge. The beliefs that consumed evidence across it (and only those) are recomputed."""
         self._need_enabled()
         head = self.mem.lsn_of(None)
@@ -243,13 +282,13 @@ class Entities:
         )
         return self._record_of(did, written)
 
-    def _record_of(self, decision_id: str, written: tuple[Key, ...] = ()) -> MergeRecord:
+    def _record_of(self, decision_id: str, written: tuple[Key, ...] = ()) -> MergeOutcome:
         head = self.mem.lsn_of(None)
         self.layer.sync(head)
         for d in self.layer.registry.history(head):
             if d.id == decision_id:
                 st = self.layer.registry.state_at(head)
-                return MergeRecord(
+                return MergeOutcome(
                     decision=d, representative=st.canon(d.alias), members=st.members(d.alias), rewritten=written
                 )
         raise MergeRejected(
@@ -272,7 +311,7 @@ class Entities:
             kind=self.kind,
         )
 
-    def apply(self, proposal: MergeProposal, *, reason: str | None = None, idempotency_key: str | None = None) -> MergeRecord:
+    def apply(self, proposal: MergeProposal, *, reason: str | None = None, idempotency_key: str | None = None) -> MergeOutcome:
         """Apply one proposal as a recorded merge decision (the score, method and resolver version travel with it)."""
         return self.merge(
             proposal.alias, proposal.into,
@@ -357,12 +396,12 @@ class Entities:
         return out[:limit]
 
 
-def merge_pairs(ents: Iterable[tuple[str, str]], entities: Entities, *, reason: str) -> list[MergeRecord]:
+def merge_pairs(ents: Iterable[tuple[str, str]], entities: Entities, *, reason: str) -> list[MergeOutcome]:
     """Convenience: merge several (alias, into) pairs with one reason (each is its own decision)."""
     return [entities.merge(a, b, reason=reason) for a, b in ents]
 
 
 __all__ = [
-    "AMBIGUITY_MARGIN", "Entities", "EntitiesError", "EntitiesNotEnabled", "KeyCandidate", "MergeRecord",
+    "AMBIGUITY_MARGIN", "Entities", "EntitiesError", "EntitiesNotEnabled", "KeyCandidate", "MergeOutcome",
     "MergeRejected", "UnknownEntity", "attach_layer", "enable_entity_merges", "merge_attr_spec", "merge_pairs",
 ]

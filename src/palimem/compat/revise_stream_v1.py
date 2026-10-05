@@ -26,7 +26,7 @@ evidence log itself**, so the log stays replayable, exportable and verifiable:
    log position on (and a report appended later by it, too), while leaving admission records and the actors' own
    effects (A-SELF) untouched, as the paper does.
 2. **The ``from`` value of a ``change`` cue** (``Report`` has no field for it; contract gap 1): carried in
-   ``Report.raw_ref`` as ``palimem:compat:change_from:<json>`` and read by :func:`change_from_of`.
+   ``Report.change_from``; logs written before that field carried it in ``Report.raw_ref`` as ``palimem:compat:change_from:<json>``, which :func:`change_from_of` still reads.
 3. **Attribute kinds the contract classes cannot express** (multi-valued *changeable* keys, derived cardinality,
    ``error_allowed`` / ``competing_values``): the compat driver passes a full :class:`KernelSchema` next to the
    contract :class:`Schema`.
@@ -119,7 +119,10 @@ def compat_admission_config(*, admission_version: int = 1, acting_reports_must_b
 
 
 def change_from_of(report: Report) -> Value | None:
-    """The ``from`` value of a ``change`` cue (compat convention, contract gap 1), or ``None``."""
+    """The ``from`` value of a ``change`` cue: ``Report.change_from`` (author ruling 2026-10-05), or, for
+    logs written before the field existed, the legacy ``raw_ref`` carrier; ``None`` if there is none."""
+    if report.change_from is not None:
+        return report.change_from
     ref = report.raw_ref
     if report.cue is not Cue.CHANGE or ref is None or not ref.startswith(CHANGE_FROM_PREFIX):
         return None
@@ -130,10 +133,10 @@ def change_from_of(report: Report) -> Value | None:
 
 
 def with_change_from(report: Report, value: Value) -> Report:
-    """``report`` carrying the ``from`` value of its ``change`` cue."""
+    """``report`` carrying the ``from`` value of its ``change`` cue in ``Report.change_from``."""
     from dataclasses import replace
 
-    return replace(report, raw_ref=CHANGE_FROM_PREFIX + json.dumps(value))
+    return replace(report, change_from=value)
 
 
 def source_retraction_report(source_id: str, *, source: Source = HOST_SOURCE, actor: str = "system:compat") -> Report:
@@ -284,9 +287,10 @@ def segment_v1(seg: PSegment, multi: bool) -> dict[str, Any]:
 
 def answer_v1(answer: Answer, *, multi: bool) -> dict[str, Any]:
     """Project a v2 value answer onto the v1 contract, from the **kernel's** segment (the policy's decision is not
-    part of the paper's contract). A ``ResourceLimited`` answer has no v1 form."""
+    part of the paper's contract). A ``ResourceLimited`` or ``NotReconstructable`` answer has no v1 form."""
     if not isinstance(answer, Resolved):
-        raise CompatError(f"ResourceLimited({answer.reason.value}) has no v1 projection")
+        what = "NotReconstructable" if answer.decision == "not_reconstructable" else f"ResourceLimited({answer.reason.value})"
+        raise CompatError(f"{what} has no v1 projection")
     return segment_v1(answer.justified.segment, multi)
 
 

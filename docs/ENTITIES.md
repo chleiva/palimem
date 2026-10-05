@@ -28,14 +28,21 @@ merge id); nothing is edited.
 ```
 Report(key=(<alias>, "__entity_merge__"), cue=assert, proposition=member(<canonical JSON>),
        actor="system:..."|"user:...", source.id="system:..."|"user:...", origin=external_observation)
-  {"v":1,"op":"merge","into":"<entity>","reason":"...","method":"lexical|manual|...","score":0.91}
-  {"v":1,"op":"unmerge","target":"<merge id>","reason":"..."}
+  {"v":2,"op":"merge","into":"<entity>","reason":"...","resolver":{"method":"lexical|manual|...","score":0.91,"version":"1"}}
+  {"v":2,"op":"unmerge","target":"<merge id>","reason":"...","resolver":{"method":"manual"}}
 ```
 
-A marker is **honoured** only when all of these hold (`registry.from_host`, `MergeRegistry.decision_of`): the actor *and*
-the source id are `system:` or `user:` principals (never `agent:` or `connector:`), the origin is `external_observation`,
-admission admitted it (a quarantined or blocked source is not honoured), and it decodes strictly. Anything else on the
-reserved attribute is ignored, never raised. The agent tool API additionally refuses every attribute starting with `__`
+The payload is the typed `palimem.types.MergeMarker` (author ruling 2026-10-05). **Payload version 1**, the earlier ad-hoc form
+with flat `method` and `score` members, is still **read** and mapped onto the same type, so logs written before this change keep
+loading unchanged (nothing about their stored bytes moves); writers emit version 2. An unknown version, a missing member or an
+unknown member makes the marker malformed, which the registry ignores.
+
+A marker is **honoured** only when all of these hold (`registry.from_host`, `MergeRegistry.decision_of`): the actor holds the
+**`merge` power** (`palimem.types.may_merge`): `system:` and `user:` principals by default (the source id must be of the same
+kinds), any other non-agent principal (for example `connector:ops`) only with an explicit `merge` grant declared on the reserved
+attribute's `authority`, and **never an `agent:` principal**; the origin is `external_observation`; admission admitted it (a
+quarantined or blocked source is not honoured); and it decodes strictly. Anything else on the reserved attribute is ignored,
+never raised. The agent tool API additionally refuses every attribute starting with `__`
 (`reserved_attr`) and has no merge tool, so an agent cannot merge even by writing the marker.
 
 ## 3. Classes, representatives, and what is stored
@@ -90,15 +97,17 @@ attaches the entity layer automatically, so a reopened store keeps resolving mer
 
 | call | what it does |
 |---|---|
-| `merge(alias, into, reason=, method=, score=)` | records a merge decision; returns a `MergeRecord` (id, representative, members, `rewritten` keys); refuses unknown entities and an already-merged pair |
+| `merge(alias, into, reason=, method=, score=)` | records a merge decision; returns a `MergeOutcome` (id, representative, members, `rewritten` keys); refuses unknown entities and an already-merged pair |
 | `unmerge(merge_id, reason=)` | records the reversal of an active merge |
 | `propose()` / `apply(proposal)` | resolver proposals over the entities in the log (nothing applied); `apply` records one with its score, method and resolver version |
 | `canonical(e)`, `members(e)`, `merges()`, `history()` | the classes and decisions at any snapshot (`as_of`) |
+| `records()` | the typed `palimem.types.MergeRecord` of every honoured merge at a snapshot: id, members, representative, reason, resolver (method, score, version), `admission_version`, and `reversed_by` (the unmerge decision that undid it, or `None`) |
 | `find(entity_text, attr_text)` | see below; works on any store, merges enabled or not |
 
-Not covered by the contract: there is no first-class `MergeRecord` type and no `merge` `Power` in `AuthorityRule`
-(conformance fixture `ind-09` lists this as a spec dependency). Authority is the principal-kind rule above, not the grant
-table; a grant-table `merge` power is a contract decision for the author.
+Contract (author ruling 2026-10-05, additive): `Power.MERGE` exists in `AuthorityRule` and `MergeRecord` is a first-class type.
+A `merge` rule is granted on its own, by identity (`principal` or `any`, never over target reports), and **can never be granted
+to an `agent` principal** (the rule refuses to build). Unchanged: merges stay a privileged host operation and the agent tool API
+has no merge tool.
 
 ## 6. `find`
 
@@ -161,7 +170,7 @@ context (a person who moved, a company that rebranded).
 3. **Auto-apply only on an external identity.** If both names carry the same stable identifier from the source (a
    registry id), declare them in an `AliasTable` or merge them from that connector's host code with `method="external-id"`:
    that is evidence, not similarity.
-4. **Preview before applying.** `MergeRecord.rewritten` shows which beliefs a decision wrote; a merge exposes conflicts as
+4. **Preview before applying.** `MergeOutcome.rewritten` shows which beliefs a decision wrote; a merge exposes conflicts as
    `unresolved` instead of hiding them, so a wrong merge announces itself, and `unmerge` restores everything.
 
 ## 8. An embedding or LLM resolver (design only; nothing here calls a model)
@@ -190,7 +199,7 @@ model-backed one, written down before anyone builds it:
   the stored values stay as reported.
 * **`Belief.invalidated_by`** (`kind=merge`) is not populated: `verify_beliefs` compares it and a recomputation cannot know
   which decision caused a given version. The pinned merge id carries that information.
-* **No `merge` `Power` / `MergeRecord` type in the contract** (section 5).
+* ~~No `merge` `Power` / `MergeRecord` type in the contract~~ **resolved 2026-10-05** (section 5): `Power.MERGE`, `MergeMarker`, `MergeRecord`.
 * **Attribute names** are canonicalised for `find` (declared aliases) but reports on `works_at` and `employer` are still
   different keys: schema-layer attribute aliasing at ingestion is not implemented.
 * **Concurrency:** the registry is rebuilt from the committed log prefix, so a rolled-back append never entered it; a

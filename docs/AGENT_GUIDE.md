@@ -64,6 +64,10 @@ attribution corroborated by many origin groups is still only an attribution.
 dependency, an over-budget key, a dirty store). It carries **no value**. Never treat an older value as current; retry later.
 An older snapshot may be attached and is explicitly labelled as older.
 
+`not_reconstructable` is also not an answer: the belief you asked about *as of an earlier snapshot* was erased (a deletion
+obligation), so what was believed then can no longer be rebuilt. It carries **no value and no content**. Do not guess the old
+value. If `current_available` is true, ask again without `belief_as_of` to read the current belief.
+
 ### Notices
 
 | code | Meaning |
@@ -102,7 +106,7 @@ These strings are pinned by golden tests (`tests/test_agent_render.py`): wording
 You have a justified memory. Before relying on a fact about a person, account or order, call `recall`.
 - If kernel_status is "established", you may state it; if single_origin is true, attribute it ("the HR record says...").
 - If it is "unresolved", list the alternatives and do not pick one; if decision is "ask", ask who can settle it.
-- If it is "unknown" or the result is resource_limited, say you do not know. Do not guess and do not use older values.
+- If it is "unknown", or the result is resource_limited or not_reconstructable, say you do not know. Do not guess and do not use older values.
 - If attribution_only is true, you only know what someone is reported to believe, not the fact: say so and ask a source that can confirm it.
 - `remember` records what you say; it is not evidence. To record what an external source said, cite the event.
 - You may `retract` only your own earlier statements.
@@ -133,7 +137,7 @@ tested against a subprocess and an in-process fake transport; it has not been ex
 | `palimem inspect DB` | head, hash chain status, schema, and the current belief of every key |
 | `palimem explain DB ENTITY ATTR [--as-of N]` | the answer and what justifies it |
 | `palimem diff DB ENTITY ATTR --a N --b M` | how the belief changed between two log positions |
-| `palimem verify DB` | check the hash chain and recompute stored beliefs |
+| `palimem verify DB [--scope log\|beliefs\|all] [--incremental]` | `log`: the hash chain; `beliefs`: recompute each stored belief from the log, offline (no network, no model); `all` (default): both |
 | `palimem export DB -o dump.jsonl` / `palimem import NEWDB dump.jsonl` | portable evidence log (it carries salts: treat it like the database) |
 | `palimem mcp DB --principal P` | serve the agent tools over MCP |
 

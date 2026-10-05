@@ -1,0 +1,16 @@
+{
+  "admission_version": 1,
+  "id": "01JA0000000000000000000002",
+  "members": [
+    "acme",
+    "acme inc"
+  ],
+  "reason": "same registry id",
+  "representative": "acme",
+  "resolver": {
+    "method": "lexical",
+    "score": 0.91,
+    "version": "1"
+  },
+  "reversed_by": "01JA0000000000000000000003"
+}

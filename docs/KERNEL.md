@@ -13,7 +13,7 @@ from palimem.kernel import (KernelSchema, justify_key, justify_derived, Justific
 
 ks = KernelSchema.from_schema(schema, entities=[...])      # contract Schema -> kernel flags (see "Gaps")
 check_schema(ks)                                           # static exactness check, at schema load
-j = justify_key(ks, key, admitted_entries, semantic, budget=12, change_from={...})
+j = justify_key(ks, key, admitted_entries, semantic, budget=12)   # a change cue's `from` value is Report.change_from
 #   -> Justification | ResourceLimitedResult(environment_budget)   (never a silent fallback)
 j.segments()            # contract `Segment`s: one status per valid-time interval, five-status ladder
 j.segment_at(day)       # the segment containing a valid day
@@ -204,9 +204,10 @@ withdrawn` rows.
 
 ## Gaps reported to the author (contract, not kernel)
 
-1. **`change` cue `from` value.** `Report` has no field for it; A-CHG needs it (3,593 of 7,135 change reports
-   in Setting 1). The kernel takes it out of band (`change_from`). Needs an explicit author line
-   (suggestion: optional `Report.change_from`, only for cue `change`).
+1. **`change` cue `from` value. Resolved (author ruling 2026-10-05).** A-CHG needs it (3,593 of 7,135 change
+   reports in Setting 1). It is now the optional `Report.change_from`, allowed only for cue `change`; the kernel reads
+   the field. The earlier out-of-band `change_from={report id: value}` argument of `justify_key` is kept only as an
+   explicit override for callers that predate the field (the field wins when both are given).
 2. **Attribute kinds the contract classes cannot express:** multi-valued *changeable* keys with competing
    values (Setting 1 has 500; the Alex `residence` slot), the **cardinality of a derived attribute**, and the
    explicit `error_allowed` / `competing_values` flags. `KernelSchema.from_schema` maps what it can

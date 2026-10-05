@@ -12,7 +12,7 @@ from palimem.entities.api import (
     EntitiesError,
     EntitiesNotEnabled,
     KeyCandidate,
-    MergeRecord,
+    MergeOutcome,
     MergeRejected,
     UnknownEntity,
     attach_layer,
@@ -35,7 +35,7 @@ from palimem.entities.resolver import (
 
 __all__ = [
     "ENTITY_MERGE_ATTR", "AliasTable", "Entities", "EntitiesError", "EntitiesNotEnabled", "EntityLayer", "KeyCandidate",
-    "LexicalResolver", "MergeDecision", "MergeOp", "MergeProposal", "MergeRecord", "MergeRejected", "ResolverBackend",
+    "LexicalResolver", "MergeDecision", "MergeOp", "MergeOutcome", "MergeProposal", "MergeRejected", "ResolverBackend",
     "ResolverPolicy", "Similarity", "UnknownEntity", "attach_layer", "canonical_form", "canonical_tokens",
     "enable_entity_merges", "merge_attr_spec", "propose_merges", "similarity",
 ]

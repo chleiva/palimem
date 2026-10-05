@@ -83,7 +83,7 @@ class FastEval(StreamEval):
             return hit
         entries = self.adm.admitted_by_key(lsn).get(key, [])
         t0 = time.perf_counter()
-        d = dispatch_key(self.conv.kschema, key, entries, self.sem, change_from=self.conv.change_from)
+        d = dispatch_key(self.conv.kschema, key, entries, self.sem)
         self.seconds += time.perf_counter() - t0
         if isinstance(d.result, ResourceLimitedResult):
             self.resource_limited += 1
@@ -109,7 +109,7 @@ class EnumEval(StreamEval):
             return hit
         entries = self.adm.admitted_by_key(lsn).get(key, [])
         t0 = time.perf_counter()
-        j = justify_key(self.conv.kschema, key, entries, SEMANTIC, change_from=self.conv.change_from)
+        j = justify_key(self.conv.kschema, key, entries, SEMANTIC)
         self.seconds += time.perf_counter() - t0
         if isinstance(j, ResourceLimitedResult):
             self.resource_limited += 1

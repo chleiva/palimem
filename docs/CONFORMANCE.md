@@ -166,6 +166,6 @@ phase-2 components. They are tagged G2 here; the design should say so.
 4. **Member-only evidence under open completeness** (`ind-13b`): established set, or weaker?
 5. **"Visited"** in design row 14 means recomputed, whereas row 20's marker concerns traversal; the budgets are not named by the design.
 6. **Store-wide versus component-scoped dirty marker** (`ind-20` vs `sec-22`, H4).
-7. **`Rule` has no `exceptions` field** (S-10), and **merge is not a `Power`** (S-07; `ind-09`, `sec-18/19`).
+7. **`Rule` has no `exceptions` field** (S-10; ruling 2026-10-05: reserved, not in 0.x). ~~**merge is not a `Power`**~~ resolved 2026-10-05: `Power.MERGE` and `MergeRecord` exist (S-07; `ind-09`, `sec-18/19`).
 8. **A trusted injection with a `change` cue** (`sec-40b`): the decided gate's wording does not say whether an earlier-anchored report "contradicts".
 9. **`verify_log` covers the log only**: a belief-recomputing verify (`sec-25b`) is proposed, not decided.

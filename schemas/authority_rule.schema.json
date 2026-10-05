@@ -2,14 +2,54 @@
   "$defs": {
     "AuthorityRule": {
       "additionalProperties": false,
-      "description": "S-07 invariant (enforced by the types and by admission, not expressible here): no rule grants an agent principal withdraw/correct over an external_observation.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "may": {
+                "contains": {
+                  "const": "merge"
+                }
+              }
+            },
+            "required": [
+              "may"
+            ]
+          },
+          "then": {
+            "properties": {
+              "may": {
+                "maxItems": 1
+              },
+              "over_origins": {
+                "type": "null"
+              },
+              "targets": {
+                "const": "report"
+              },
+              "who": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "principal",
+                      "any"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "S-07 invariant (enforced by the types and by admission, not expressible here): no rule grants an agent principal withdraw/correct over an external_observation, and none ever grants merge to an agent.",
       "properties": {
         "may": {
           "items": {
             "enum": [
               "correct",
               "withdraw",
-              "dispute"
+              "dispute",
+              "merge"
             ],
             "type": "string"
           },

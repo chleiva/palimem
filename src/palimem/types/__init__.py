@@ -12,6 +12,7 @@ from palimem.types.answer import (
     Explanation,
     Inquiry,
     LastComplete,
+    NotReconstructable,
     PolicyInfo,
     Query,
     Resolved,
@@ -38,6 +39,7 @@ from palimem.types.authority import (
     Who,
     check_principal,
     default_authority_rules,
+    may_merge,
     parse_principal,
     principal_kind,
     validate_rules_for_profile,
@@ -66,6 +68,7 @@ from palimem.types.enums import (
     ExplanationState,
     InvalidatedKind,
     KernelStatus,
+    NotReconstructableReason,
     Origin,
     Power,
     Precision,
@@ -78,6 +81,7 @@ from palimem.types.enums import (
     WhoKind,
 )
 from palimem.types.limits import DEFAULT_ENVIRONMENT_BUDGET, MAX_BELIEF_NESTING
+from palimem.types.merge import MergeMarker, MergeOp, MergeRecord, ResolverInfo
 from palimem.types.report import Extractor, LogEntry, Report, Source
 from palimem.types.values import (
     BeliefOfForm,
@@ -147,8 +151,13 @@ __all__ = [
     "LastComplete",
     "LogEntry",
     "MemberProp",
+    "MergeMarker",
+    "MergeOp",
+    "MergeRecord",
     "NotMemberForm",
     "NotMemberProp",
+    "NotReconstructable",
+    "NotReconstructableReason",
     "NotValueForm",
     "NotValueProp",
     "Origin",
@@ -162,6 +171,7 @@ __all__ = [
     "Query",
     "Report",
     "Resolved",
+    "ResolverInfo",
     "ResourceLimited",
     "ResourceLimitedReason",
     "Rule",
@@ -190,6 +200,7 @@ __all__ = [
     "check_principal",
     "check_proposition_for_attr",
     "default_authority_rules",
+    "may_merge",
     "parse_json",
     "parse_principal",
     "principal_kind",

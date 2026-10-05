@@ -1,0 +1,119 @@
+{
+  "$defs": {
+    "MergeMarker": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "enum": [
+                  "merge"
+                ]
+              }
+            },
+            "required": [
+              "op"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "target"
+              ]
+            },
+            "required": [
+              "into"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "enum": [
+                  "unmerge"
+                ]
+              }
+            },
+            "required": [
+              "op"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "into"
+              ]
+            },
+            "required": [
+              "target"
+            ]
+          }
+        }
+      ],
+      "description": "The payload of a merge marker report. Payload version 1 (flat method/score) is read by the types, never written.",
+      "properties": {
+        "into": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "op": {
+          "enum": [
+            "merge",
+            "unmerge"
+          ],
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "resolver": {
+          "$ref": "#/$defs/ResolverInfo"
+        },
+        "target": {
+          "$ref": "#/$defs/Ulid"
+        },
+        "v": {
+          "const": 2
+        }
+      },
+      "required": [
+        "v",
+        "op",
+        "reason",
+        "resolver"
+      ],
+      "type": "object"
+    },
+    "ResolverInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "score": {
+          "type": "number"
+        },
+        "version": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "method"
+      ],
+      "type": "object"
+    },
+    "Ulid": {
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+      "type": "string"
+    }
+  },
+  "$id": "urn:palimem:schema:merge_marker:v2",
+  "$ref": "#/$defs/MergeMarker",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MergeMarker"
+}
