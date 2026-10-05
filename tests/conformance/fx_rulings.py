@@ -15,6 +15,7 @@ from .dsl import (
     Q,
     V,
     append,
+    c_empty,
     c_not_value,
     c_value,
     envs,
@@ -26,7 +27,7 @@ from .dsl import (
     unordered,
     withdraw,
 )
-from .fx_core import d, scen
+from .fx_core import d, day, scen
 from .fx_other import BASE, EMP, WORK_CITY
 
 RULINGS = "docs/decisions/RULINGS-2026-10-05.md"
@@ -355,8 +356,35 @@ def r03() -> list[dict[str, Any]]:
     return out
 
 
+def r05() -> list[dict[str, Any]]:
+    """Ruling 5: A-ERR is per key in both profiles; segments are cut afterwards."""
+    out: list[dict[str, Any]] = []
+    out.append(scen(
+        "r05-a-err-is-per-key-segments-are-cut-afterwards", "Admissibility is evaluated per key, not per segment: a later report still makes an earlier report possibly wrong",
+        "G1", "segments", ["ruling-5", "design-row-12", "S-04"],
+        "Ruling 5: an interpretation labels a REPORT TRUE or ERR, and a report is one object, so admissibility (A-ERR) is evaluated once per key and "
+        "the valid-time segments are cut afterwards from the resulting interpretations (the paper's per-key kernel, in both profiles). r1 (registry) "
+        "says Acme from 10 Jan, r2 (press) says Globex from 10 Apr, no cues. Interpretations: both TRUE (a change in between, at an unknown date), "
+        "r1 ERR (disputed by TRUE r2), r2 ERR (disputed by TRUE r1). At 15 Feb, BEFORE r2 starts, the candidates are still empty (the r1-ERR "
+        "reading: r2 is TRUE and has not begun), Acme (r2 ERR, or both TRUE before the change) and Globex (both TRUE, the change already happened): "
+        "the early segment is not established, because r2 disputes r1 whatever the segment. A per-segment A-ERR would have called 15 Feb "
+        "established Acme. At 1 Jun, after both anchors, the candidates are Acme and Globex.",
+        EMP,
+        [
+            append("r1", d(1, 10), "alice", "employer", V("acme")),
+            append("r2", d(4, 10), "alice", "employer", V("globex"), source="press"),
+            query("q_early", Q("alice", "employer", valid_at=day(2, 15)),
+                  resolved("unresolved", _candidates=unordered(c_empty(), c_value("acme"), c_value("globex")))),
+            query("q_late", Q("alice", "employer", valid_at=day(6, 1)),
+                  resolved("unresolved", _candidates=unordered(c_value("acme"), c_value("globex")))),
+            query("q_before_everything", Q("alice", "employer", valid_at=day(1, 1)), {"kernel_status": "unknown"}),
+        ],
+        source=RULINGS + " item 12"))
+    return out
+
+
 def build() -> list[dict[str, Any]]:
-    return [*r01(), *r02(), *r03(), *r04()]
+    return [*r01(), *r02(), *r03(), *r04(), *r05()]
 
 
 __all__ = ["build"]

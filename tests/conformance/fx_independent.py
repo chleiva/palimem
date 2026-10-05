@@ -336,33 +336,32 @@ def build() -> list[dict[str, Any]]:
 
     # 12 ----------------------------------------------------------------------------------------
     out.append(scen(
-        "ind-12-overlapping-intervals-one-closed", "Conflicting candidates in overlapping intervals; one later closed: segments split at the boundaries",
-        "G1", "segments", ["design-row-12", "S-04"],
+        "ind-12-overlapping-intervals-one-closed", "Conflicting candidates in overlapping intervals; one later closed: per-key admissibility, segments cut afterwards",
+        "G1", "segments", ["design-row-12", "S-04", "ruling-5"],
         "employer has no inertia. R1 (registry): Acme from 1 Jan, open-ended. R2 (press): Globex from 1 Mar, open-ended. They overlap from 1 Mar. "
-        "Before R3: segment [1 Jan,1 Mar) = Acme established, segment [1 Mar,end) = unresolved with both candidates. On 10 Apr the registry "
-        "corrects R1 to close it at 1 Apr (R3: same value, valid 1 Jan to 1 Apr; a same-source correction withdraws R1). After R3 the "
-        "segments are [1 Jan,1 Mar) Acme, [1 Mar,1 Apr) unresolved {Acme,Globex}, [1 Apr,end) Globex established, each with its own status.",
+        "On 10 Apr the registry corrects R1 to close it at 1 Apr (R3: same value, valid 1 Jan to 1 Apr; a same-source correction withdraws R1). "
+        "RECONCILED with AUTHOR RULING 5 of 2026-10-05 (docs/decisions/RULINGS-2026-10-05.md item 12): A-ERR is evaluated PER KEY in both "
+        "profiles, because an interpretation labels a report and a report is one object; the segments are cut afterwards. The first draft's "
+        "segment-local expectation (the segment before R2 established Acme, the segment after R3 established Globex) is therefore withdrawn: "
+        "R2 may make R1 (or R3) ERR whatever the segment, and R1/R3 may make R2 ERR, so every segment of every query below is unresolved; none is "
+        "established. The per-key labelling is demonstrated with evidence the kernel supports today in "
+        "r05-a-err-is-per-key-segments-are-cut-afterwards. This fixture stays a SHELL: it needs valid_to / interval cues and inertia=false, "
+        "which have no oracle yet (S-09; ruling 14 specifies inertia=false but it is refused until implemented), and its expectations are "
+        "derived by hand and must be re-derived when they do.",
         {"employer": A("single_changeable", vt="entity", inertia=False)},
         [
             append("r1", d(2, 1), "alice", "employer", V("acme"), valid_from=day(1, 1)),
             append("r2", d(3, 5), "alice", "employer", V("globex"), source="press", valid_from=day(3, 1)),
-            query("q_feb_before", Q("alice", "employer", valid_at=day(2, 1)), resolved("established", assertion=c_value("acme"))),
-            query("q_mar_before", Q("alice", "employer", valid_at=day(3, 15)),
-                  resolved("unresolved", _candidates=unordered(c_value("acme"), c_value("globex")), segment={"valid_from": day(3, 1)})),
+            query("q_feb_before", Q("alice", "employer", valid_at=day(2, 1)), resolved("unresolved")),
+            query("q_mar_before", Q("alice", "employer", valid_at=day(3, 15)), resolved("unresolved")),
             append("r3", d(4, 10), "alice", "employer", V("acme"), cue="correct", target="$r1", valid_from=day(1, 1), valid_to=day(4, 1)),
-            query("q_feb", Q("alice", "employer", valid_at=day(2, 1)),
-                  resolved("established", assertion=c_value("acme"), segment={"valid_from": day(1, 1), "valid_to": day(3, 1)})),
-            query("q_mar", Q("alice", "employer", valid_at=day(3, 15)),
-                  resolved("unresolved", _candidates=unordered(c_value("acme"), c_value("globex")),
-                           segment={"valid_from": day(3, 1), "valid_to": day(4, 1)})),
-            query("q_may", Q("alice", "employer", valid_at=day(5, 1)),
-                  resolved("established", assertion=c_value("globex"), segment={"valid_from": day(4, 1)})),
-            query("q_mar_asof", Q("alice", "employer", valid_at=day(3, 15), belief_as_of="$r2.lsn"),
-                  resolved("unresolved", segment={"valid_from": day(3, 1)})),
+            query("q_feb", Q("alice", "employer", valid_at=day(2, 1)), resolved("unresolved")),
+            query("q_mar", Q("alice", "employer", valid_at=day(3, 15)), resolved("unresolved")),
+            query("q_may", Q("alice", "employer", valid_at=day(5, 1)), resolved("unresolved")),
+            query("q_mar_asof", Q("alice", "employer", valid_at=day(3, 15), belief_as_of="$r2.lsn"), resolved("unresolved")),
         ],
-        deps=[("Segment-local status assumes admissibility (A-ERR) is evaluated per segment, as design v0.3 'each segment reports its own "
-              "status' implies. The paper's per-key kernel lets any report be ERR when disputed anywhere, which would make the non-overlap "
-              "segments unresolved too. Needs a decision before G1.")],
+        status="shell",
+        reason="valid_to / interval cues and inertia=false have no oracle yet (S-09, ruling 14); expectations reconciled with ruling 5 by hand.",
         source=ROW.format(12)))
 
     # 13 ----------------------------------------------------------------------------------------

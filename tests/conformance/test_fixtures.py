@@ -216,4 +216,4 @@ def test_trust_boundary_fixtures_are_loaded_not_duplicated() -> None:
 
 def test_status_counts_are_what_the_report_says() -> None:
     by = {s: sum(1 for f in FIXTURES if f["status"] == s) for s in ("active", "pending-decision", "shell")}
-    assert by["shell"] == 2 and by["active"] > by["pending-decision"] > 0
+    assert by["shell"] == 3 and by["active"] > by["pending-decision"] > 0  # s06-03, s06-04 and ind-12 (needs valid_to, S-09)
