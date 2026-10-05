@@ -64,6 +64,12 @@ class AdmissionConfig:
     acts only if it has not itself been withdrawn, so withdrawing a correction restores its
     target. ``False`` (the paper's behaviour, the default of ``revise-stream-v1``): withdrawn
     actors keep acting. ``None`` selects the profile default."""
+    failed_correction_is_allege: bool | None = None
+    """What a ``correct`` that fails the authority check becomes (S-02 implementation note, default pending the
+    author's confirmation). ``True`` (the ``open-world`` default, design v0.3): an ``allege`` with no effect: it neither
+    withdraws its target nor counts as a rival report. ``False`` (the paper's A-CORR, and the only behaviour of
+    ``revise-stream-v1``): it stays an admissible report carrying a correction cue, a competing assertion. ``None``
+    selects the profile default. The switch lets the author reverse the default in one line."""
 
     def __post_init__(self) -> None:
         check_nat(self.admission_version, "admission.admission_version", minimum=1)
@@ -81,6 +87,14 @@ class AdmissionConfig:
         if self.acting_reports_must_be_live is not None:
             return self.acting_reports_must_be_live
         return self.profile is Profile.OPEN_WORLD
+
+    @property
+    def failed_correction_allege(self) -> bool:
+        if self.profile is Profile.REVISE_STREAM_V1:
+            return False  # the paper's behaviour, byte for byte, whatever the flag says
+        if self.failed_correction_is_allege is not None:
+            return self.failed_correction_is_allege
+        return True
 
     def effective_rules(self) -> tuple[AuthorityRule, ...]:
         return self.rules or default_authority_rules(self.profile)

@@ -37,13 +37,14 @@ what `recompute` returns matters. It must work for a key that has no stored beli
 | `append(report, idempotency_key=, admitter=, reviser=) -> AppendResult` | one atomic transaction (§4); `report.id` must be unassigned (the log assigns a monotone ULID) |
 | `current_belief(key)`, `belief_version(key, v)`, `belief_at(key, as_of)` | **raw** accessors (no barrier): what a Reviser needs. `None` for a version redacted by an erasure. `as_of` is an **LSN (int) or a timestamp** (S-05) |
 | `read_belief(key, as_of=None) -> Belief \| LimitedRead \| NotReconstructable \| None` | **the serving read**, under the generation barrier (§9) |
-| `complete_pending(reviser, limit=None) -> CompletionReport` | runs the durable completion jobs (§9) |
+| `complete_pending(reviser, limit=None) -> CompletionReport` | runs the durable completion jobs (§9); the report names the keys it `stamped` and the keys it `skipped` (left alone: a newer generation had completed them), not only the counts |
 | `lsn_at(t)` | greatest LSN with `recorded_at <= t` (0 if none) |
 | `scan(from, to)`, `entries_for_key(key, to_lsn)`, `get_entry(id)`, `admissions_for_report/_key` | replay; erased rows come back as `Tombstone` from `scan`/`get_entry` and are skipped by `entries_for_key` |
 | `key_dependents(key)`, `attr_dependents(attr, as_of)` | dependency lookup: current beliefs that depend on `key`; derived attrs that read `attr` under the schema in force |
 | `put_schema`, `put_input(kind, version, payload)`, `schema(as_of)`, `input_at(kind, as_of)`, `historical_inputs(as_of)` | versioned inputs (§6) |
 | `subscribe(plan_id, keys)`, `unsubscribe`, `subscriptions`, `pending_events`, `ack_event`, `deliver(handler)` | notifications (§10) |
-| `erase(report_id, reason, reviser=None)` | tombstone **and dependency repair** (§7); needs a host-supplied `store_secret` |
+| `erase(report_id, reason, reviser=None, requester=None)` | tombstone **and dependency repair** (§7); needs a host-supplied `store_secret`; `requester` is kept as a pseudonym only |
+| `pseudonym_of(principal)` | the HMAC the tombstones use for a principal, so the host can test "was this erasure requested by X?" without any plain id stored |
 | `export_jsonl()`, `import_jsonl(lines, reviser=)` | portable evidence log (§12) |
 | `verify_log(from, to, anchor=)`, `export_head()`, `verify_beliefs(reviser)` | optional capabilities (§5) |
 | `recover()` | invariant check after an interruption (§8) |
@@ -170,8 +171,11 @@ admission version). `put_schema` also maintains the attr → dependents index fr
 
 1. **Tombstone.** The row's `content`, `salt`, plain key index **and client `idem_key`** are removed; the tombstone keeps the
    **original `entry_hash`**, `key_ref` and `actor_ref` (HMACs under the host-supplied `store_secret`, never in the
-   database), `reason_class`, `erased_at` and `affected_versions` (pseudonymised). The idempotency key is replaced by an
-   HMAC reference, so a retry of the erased append still finds the row and gets the tombstone back.
+   database), `reason_class`, `erased_at` and `affected_versions` (pseudonymised). `actor_ref` is the *author* of the
+   erased report; when the caller passes `requester=`, `requester_ref` records *who asked for the erasure*, the same way
+   (an HMAC, absent on tombstones written before it existed, so older ones still load): the host asks
+   `Memory.tombstone_requested_by(tombstone, principal)` and no plain principal id is ever stored. The idempotency key is
+   replaced by an HMAC reference, so a retry of the erased append still finds the row and gets the tombstone back.
 2. **Redaction.** Every belief version that **pinned** the report is replaced by `{"redacted": true}` and flagged
    `reconstructable = 0`; outbox events that mention those versions lose their embedded views. *Conservative:* a version
    that pinned the report is redacted whole, because "which values rested only on it" cannot be decided cheaply for derived

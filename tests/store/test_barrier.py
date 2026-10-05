@@ -242,6 +242,12 @@ def test_a_job_for_generation_g_never_overwrites_work_completed_for_g_plus_1(h) 
     rep = b.complete_pending(ChainReviser())
     assert rep.jobs_done == 2 and rep.jobs_pending == 0
     assert rep.keys_stamped == 1 and rep.skipped_newer >= 1  # C finished once; B (done at g=2) left alone by job 1
+    # the report names the keys, not only counts them (conformance row 21): C was stamped, B was left alone
+    assert rep.stamped == (C,) and len(rep.stamped) == rep.keys_stamped
+    assert B in rep.skipped and len(rep.skipped) == rep.skipped_newer
+    # the lists aggregate over the jobs of one run: C was stamped by job g=1 and then found already complete (for
+    # g=2) by job g=2, so it is in both; B was never written by any job of this run
+    assert C in rep.skipped and B not in rep.stamped
     assert b.belief_version(B, 2) is None  # job g=1 did not write over the g=2 version of B
     c = b.read_belief(C)
     assert isinstance(c, Belief) and c.version == 1 and b.storage.belief_row(C, 1).origin == "completion"  # type: ignore[union-attr]

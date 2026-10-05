@@ -306,6 +306,12 @@ class Admitter:
             auth = None
             if status is SourceStatus.NORMAL and r.origin in _ACTING_ORIGINS:
                 auth = self.authz.check(r, Power.CORRECT, target_entry.report)
+            if auth is not None and not auth.allowed and self.config.failed_correction_allege:
+                # Product profile (design v0.3 §Write API; S-02 implementation note): a correction that fails the
+                # authority check is recorded as an ``allege`` with no effect on admissibility or the kernel, exactly
+                # like a failed withdraw or dispute. The paper's behaviour (a cross-origin correction stays a
+                # competing assertion carrying a correction cue, A-CORR) is the compat profile's and is kept below.
+                return self._decision(entry, excl, AdmissionReason.AUTHORITY_FAILED, Cue.ALLEGE, authority=auth)
             base = self._evidence_decision(entry, status)
             withdraws = (r.target,) if (auth is not None and auth.allowed) else ()
             return AdmissionDecision(record=base.record, effective_cue=Cue.CORRECT, withdraws=withdraws, authority=auth)

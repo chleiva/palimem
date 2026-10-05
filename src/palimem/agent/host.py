@@ -379,8 +379,8 @@ class Host:
         )
         return self._host_append(res)
 
-    def delete(self, report_id: str) -> Tombstone:
-        return self.mem.delete(report_id)
+    def delete(self, report_id: str, *, requester: str | None = None) -> Tombstone:
+        return self.mem.delete(report_id, requester=requester)
 
     # ------------------------------------------------------------------ events and extraction
 

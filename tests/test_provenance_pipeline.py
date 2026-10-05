@@ -240,7 +240,8 @@ def test_attribution_support_is_one_environment_per_origin_group(mem: Memory) ->
     ans = current(mem, "bob", "employer")
     assert isinstance(ans, Resolved) and ans.kernel_status is KernelStatus.ESTABLISHED
     assert envs(ans) == sorted([[r1], [r2]]) and r3 not in {x for e in envs(ans) for x in e}
-    assert ans.decision is Decision.COMMIT
+    # an attribution is never committed as a value: the policy asks (attribution safety)
+    assert ans.decision is Decision.ASK and ans.assertion is None
 
 
 # --------------------------------------------------------------------------- the v1 profile projection

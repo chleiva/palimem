@@ -134,13 +134,14 @@ class Tombstone:
     lsn: int
     entry_hash: str | None
     key_ref: str  # HMAC(store_secret, key)
-    actor_ref: str  # HMAC(store_secret, actor)
+    actor_ref: str  # HMAC(store_secret, actor): the AUTHOR of the erased report
     reason_class: ErasureReason
     erased_at: datetime
     affected_versions: tuple[tuple[str, int], ...] = ()  # (key_ref, belief version): no longer reconstructable
+    requester_ref: str | None = None  # HMAC(store_secret, requester): who asked for the erasure (never the plain id)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "report_id": self.report_id,
             "lsn": self.lsn,
             "entry_hash": self.entry_hash,
@@ -150,6 +151,9 @@ class Tombstone:
             "erased_at_us": _us(self.erased_at),
             "affected_versions": [[k, v] for k, v in self.affected_versions],
         }
+        if self.requester_ref is not None:  # absent on tombstones written before the requester was recorded
+            out["requester_ref"] = self.requester_ref
+        return out
 
     @classmethod
     def from_dict(cls, d: Mapping[str, Any]) -> Self:
@@ -164,6 +168,7 @@ class Tombstone:
             reason_class=ErasureReason(d["reason_class"]),
             erased_at=from_us(int(d["erased_at_us"])),
             affected_versions=tuple((str(k), int(v)) for k, v in d["affected_versions"]),
+            requester_ref=None if d.get("requester_ref") is None else str(d["requester_ref"]),
         )
 
 
@@ -354,6 +359,10 @@ class CompletionReport:
     jobs_pending: int
     skipped_newer: int = 0  # keys left alone because a newer generation had already completed them
     jobs_blocked: int = 0  # jobs given up after repeated unfinished runs (see ``Engine.retry_blocked``)
+    # Both lists aggregate over the jobs of one run, so a key can be in both: stamped by an earlier job, then found
+    # already complete by a later one (a newer generation completed it, so the later job left it alone).
+    stamped: tuple[Key, ...] = ()  # the keys this run wrote a version for (``len == keys_stamped``)
+    skipped: tuple[Key, ...] = ()  # the keys it left alone because a newer generation had completed them (``len == skipped_newer``)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -460,7 +469,10 @@ class Backend(StoreView, Protocol):
     def append(self, report: Report, *, idempotency_key: str, admitter: Admitter, reviser: Reviser) -> AppendResult: ...
     def put_schema(self, schema: Schema) -> None: ...
     def put_input(self, kind: InputKind, version: int, payload: Mapping[str, Any]) -> None: ...
-    def erase(self, report_id: str, reason: ErasureReason, *, reviser: Reviser | None = None) -> Tombstone: ...
+    def erase(
+        self, report_id: str, reason: ErasureReason, *, reviser: Reviser | None = None, requester: str | None = None
+    ) -> Tombstone: ...
+    def pseudonym_of(self, principal: str) -> str: ...
     def recover(self) -> RecoveryReport: ...
     def close(self) -> None: ...
 

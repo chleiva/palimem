@@ -679,24 +679,27 @@ class Engine:
         and ``required_generation >= g``, so it finishes an incomplete generation and can never overwrite work a
         newer generation already completed. Versions are recomputed with ``Reviser.recompute`` at the log head and
         carry that head as their ``lsn``; keys that stay incomplete leave the job pending."""
-        done = stamped = skipped = 0
+        done = 0
+        stamped: list[Key] = []
+        skipped: list[Key] = []
         with self._lock:
             pending = self._s.jobs("pending")
         if limit is not None:
             pending = pending[:limit]
         for job in pending:
             with self._lock, self._s.transaction():
-                n, sk, finished = self._run_job(job, reviser)
-            stamped += n
-            skipped += sk
+                stamped_keys, skipped_keys, finished = self._run_job(job, reviser)
+            stamped.extend(stamped_keys)
+            skipped.extend(skipped_keys)
             done += 1 if finished else 0
         with self._lock:
             return CompletionReport(
-                jobs_done=done, keys_stamped=stamped, jobs_pending=len(self._s.jobs("pending")), skipped_newer=skipped,
-                jobs_blocked=len(self._s.jobs(barrier.JOB_BLOCKED)),
+                jobs_done=done, keys_stamped=len(stamped), jobs_pending=len(self._s.jobs("pending")),
+                skipped_newer=len(skipped), jobs_blocked=len(self._s.jobs(barrier.JOB_BLOCKED)),
+                stamped=tuple(stamped), skipped=tuple(skipped),
             )
 
-    def _run_job(self, job: JobRow, reviser: Reviser) -> tuple[int, int, bool]:
+    def _run_job(self, job: JobRow, reviser: Reviser) -> tuple[list[Key], list[Key], bool]:
         s = self._s
         g = job.generation
         p = JobPayload.from_json(job.payload)
@@ -714,14 +717,14 @@ class Engine:
         else:
             closure = list(p.keys)
         needed: list[Key] = []
-        skipped = 0
+        skipped: list[Key] = []
         for k in closure:
             if s.required_generation(k) >= g:
                 if self._completed_of(k) < g:
                     needed.append(k)
                 else:
-                    skipped += 1  # a newer generation already completed it: never overwritten
-        stamped = 0
+                    skipped.append(k)  # a newer generation already completed it: never overwritten
+        stamped: list[Key] = []
         for k in barrier.order_keys(needed, depths):
             required = s.required_generation(k)
             fresh = reviser.recompute(k, self)
@@ -735,7 +738,7 @@ class Engine:
             self._put_belief(b, "completion")
             s.set_current(k, b.version)
             self._emit_events(b, prev)
-            stamped += 1
+            stamped.append(k)
             self._fault("completion_stamped")
         self._fault("completion_before_commit")
         remaining = [k for k in closure if s.required_generation(k) >= g and self._completed_of(k) < g]
@@ -842,7 +845,16 @@ class Engine:
 
     # ------------------------------------------------------------------ erasure with dependency repair (S-13, T-C8)
 
-    def erase(self, report_id: str, reason: ErasureReason, *, reviser: Reviser | None = None) -> Tombstone:
+    def pseudonym_of(self, principal: str) -> str:
+        """The pseudonym (HMAC under the host-supplied store secret) the tombstones use for a principal: lets the host
+        ask 'was this erasure requested by X?' without any plain actor text ever being stored (S-13)."""
+        if self._secret is None:
+            raise CapabilityError("pseudonym_of needs a host-supplied store_secret")
+        return chain.actor_ref(self._secret, principal)
+
+    def erase(
+        self, report_id: str, reason: ErasureReason, *, reviser: Reviser | None = None, requester: str | None = None
+    ) -> Tombstone:
         """Erase a report: its content, raw reference, salt, plain key and idempotency key are removed, leaving a
         minimal tombstone that carries the ORIGINAL entry hash so the chain still verifies. Every belief version that
         pinned the report is redacted (and flagged not reconstructable: those historical answers can no longer be
@@ -868,6 +880,7 @@ class Engine:
                 report_id=report_id, lsn=row.lsn, entry_hash=row.entry_hash if self._chain else None,
                 key_ref=chain.key_ref(secret, row.key), actor_ref=chain.actor_ref(secret, actor),
                 reason_class=reason, erased_at=self._clock(), affected_versions=tuple(affected),
+                requester_ref=None if requester is None else chain.actor_ref(secret, requester),
             )
             self._s.replace_log(replace(row, key=None, content=None, salt=None, idem_key=chain.idem_ref(secret, row.idem_key), tomb=canonical_json(tomb.to_dict())))
             by_key: dict[Key, list[int]] = {}

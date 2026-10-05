@@ -58,6 +58,25 @@ numbers and their caveats are in the README (section 7).
 - The extractor gate failed on one criterion for the only model run on the test split; negative evidence, open-world rule
   exceptions and authorised-dispute semantics are not implemented; four of seven declared performance targets are missed at
   the sizes reached (none at the 10^5 reference size). See [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md).
+- Contract types and generated JSON Schemas (`palimem.types`, `schemas/`).
+- Admission, authority and policy layers (`palimem.admission`, `palimem.policy`).
+- Storage layer: backend protocol, in-memory and SQLite backends with a salted hash-chained log (`palimem.store`).
+- Differential harness against the PALIMPSEST study, frozen-set guard and cost ledger (`harness/`, `palimem.costs`).
+- Threat model, security policy, decision records S-01 to S-13, and the RETRACT-ACT benchmark design.
+- `Memory.attributions(key)` and an `attribution_only` / `attributions` field in the agent tool API's `recall`: what a third
+  party is reported to believe is read apart from the value.
+- `CompletionReport.stamped` / `.skipped` (the keys a completion run wrote or left alone) and `Tombstone.requester_ref`
+  with `Memory.delete(requester=...)` / `Memory.tombstone_requested_by` (the erasure requester, stored as a pseudonym
+  only; older tombstones still load).
+
+### Changed
+- **Attribution safety.** A value query over attribution-only evidence no longer ends in a `commit` to a `belief_of`
+  candidate: the policy asks and gives no `assertion` (`kernel_status` and the candidates are unchanged, so the `Answer`
+  contract is not changed). The agent tool API says the content is unknown.
+- **Product-profile authority (default, pending author confirmation).** In the `open-world` profile a `correct` that
+  fails the authority check is recorded as an `allege` with no effect (design v0.3). `revise-stream-v1` is unchanged.
+  New `AdmissionConfig.failed_correction_is_allege` reverses the default in one line (`False` = the paper's competing
+  assertion); it changes RETRACT-ACT RA-006 (test) and RA-007 (dev), see `docs/decisions/S-02.md`.
 
 ## [0.0.1] - 2026-10-04
 

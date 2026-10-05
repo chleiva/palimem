@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from datetime import datetime
 from typing import Any
 
@@ -28,6 +28,7 @@ from palimem.engine import (
     KernelReviser,
     Pipeline,
     StoreAdmitter,
+    attribution_support,
     direct_entries,
     family_of_segment,
 )
@@ -70,6 +71,7 @@ from palimem.types import (
     LogEntry,
     Origin,
     Profile,
+    Proposition,
     Query,
     Report,
     Resolved,
@@ -87,6 +89,23 @@ from palimem.types._codec import Value
 from palimem.types.limits import DEFAULT_ENVIRONMENT_BUDGET
 
 ChangeFrom = Callable[[Report], Value | None]
+
+
+@dataclass(frozen=True)
+class AttributedClaim:
+    """What a third party is reported to believe about a key (``belief_of(holder, P)``).
+
+    Attributions establish the attribution only, never ``P`` (design v0.3, S-11): a **value** query over a key that has
+    only attributed evidence is therefore a question whose content is unknown, and the policy asks instead of
+    committing. This host-level record is how the attribution itself is read; it is deliberately not part of the
+    ``Answer`` contract. ``supports`` holds one environment per origin group (corroboration counts a group once).
+    """
+
+    holder: str
+    proposition: Proposition
+    origin_groups: tuple[str, ...]
+    report_ids: tuple[str, ...]
+    supports: tuple[Support, ...]
 
 
 class NotReconstructableError(StoreError):
@@ -113,6 +132,7 @@ def admission_payload(config: AdmissionConfig) -> dict[str, Any]:
         "class_status": {k: v.value for k, v in sorted(config.class_status.items())},
         "source_status": {k: v.value for k, v in sorted(config.source_status.items())},
         "acting_reports_must_be_live": config.acting_reports_must_be_live,
+        "failed_correction_is_allege": config.failed_correction_is_allege,
     }
 
 
@@ -304,16 +324,24 @@ class Memory:
         )
         return self.append(rep, idempotency_key=idempotency_key)
 
-    def delete(self, report_id: str, reason: ErasureReason = ErasureReason.ERASURE_REQUEST) -> Tombstone:
+    def delete(
+        self, report_id: str, reason: ErasureReason = ErasureReason.ERASURE_REQUEST, *, requester: str | None = None
+    ) -> Tombstone:
         """Erase a report (GDPR-style): content, raw reference and values derived only from it, with dependency
-        repair; a tombstone keeps the hash chain verifiable (S-13)."""
+        repair; a tombstone keeps the hash chain verifiable (S-13). ``requester`` (a principal id) is recorded on the
+        tombstone as a pseudonym only; read it back with :meth:`tombstone_requested_by`."""
         self.pipeline.invalidate()
         self._audit_base.clear()
         try:
-            return self.backend.erase(report_id, reason, reviser=self.reviser)
+            return self.backend.erase(report_id, reason, reviser=self.reviser, requester=requester)
         finally:
             self.pipeline.invalidate()
             self._audit_base.clear()
+
+    def tombstone_requested_by(self, tombstone: Tombstone, principal: str) -> bool:
+        """Was this erasure requested by ``principal``? Compares pseudonyms under the store secret, so the plain
+        requester id is never stored or revealed: only someone who already knows the candidate can test it."""
+        return tombstone.requester_ref is not None and tombstone.requester_ref == self.backend.pseudonym_of(principal)
 
     def complete(self) -> None:
         """Run pending completion jobs (cheap when there are none)."""
@@ -461,6 +489,23 @@ class Memory:
         ev = self.evaluation(as_of)
         return self.pipeline.admitter.evidence_set_of(ev, key)
 
+    def attributions(self, key: Key, as_of: BeliefAsOf | None = None) -> tuple[AttributedClaim, ...]:
+        """The attributed claims about ``key`` that are admissible at a snapshot (audit path: recomputed from the
+        admitted evidence like :meth:`evidence`). ``belief_of(holder, P)`` says the holder believes ``P``; it does
+        not make ``P`` a belief of the store, so none of this appears as a value candidate of a value query."""
+        out: list[AttributedClaim] = []
+        for a in self.evidence(key, as_of).attributions:
+            out.append(
+                AttributedClaim(
+                    holder=a.proposition.holder,
+                    proposition=a.proposition.proposition,
+                    origin_groups=a.origin_groups,
+                    report_ids=tuple(e.report.id or "" for e in a.entries),
+                    supports=attribution_support(a),
+                )
+            )
+        return tuple(out)
+
     def _base_justification(
         self, ks: KernelSchema, key: Key, entries: Sequence[LogEntry], lsn: int
     ) -> Justification | ResourceLimitedResult:
@@ -506,4 +551,4 @@ def replace_memory(m: Memory) -> Memory:
     return c
 
 
-__all__ = ["Memory", "NotReconstructableError", "admission_payload", "policy_payload", "semantic_payload"]
+__all__ = ["AttributedClaim", "Memory", "NotReconstructableError", "admission_payload", "policy_payload", "semantic_payload"]

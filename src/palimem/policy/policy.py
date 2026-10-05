@@ -39,6 +39,7 @@ from enum import Enum
 from types import MappingProxyType
 
 from palimem.types import (
+    BeliefOfForm,
     BeliefView,
     Candidate,
     Decision,
@@ -237,6 +238,19 @@ def decide(
             policy=PolicyInfo(version=policy.version, rule_fired=rule),
             confidence=None,  # the score is uncalibrated; see the module docstring
             inquiry=inquiry,
+        )
+
+    # Attribution safety (design: an attribution establishes ``belief_of(holder, P)`` and never ``P``): when every
+    # candidate of the segment is an attributed claim, the kernel status is about the *attribution*, and the content
+    # the key is asked about is unknown. Committing to a ``belief_of`` candidate would hand a consumer that reads
+    # only ``decision``/``assertion`` an attribution as if it were a value, so the policy never commits here: it
+    # asks (the attributed candidates stay visible as ``alternatives`` and ``inquiry.competing``; the key's content
+    # is the missing evidence). ``kernel_status`` is unchanged, as design v0.3 rows 15 and 19 require.
+    attributed = ([seg.established] if seg.established is not None else []) + list(seg.alternatives)
+    if attributed and all(isinstance(c.form, BeliefOfForm) for c in attributed):
+        cands = tuple(attributed)
+        return answer(
+            Decision.ASK, RuleFired.ASK, alternatives=cands, inquiry=Inquiry(competing=cands, missing=(cands[0].key,))
         )
 
     if status in (KernelStatus.ESTABLISHED, KernelStatus.ESTABLISHED_EMPTY, KernelStatus.ESTABLISHED_FALSE):
