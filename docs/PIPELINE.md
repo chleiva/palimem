@@ -36,8 +36,31 @@ agent tool API binds them itself and is a separate task (T-F2). The three-call f
   the store's own dependency closure will mark it (an unreturned marked key would be stale). Derived keys are revised in
   derivation-depth order, so a `revision_budget` keeps the shallow ones and leaves the deep ones stale until a completion job
   (the design's inference budget).
+* **Supports (T-B4, S-12).** Every belief version stores `Segment.support`: per candidate, the subset-minimal
+  environments over **base** reports, each stamped with the segment's valid interval. A base key stores the kernel's own
+  supports. A derived key stores the **join of the stored base supports** of the worlds its rules consumed
+  (`_BeliefProvider.world_envs` reads them from the stored base beliefs, so no log replay): the environment of a derived
+  world is a set of base reports, never of derived beliefs. The empty world has no entry (a `Support` needs a report).
+  `Resolved.provenance` is read from the stored segment. The stored provider cannot answer `reports` (the per-report
+  values the oracle's flat rule needs): that projection is computed on the audit path (below).
+* **Explanation budget.** `Query.explanation_budget = n` cuts the whole response to the first `n` supports (candidate-id
+  order): `provenance` **and** the embedded `justified` view, and the answer says `explanation: truncated`. The cut is
+  applied *after* `decide` on the full supports, so `kernel_status`, `decision`, `assertion`, `alternatives` and `policy`
+  are exactly those of the unbudgeted query (a policy that reads the supports, such as the single-origin marking, cannot
+  be changed by a budget). The belief record does not store whether the kernel's own environment cap (256 per candidate)
+  was hit, so an answer says `truncated` only for a budget cut.
+* **`explain(key, valid_at, mode, depth)`.** With `depth = None` (the full derivation closure) it is read from the stored
+  supports of the segment; `mode = one` is the canonical environment (lexicographically least by sorted report ids). A
+  `depth` limit asks for fewer derivation levels, which a stored belief cannot answer, so it is recomputed on the audit
+  path from the admitted evidence at the snapshot and marked `truncated`.
+* **Audit path cache.** `Memory.justification` re-justifies a key from the admitted evidence at a snapshot (the yes/no
+  slots, `explain` with a depth, the profile's flat provenance). Base justifications are cached per (log position,
+  admission version, key) and the cache is cleared by an erasure and by an admission change.
 * **Attributions.** A key with admissible attributed reports and no direct evidence has `belief_of(holder, P)` as its
   candidate (established, or unresolved for several different claims); the inner `P` is never a candidate (T-D5, S-11).
+  Its support is **one environment per origin group** (that group's earliest report): independent groups each suffice, a
+  second report of one group is a copy. The kernel has no semantics for attributions, so this is the pipeline's own rule
+  (see section 5, item 1).
 * **`recompute`** (verify, completion jobs, erasure repair) is the same code path reading the head's log and the base keys'
   current beliefs from the view.
 
@@ -101,12 +124,28 @@ alternatives, under the paper's exact source-level retraction (the compat marker
 * `--source-retract expand` (the contract-expressible per-report withdraws) disagrees on exactly the queries the kernel alone
   does (the known `source-retract:late-assert` gap): admission, store and revision add no disagreement of their own
   (`tests/test_pipeline_diff.py`).
-* **Provenance is informational and not yet comparable.** `Resolved.provenance` is empty until per-candidate supports land
-  (T-B4, Lane B2). The frozen gold files carry `provenance` only for `reported` queries (0 of 1,452 differ, which is trivial:
-  that slot lists the admitted ids themselves); for the value slots the study's provenance comes from its oracle at scoring
-  time, not from the gold file, so strict provenance parity needs the oracle path that Lane B2's `--provenance strict` adds.
-  The interim v1 provenance the harness derives for base keys is reported but compares against nothing.
-* Self-test: `--inject-bug {mutate-answer, no-source-retraction, self-update}` must fail the run; CI checks it.
+* **Provenance, strict (`--provenance strict`, T-B4, decision S-12).** Two checks, both on every query and both backends:
+  1. the **profile projection** (`palimem.compat.flat_provenance_v1`, `key_provenance_v1`, `erroneous_provenance_v1`: the
+     oracle's flat set reproduced from the kernel's own structures on the audit path) must equal the study's own
+     `eval.scorer.supporting_ids` (the frozen gold files only record `provenance` for `reported` queries);
+  2. the **stored supports** of the answered segment (what `Resolved.provenance` is read from; for derived keys, joins of
+     stored base supports) must equal, candidate by candidate and environment by environment, the supports recomputed by
+     replaying the admitted evidence at the same snapshot. This is what shows that a derived belief built from stored base
+     beliefs carries the replay's supports.
+  Result, frozen Setting 1 (2026-10-05):
+
+  | run | queries | answer disagreements | profile provenance vs study oracle | stored supports vs replay |
+  |---|---|---|---|---|
+  | in-memory backend, **all 500 streams** (65,632 appends, 1,189 s) | 30,272 | **0** | **0** | **0** of 26,182 checked |
+  | SQLite backend, every 5th stream (100 streams, 12,944 appends, 229 s) | 6,046 | **0** | **0** | **0** of 5,196 checked |
+
+  Every slot type is at 0 (`current` 8,782, `downstream` 14,643, `reported` 1,452, `asof` 1,339, `belief_asof` 1,418,
+  `yesno:holds` 1,396, `yesno:erroneous` 744, `yesno:changed` 498). The "checked" counts are the value slots whose key is
+  not over the environment budget. The SQLite backend runs the same engine above the storage primitives, so it is run
+  bounded here (the full SQLite run of answers, without provenance, is above); CI runs both backends bounded on every
+  push and every 5th stream nightly.
+* Self-test: `--inject-bug {mutate-answer, no-source-retraction, self-update}` must fail the run, and
+  `--inject-bug drop-provenance` (with `--provenance strict`) must fail the strict gate; CI checks both.
 
 ### Conformance suite against `Memory` (`tests/conformance/impl_memory.py`)
 
@@ -116,32 +155,53 @@ implementation: palimem.Memory
 gate               total              pass              fail              skip  pending-decision             shell           not-run
 ------------------------------------------------------------------------------------------------------------------------------------
 G0                     2                 2                 0                 0                 0                 0                 0
-G1                    80                17                17                10                14                 2                20
+G1                    80                24                10                10                14                 2                20
 G2                     7                 0                 0                 3                 4                 0                 0
 ------------------------------------------------------------------------------------------------------------------------------------
-all                   89                19                17                13                18                 2                20
+all                   89                26                10                13                18                 2                20
 ```
 
-Of the 80 G1 fixtures: **17 pass**, 17 fail, 10 are skipped (an op or capability the pipeline does not have), 14 are
-pending a decision, 2 are shells, 20 are the trust-boundary fixtures that wait for the agent tool API. The 17 failures and their
-causes (all recorded in `tests/conformance/memory_status.json`):
+Of the 80 G1 fixtures: **24 pass** (it was 17 before supports were wired in), 10 fail, 10 are skipped (an op or capability the
+pipeline does not have), 14 are pending a decision, 2 are shells, 20 are the trust-boundary fixtures that wait for the agent
+tool API. Seven fixtures that failed for lack of supports now pass (`ind-02`, `ind-05`, `ind-15`, `s12-01`, `s12-02`, `sec-39a`,
+`sec-41a`). The 10 failures and their causes (all recorded in `tests/conformance/memory_status.json`):
 
 | cause | fixtures |
 |---|---|
-| per-candidate supports not computed yet (T-B4, Lane B2): `_environments`, `provenance`, `explanation: truncated` | `ind-01`, `ind-02`, `ind-05`, `ind-08b`, `ind-15` (environments half), `ind-16` (environments half), `s12-01`, `s12-02`, `sec-39a`, `sec-39b`, `sec-41a` |
+| **agreeing independent reports: joint vs alternative environments** (section 5, item 1): the fixtures expect one environment per independent origin group (`{r1,r3}` and `{r2,r3}`; `{r3}` alone when q1 and q2 were admitted only because r3 confirmed them; a same-group copy collapsed), the kernel returns the one joint environment | `ind-01`, `ind-08b`, `ind-16`, `sec-39b` |
 | fixture and a recorded decision disagree: row 20 store-wide dirty marker vs H4 component scope | `ind-20` |
 | fixture and a recorded store behaviour disagree: STORAGE §9.5 (completion at the same LSN answers a snapshot read) | `ind-22` |
 | the store does not expose it: erasure requester on the tombstone; keys stamped/skipped by a completion job | `ind-10`, `ind-21` |
 | not implemented in the kernel: open-world rule exceptions (S-10); semantics of an authorised `dispute` (S-02 open point) | `s10-02`, `sec-41b` |
 
 `tests/conformance/memory_status.json` is a **ratchet**: a fixture that passed must keep passing and a new failure must be
-listed with its cause. Fixtures are never edited to pass.
+listed with its cause. Fixtures are never edited to pass. (One shape defect was corrected, not weakened: `s12-01` expected
+bare id lists in an `Explanation`, whose contract shape is `Support` objects; it now reads the same `_environments` virtual
+field that answers have, with the same expected environments.)
+
+The ratchet has **three** states for a check that reads the frozen study data (today only `compat-01-authority-coincide`),
+so the baseline is the same with and without the data: `pass_needs_data` (it passes because the data is present),
+`needs_data` (skipped because the data or the study checkout is absent: CI's plain `test` job) and `fail`. A machine with the
+data demands a pass; a machine without it accepts the skip and never a failure. The baseline is regenerated with the data
+(`python -m tests.conformance.impl_memory`); the whole suite is green in both conditions (1,013 passed, 49 skipped with no
+study checkout, no frozen cache and no deposit zip, on Python 3.11 and 3.13).
 
 ## 5. Contract and decision points this work surfaced
 
-1. **Supports.** Eleven fixtures need per-candidate subset-minimal environments (T-B4); `Segment.support` is empty today, so
-   `explain` carries no environments, `explanation: truncated` never happens, and the recency/lww presets cannot pick among
-   unresolved alternatives (they `ask`).
+1. **What is an environment of agreeing independent reports? (author's decision, blocks four fixtures.)** Supports are
+   wired and exact against the kernel (stored = replayed, profile = oracle). The independent fixtures were written from the
+   design: two independent origin groups reporting the same value give **alternative** environments, one per group
+   (`ind-01`: `{r1,r3}` and `{r2,r3}`; `sec-39b`: a second group "raises it above single-origin" by making two environments;
+   `ind-08b`: three groups, three environments, so a budget of 1 truncates; `ind-16`: q1 and q2 were admitted only because
+   r3 confirmed them, so `{r3}` alone). The kernel returns **one joint environment** (`{r1,r2,r3}`), because under A-ERR an
+   error label needs a dispute, so every admissible interpretation has both reports TRUE (Lane B2's finding). Both are
+   defensible: the design's "survives the loss of one" is delivered by recomputation after the withdrawal under either, but
+   alternative environments (an ATMS reading, with admission dependencies added to a report's environment) are what the
+   single-origin marking of SEC-39 and the explanation budget are written against. The pipeline does **not** pre-empt the
+   decision: base keys keep the kernel's validated joint environments; only attributions (no kernel semantics exist for
+   them) use per-origin-group alternatives, which is what `ind-15` expects. Choosing the ATMS reading means changing the
+   kernel's support definition (and then the product rule differs from the oracle's flat set in different places), not the
+   pipeline.
 2. **Row 20 versus H4.** Fixture `ind-20` expects a store-wide `store_dirty` marker (design row 20); the store implements the
    author's component-scoped marker (H4, SEC-22 pending). The fixture and the decision disagree.
 3. **Row 22 versus STORAGE §9.5.** A completion that runs while the head is still the append that made a key stale stamps its
