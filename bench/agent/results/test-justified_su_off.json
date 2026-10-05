@@ -1,0 +1,573 @@
+{
+ "adapter_sha256": "feb0b348e7c3db24cdb2b6bfa4a34c1fd5f5070015fd32141638d2683d15f732",
+ "backend": "memory (primary) + sqlite (equivalence check)",
+ "config": {
+  "policy": "justified",
+  "self_update": false
+ },
+ "errors": {
+  "RA-012": "KernelUnsupported: report 01M465A7GENY1EZH6346QKRBYW: only value/member propositions are in scope (no oracle for negative evidence)"
+ },
+ "responses": {
+  "RA-001": {
+   "RA-001.d1": {
+    "action": "act",
+    "value": "tessaly"
+   },
+   "RA-001.d2": {
+    "action": "ask",
+    "value": null
+   }
+  },
+  "RA-002": {
+   "RA-002.d1": {
+    "action": "act",
+    "value": "tessaly"
+   }
+  },
+  "RA-004": {
+   "RA-004.d1": {
+    "action": "abstain",
+    "value": null
+   }
+  },
+  "RA-005": {
+   "RA-005.d1": {
+    "action": "act",
+    "value": "1980-02-03"
+   }
+  },
+  "RA-006": {
+   "RA-006.d1": {
+    "action": "ask",
+    "value": null
+   }
+  },
+  "RA-008": {
+   "RA-008.d1": {
+    "action": "act",
+    "value": "oslo"
+   },
+   "RA-008.d2": {
+    "action": "act",
+    "value": "bergen"
+   }
+  },
+  "RA-009": {
+   "RA-009.d1": {
+    "action": "act",
+    "value": "acc-111"
+   }
+  },
+  "RA-010": {
+   "RA-010.d1": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "RA-010.d2": {
+    "action": "ask",
+    "value": null
+   }
+  },
+  "RA-012": {},
+  "RA-013": {
+   "RA-013.d1": {
+    "action": "act",
+    "value": "acc-111"
+   }
+  },
+  "RA-015": {
+   "RA-015.d1": {
+    "action": "act",
+    "value": "acc-111"
+   },
+   "RA-015.d2": {
+    "action": "act",
+    "value": "acc-222"
+   }
+  },
+  "RA-016": {
+   "RA-016.d1": {
+    "action": "act",
+    "value": "b12"
+   }
+  },
+  "RA-017": {
+   "RA-017.d1": {
+    "action": "act",
+    "value": "14"
+   }
+  },
+  "RA-019": {
+   "RA-019.d1": {
+    "action": "ask",
+    "value": null
+   }
+  },
+  "RA-020": {
+   "RA-020.d1": {
+    "action": "abstain",
+    "value": null
+   }
+  },
+  "RA-022": {
+   "RA-022.d1": {
+    "action": "act",
+    "value": "porto"
+   }
+  },
+  "RA-023": {
+   "RA-023.d1": {
+    "action": "ask",
+    "value": null
+   }
+  },
+  "RA-025": {
+   "RA-025.d1": {
+    "action": "act",
+    "value": "ben"
+   }
+  },
+  "RA-027": {
+   "RA-027.d1": {
+    "action": "ask",
+    "value": null
+   },
+   "RA-027.d2": {
+    "action": "ask",
+    "value": null
+   }
+  },
+  "RA-029": {
+   "RA-029.d1": {
+    "action": "ask",
+    "value": null
+   }
+  }
+ },
+ "scenario_ids": [
+  "RA-001",
+  "RA-002",
+  "RA-004",
+  "RA-005",
+  "RA-006",
+  "RA-008",
+  "RA-009",
+  "RA-010",
+  "RA-012",
+  "RA-013",
+  "RA-015",
+  "RA-016",
+  "RA-017",
+  "RA-019",
+  "RA-020",
+  "RA-022",
+  "RA-023",
+  "RA-025",
+  "RA-027",
+  "RA-029"
+ ],
+ "scenarios_sha256": "3bb63bb6088f41efe9dd75e63bce6e7362a8bf4d3ac7df00fe49694b5d88e2b1",
+ "sqlite_differences": [],
+ "sqlite_responses_identical": false,
+ "system": "justified_su_off",
+ "traces": [
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "tessaly"
+   },
+   "point": "RA-001.d1",
+   "reference": null,
+   "scenario": "RA-001",
+   "value": "tessaly"
+  },
+  {
+   "action": "ask",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "abstain",
+    "kernel_status": "unknown",
+    "kind": "defer",
+    "note": "",
+    "value": null
+   },
+   "point": "RA-001.d2",
+   "reference": null,
+   "scenario": "RA-001",
+   "value": null
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "tessaly"
+   },
+   "point": "RA-002.d1",
+   "reference": null,
+   "scenario": "RA-002",
+   "value": "tessaly"
+  },
+  {
+   "action": "abstain",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "abstain",
+    "kernel_status": "unknown",
+    "kind": "defer",
+    "note": "",
+    "value": null
+   },
+   "point": "RA-004.d1",
+   "reference": null,
+   "scenario": "RA-004",
+   "value": null
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "1980-02-03"
+   },
+   "point": "RA-005.d1",
+   "reference": null,
+   "scenario": "RA-005",
+   "value": "1980-02-03"
+  },
+  {
+   "action": "ask",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "ask",
+    "kernel_status": "unresolved",
+    "kind": "defer",
+    "note": "",
+    "value": null
+   },
+   "point": "RA-006.d1",
+   "reference": null,
+   "scenario": "RA-006",
+   "value": null
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "oslo"
+   },
+   "point": "RA-008.d1",
+   "reference": null,
+   "scenario": "RA-008",
+   "value": "oslo"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "bergen"
+   },
+   "point": "RA-008.d2",
+   "reference": null,
+   "scenario": "RA-008",
+   "value": "bergen"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "acc-111"
+   },
+   "point": "RA-009.d1",
+   "reference": null,
+   "scenario": "RA-009",
+   "value": "acc-111"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "acc-111"
+   },
+   "point": "RA-010.d1",
+   "reference": null,
+   "scenario": "RA-010",
+   "value": "acc-111"
+  },
+  {
+   "action": "ask",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "abstain",
+    "kernel_status": "unknown",
+    "kind": "defer",
+    "note": "",
+    "value": null
+   },
+   "point": "RA-010.d2",
+   "reference": null,
+   "scenario": "RA-010",
+   "value": null
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "acc-111"
+   },
+   "point": "RA-013.d1",
+   "reference": null,
+   "scenario": "RA-013",
+   "value": "acc-111"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "acc-111"
+   },
+   "point": "RA-015.d1",
+   "reference": null,
+   "scenario": "RA-015",
+   "value": "acc-111"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "acc-222"
+   },
+   "point": "RA-015.d2",
+   "reference": null,
+   "scenario": "RA-015",
+   "value": "acc-222"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "b12"
+   },
+   "point": "RA-016.d1",
+   "reference": null,
+   "scenario": "RA-016",
+   "value": "b12"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "14"
+   },
+   "point": "RA-017.d1",
+   "reference": null,
+   "scenario": "RA-017",
+   "value": "14"
+  },
+  {
+   "action": "ask",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "ask",
+    "kernel_status": "unresolved",
+    "kind": "defer",
+    "note": "",
+    "value": null
+   },
+   "point": "RA-019.d1",
+   "reference": null,
+   "scenario": "RA-019",
+   "value": null
+  },
+  {
+   "action": "abstain",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "ask",
+    "kernel_status": "unresolved",
+    "kind": "defer",
+    "note": "",
+    "value": null
+   },
+   "point": "RA-020.d1",
+   "reference": null,
+   "scenario": "RA-020",
+   "value": null
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "porto"
+   },
+   "point": "RA-022.d1",
+   "reference": null,
+   "scenario": "RA-022",
+   "value": "porto"
+  },
+  {
+   "action": "ask",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "ask",
+    "kernel_status": "unresolved",
+    "kind": "defer",
+    "note": "",
+    "value": null
+   },
+   "point": "RA-023.d1",
+   "reference": null,
+   "scenario": "RA-023",
+   "value": null
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "ben"
+   },
+   "point": "RA-025.d1",
+   "reference": null,
+   "scenario": "RA-025",
+   "value": "ben"
+  },
+  {
+   "action": "ask",
+   "events": 1,
+   "note": "the belief an executed action rested on changed: gap surfaced",
+   "now": {
+    "decision": "abstain",
+    "kernel_status": "unknown",
+    "kind": "defer",
+    "note": "",
+    "value": null
+   },
+   "point": "RA-027.d1",
+   "reference": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "7 high st"
+   },
+   "scenario": "RA-027",
+   "value": null
+  },
+  {
+   "action": "ask",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "abstain",
+    "kernel_status": "unknown",
+    "kind": "defer",
+    "note": "",
+    "value": null
+   },
+   "point": "RA-027.d2",
+   "reference": null,
+   "scenario": "RA-027",
+   "value": null
+  },
+  {
+   "action": "ask",
+   "events": 1,
+   "note": "",
+   "now": {
+    "decision": "abstain",
+    "kernel_status": "unknown",
+    "kind": "defer",
+    "note": "",
+    "value": null
+   },
+   "point": "RA-029.d1",
+   "reference": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "7 high st"
+   },
+   "scenario": "RA-029",
+   "value": null
+  }
+ ],
+ "warnings": []
+}

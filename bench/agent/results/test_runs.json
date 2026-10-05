@@ -1,0 +1,30 @@
+{
+ "justified": {
+  "adapter_sha256": "feb0b348e7c3db24cdb2b6bfa4a34c1fd5f5070015fd32141638d2683d15f732",
+  "reruns": 0,
+  "scenarios_sha256": "3bb63bb6088f41efe9dd75e63bce6e7362a8bf4d3ac7df00fe49694b5d88e2b1",
+  "split": "test",
+  "utc": "2026-10-05T13:51:06Z"
+ },
+ "justified_su_off": {
+  "adapter_sha256": "feb0b348e7c3db24cdb2b6bfa4a34c1fd5f5070015fd32141638d2683d15f732",
+  "reruns": 0,
+  "scenarios_sha256": "3bb63bb6088f41efe9dd75e63bce6e7362a8bf4d3ac7df00fe49694b5d88e2b1",
+  "split": "test",
+  "utc": "2026-10-05T13:51:07Z"
+ },
+ "lww": {
+  "adapter_sha256": "feb0b348e7c3db24cdb2b6bfa4a34c1fd5f5070015fd32141638d2683d15f732",
+  "reruns": 0,
+  "scenarios_sha256": "3bb63bb6088f41efe9dd75e63bce6e7362a8bf4d3ac7df00fe49694b5d88e2b1",
+  "split": "test",
+  "utc": "2026-10-05T13:51:07Z"
+ },
+ "recency": {
+  "adapter_sha256": "feb0b348e7c3db24cdb2b6bfa4a34c1fd5f5070015fd32141638d2683d15f732",
+  "reruns": 0,
+  "scenarios_sha256": "3bb63bb6088f41efe9dd75e63bce6e7362a8bf4d3ac7df00fe49694b5d88e2b1",
+  "split": "test",
+  "utc": "2026-10-05T13:51:06Z"
+ }
+}
