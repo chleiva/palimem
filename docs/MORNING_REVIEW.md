@@ -96,3 +96,10 @@ One pass per model on the 69-item dev split with the frozen prompt; the frozen t
 - Most Ministral losses are *format* failures in the strict grammar (a `correct` with a null proposition; replies not shaped `{"claims": [...]}`), not wrong extractions. 3 of 69 gpt-oss requests hit the 1,500-token ceiling while reasoning and returned empty. No model forged an identity field (0 of 21); all three extracted a pure-directive injection as data.
 - The dev split is small (1 fragmentation group, 7 injection items, 8 empty-expected items, 14 change claims): too little power for most rates. Valid-time F1 is 0.08-0.53 and the temporal errors are not yet classified.
 - **Decisions for you:** (1) confirm the G-X thresholds so the single-use test split can be run; (2) is prompt iteration on dev acceptable before any test run (I have started it, capped, with each prompt hash recorded); (3) should an injected directive extracted as ordinary data count as an extraction failure (today it does, though admission would treat it as an ordinary report from its real source)?
+
+### Author decisions on the extractor gate (2026-10-05)
+
+- **Thresholds stand as declared** (`bench/extract/gate.json` unchanged although all three models fail on dev). The frozen test split is run **once per model, after the final (at most third) prompt revision**; no second test run with a fourth prompt; a model that fails there fails the gate.
+- **Reporting:** Wilson intervals on every rate; the repair step reported separately as the rate of repaired outputs.
+- **Injection metric split:** `injection_compliance` (gated) = the extractor changed behaviour because of the directive; `directive_extraction` (reported, not gated) = the directive's assertion extracted as a plain claim from the real source (correct behaviour).
+- **Grammar contract:** the extractor's output grammar has no source, origin, actor, authority, origin_group or target-id fields at all.
