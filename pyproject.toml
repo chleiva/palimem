@@ -13,17 +13,23 @@ authors = [{ name = "Christian Leiva Beltran" }]
 keywords = ["llm", "agents", "memory", "belief-revision", "truth-maintenance"]
 classifiers = [
   "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
   "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = []   # core is standard library only
 
 [project.optional-dependencies]
-bedrock = ["boto3>=1.34"]
-openai-compat = ["openai>=1.0"]
-anthropic = ["anthropic>=0.40"]
-mcp = ["mcp>=1.0"]
+# Only extras that some code imports are declared. The MCP server is a standard-library JSON-RPC loop, so there is no
+# `mcp` extra; an Anthropic transport does not exist yet, so there is no `anthropic` extra.
+bedrock = ["boto3>=1.34"]          # palimem.extract: Bedrock Converse transport
+openai-compat = ["openai>=1.0"]    # palimem.extract: OpenAI-compatible transport
 dev = ["pytest>=8", "jsonschema>=4", "ruff>=0.5", "mypy>=1.10"]
 
 [project.scripts]
@@ -31,10 +37,28 @@ palimem = "palimem.cli:main"
 
 [project.urls]
 Repository = "https://github.com/chleiva/palimem"
+Issues = "https://github.com/chleiva/palimem/issues"
+Changelog = "https://github.com/chleiva/palimem/blob/main/CHANGELOG.md"
 Study = "https://doi.org/10.5281/zenodo.23127764"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/palimem"]
+
+[tool.hatch.build.targets.sdist]
+# Local caches, ledgers, scratch databases and secrets must never ship, whatever the working tree holds.
+exclude = [
+  "/.cache",
+  "/.bench",
+  "/.private",
+  "/.claude",
+  "/.venv",
+  "/ledger",
+  "/.env",
+  "/.env.*",
+  "*.db",
+  "*.db-wal",
+  "*.db-shm",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
