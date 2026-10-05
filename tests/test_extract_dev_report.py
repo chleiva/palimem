@@ -15,13 +15,18 @@ sys.path.insert(0, str(BENCH))
 import extract_dev_report as rep
 from extract_score import load_jsonl
 
-RUN_DIRS = sorted(p for p in (BENCH / "runs").glob("*") if p.is_dir() and list(p.glob("results-*-dev.json")))
+#: every directory under runs/ (the 2026-10-05 baseline, its pilot, and one directory per revision) with results
+RUN_DIRS = sorted({p.parent for p in (BENCH / "runs").rglob("results-*-dev.json")})
+
+
+def _label(p: Path) -> str:
+    return str(p.relative_to(BENCH / "runs"))
 
 
 @pytest.mark.skipif(not RUN_DIRS, reason="no recorded dev runs in bench/extract/runs/")
-@pytest.mark.parametrize("run_dir", RUN_DIRS, ids=lambda p: p.name)
+@pytest.mark.parametrize("run_dir", RUN_DIRS, ids=_label)
 def test_rescoring_from_the_raw_cache_reproduces_the_committed_results(run_dir: Path, tmp_path: Path) -> None:
-    work = tmp_path / run_dir.name
+    work = tmp_path / _label(run_dir).replace("/", "_")
     shutil.copytree(run_dir, work)
     for f in work.glob("results-*.json"):
         f.unlink()
@@ -39,7 +44,8 @@ def test_the_recorded_runs_stayed_inside_the_spend_authorisation() -> None:
     for run_dir in RUN_DIRS:
         for f in run_dir.glob("results-*-dev.json"):
             total += json.loads(f.read_text(encoding="utf-8"))["run"]["cost_usd"]
-    assert total < 1.0
+    # the baseline run ($0.035, authorised up to $1.00) plus this task's iteration runs (authorised up to $1.50)
+    assert total < 1.54
 
 
 def test_failure_analysis_classifies_cue_confusion_wrong_value_and_missing() -> None:

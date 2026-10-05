@@ -27,12 +27,15 @@ from extract_estimate_cost import item_ctx, load_schema
 
 from palimem.costs import CAP_USD, CostError, CostLedger
 from palimem.extract import (
+    PROMPT_VERSION,
+    PROMPT_VERSIONS,
     BedrockConverseTransport,
     Extractor,
     LLMExtractor,
     RecordingTransport,
     prompt_hash,
 )
+from palimem.extract.llm import REPAIR_SCOPES, default_max_output_tokens
 
 
 def run_items(extractor: Extractor, items: list[dict[str, Any]], *, retry_once: bool = False) -> list[dict[str, Any]]:
@@ -66,6 +69,12 @@ def run_items(extractor: Extractor, items: list[dict[str, Any]], *, retry_once: 
         }
         if res.rejections:
             pred["rejections"] = [r.reason for r in res.rejections]
+        if res.unexpected_fields:
+            pred["unexpected_fields"] = list(res.unexpected_fields)
+        if res.repair_triggered:
+            pred["repair_triggered"] = True
+        if res.repair_used:
+            pred["repair_used"] = True
         if res.usage is not None:  # a fake extractor in tests may not report usage
             pred["usage"] = {"input_tokens": res.usage.input_tokens, "output_tokens": res.usage.output_tokens,
                              "cost_usd": res.usage.cost_usd}
@@ -85,10 +94,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--cap-usd", type=float, default=CAP_USD,
                     help="spend cap for THIS run, applied to the shared ledger's total exposure (never above $20)")
     ap.add_argument("--retry-once", action="store_true", help="retry a failed item once, then record the error")
+    ap.add_argument("--prompt-version", choices=list(PROMPT_VERSIONS), default=PROMPT_VERSION,
+                    help="prompt template version (palimem-extract/1 is the frozen baseline)")
+    ap.add_argument("--repair", choices=["none", *REPAIR_SCOPES], default="none",
+                    help="one repair re-prompt: only on unusable output, or also on grammar-violating claims")
+    ap.add_argument("--max-output-tokens", type=int, default=None, help="override the per-model/version ceiling")
     a = ap.parse_args(argv)
     items = [json.loads(x) for x in (HERE / "items" / f"{a.split}.jsonl").read_text(encoding="utf-8").splitlines() if x.strip()]
     schema = load_schema()
-    ph = prompt_hash(schema)
+    ph = prompt_hash(schema, a.prompt_version)
     runs = HERE / "runs"
     out = Path(a.out) if a.out else runs / f"{a.model.replace(':', '_')}-{a.split}-{ph[:8]}.jsonl"
     if not a.execute:
@@ -104,9 +118,16 @@ def main(argv: list[str] | None = None) -> int:
     raw = Path(a.raw) if a.raw else out.with_name(out.stem + "-raw.jsonl")
     ledger = CostLedger(cap_usd=a.cap_usd)
     transport = RecordingTransport(BedrockConverseTransport(), raw)
-    ex = LLMExtractor(a.model, transport, ledger, purpose=f"G-X {a.split} {ph[:8]}")
+    ceiling = a.max_output_tokens or default_max_output_tokens(a.model, a.prompt_version)
+    ex = LLMExtractor(
+        a.model, transport, ledger, max_output_tokens=ceiling, max_repairs=0 if a.repair == "none" else 1,
+        repair_scope="output" if a.repair == "none" else a.repair, prompt_version=a.prompt_version,
+        purpose=f"G-X {a.split} {ph[:8]}")
     preds = run_items(ex, items, retry_once=a.retry_once)
     out.write_text("".join(json.dumps(p, sort_keys=True) + "\n" for p in preds), encoding="utf-8")
+    meta = {"model": a.model, "split": a.split, "prompt_version": a.prompt_version, "prompt_hash": ph,
+            "max_output_tokens": ceiling, "max_repairs": ex.max_repairs, "repair_scope": ex.repair_scope}
+    out.with_name(out.stem + ".meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(f"raw responses: {raw}; ledger: {json.dumps(ledger.summary(), sort_keys=True)}")
     print(f"wrote {out}")
     return 0

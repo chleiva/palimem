@@ -1,8 +1,8 @@
 """Strict validation of model output into :class:`ExtractedClaim`.
 
 Policy: **repair syntax, never semantics.** The only local repair is syntactic (strip a markdown
-fence or prose around a single JSON object). A claim that is semantically wrong (unknown field,
-identity field, bad proposition, unsupported span) is *rejected* with a reason, never coerced.
+fence or prose around a single JSON object). A claim that is semantically wrong (an unexpected field,
+a bad proposition, an unsupported span) is *rejected* with a reason, never coerced.
 """
 
 from __future__ import annotations
@@ -21,23 +21,32 @@ from palimem.extract.claims import (
 from palimem.types import Cue, Precision, ValidationError
 from palimem.types.values import proposition_from_dict
 
-#: Fields that give a report identity, authority or provenance. They must come from the host.
-#: Seeing one in model output is an injection signal: the claim is rejected and flagged.
-IDENTITY_FIELDS = frozenset({
-    "source", "source_id", "source_class", "class", "origin", "origin_group", "actor", "principal",
-    "authority", "id", "report_id", "target", "target_id", "extractor", "recorded_at", "lsn",
-    "raw_ref", "prev_hash", "entry_hash", "trusted", "admit", "admission",
-})
+#: The whole output grammar. There is deliberately NO field for source, origin, actor, authority, origin group or
+#: a target id: identity and authority are bound by the host, so there is nothing for a directive in the text to
+#: spoof. Any key outside these sets is rejected generically (reason ``unexpected_field``) and flagged.
 CLAIM_FIELDS = frozenset({"cue", "entity", "attr", "proposition", "valid_from", "valid_to", "target_hint", "span"})
+HINT_FIELDS = frozenset({"entity", "attr", "value"})
+
+
+def unexpected_keys(item: Any) -> tuple[str, ...]:
+    """Keys of a claim object (or of its target_hint) outside the grammar, sorted."""
+    if not isinstance(item, Mapping):
+        return ()
+    extra = set(item) - CLAIM_FIELDS
+    hint = item.get("target_hint")
+    if isinstance(hint, Mapping):
+        extra |= {f"target_hint.{k}" for k in set(hint) - HINT_FIELDS}
+    return tuple(sorted(str(k) for k in extra))
 
 
 @dataclass(frozen=True)
 class ParseResult:
     claims: tuple[ExtractedClaim, ...]
     rejections: tuple[Rejection, ...]
-    identity_fields_seen: bool
+    identity_fields_seen: bool  # legacy name: some claim carried a key outside the grammar
     repaired: bool
     output_invalid: bool  # nothing usable could be parsed from the output at all
+    unexpected_fields: tuple[str, ...] = ()
 
 
 def norm_text(s: str) -> str:
@@ -80,12 +89,9 @@ def claim_from_dict(d: Mapping[str, Any], *, require_span: bool = True) -> Extra
     """Strict decode of one claim object. Raises ValidationError."""
     if not isinstance(d, Mapping):
         raise ValidationError("claim: expected an object")
-    ident = sorted(IDENTITY_FIELDS & set(d))
-    if ident:
-        raise ValidationError(f"claim: identity field(s) {ident} are bound by the host, never by the model")
-    unknown = sorted(set(d) - CLAIM_FIELDS)
-    if unknown:
-        raise ValidationError(f"claim: unknown field(s) {unknown}")
+    unexpected = unexpected_keys(d)
+    if unexpected:
+        raise ValidationError(f"claim: unexpected field(s) {list(unexpected)}")
     for req in ("cue", "entity", "attr"):
         if req not in d:
             raise ValidationError(f"claim: missing '{req}'")
@@ -120,9 +126,9 @@ def claim_from_dict(d: Mapping[str, Any], *, require_span: bool = True) -> Extra
         h = d["target_hint"]
         if not isinstance(h, Mapping):
             raise ValidationError("claim.target_hint: expected an object")
-        extra = sorted(set(h) - {"entity", "attr", "value"})
+        extra = sorted(set(h) - HINT_FIELDS)
         if extra:
-            raise ValidationError(f"claim.target_hint: unknown field(s) {extra}")
+            raise ValidationError(f"claim.target_hint: unexpected field(s) {extra}")
         if not isinstance(h.get("entity"), str):
             raise ValidationError("claim.target_hint.entity: expected a string")
         hint = TargetHint(entity=h["entity"], attr=h.get("attr"), value=h.get("value"))
@@ -156,6 +162,7 @@ def parse_claims(raw: str, *, text: str | None, require_span: bool = True) -> Pa
     claims: list[ExtractedClaim] = []
     rej: list[Rejection] = []
     ident_seen = False
+    unexpected_seen: set[str] = set()
     hay = None if text is None else norm_text(text)
     for item in items:
         try:
@@ -164,9 +171,11 @@ def parse_claims(raw: str, *, text: str | None, require_span: bool = True) -> Pa
                 raise ValidationError("claim.span does not occur in the text")
         except ValidationError as e:
             msg = str(e)
-            if isinstance(item, Mapping) and IDENTITY_FIELDS & set(item):
+            extra = unexpected_keys(item)
+            if extra:
                 ident_seen = True
-                reason = "identity_field_in_output"
+                unexpected_seen.update(extra)
+                reason = "unexpected_field"
             elif "does not occur" in msg:
                 reason = "unsupported_span"
             elif "missing 'span'" in msg:
@@ -176,4 +185,4 @@ def parse_claims(raw: str, *, text: str | None, require_span: bool = True) -> Pa
             rej.append(Rejection(reason=reason, detail=msg, claim=dict(item) if isinstance(item, Mapping) else None))
             continue
         claims.append(c)
-    return ParseResult(tuple(claims), tuple(rej), ident_seen, repaired, False)
+    return ParseResult(tuple(claims), tuple(rej), ident_seen, repaired, False, tuple(sorted(unexpected_seen)))

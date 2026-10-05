@@ -1,0 +1,9 @@
+{
+  "max_output_tokens": 3000,
+  "max_repairs": 1,
+  "model": "openai.gpt-oss-20b-1:0",
+  "prompt_hash": "b145b6bb6b1020dd0adb2e3e434ea6e6749552027a020112013532fedbaaec07",
+  "prompt_version": "palimem-extract/2",
+  "repair_scope": "output_and_claims",
+  "split": "dev"
+}

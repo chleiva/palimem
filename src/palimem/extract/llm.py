@@ -26,7 +26,12 @@ from palimem.extract.build import build_reports
 from palimem.extract.claims import Rejection
 from palimem.extract.context import ExtractionContext
 from palimem.extract.parse import ParseResult, parse_claims
-from palimem.extract.prompt import PROMPT_VERSION, build_prompt, prompt_hash
+from palimem.extract.prompt import (
+    PROMPT_VERSION,
+    PROMPT_VERSIONS,
+    build_prompt,
+    prompt_hash,
+)
 from palimem.types.report import Extractor as ExtractorStamp
 
 PAID_CALLS_ENV = "PALIMEM_ALLOW_PAID_CALLS"
@@ -38,6 +43,28 @@ DEFAULT_MAX_OUTPUT_TOKENS = {
     "mistral.ministral-3-14b-instruct": 700,
 }
 FALLBACK_MAX_OUTPUT_TOKENS = 800
+#: Prompt revision 2: gpt-oss ran out of tokens while reasoning on 3 of 69 dev requests at 1,500 (empty answers),
+#: so its ceiling is doubled for the revisions; the Ministral ceilings are unchanged. The frozen v1 keeps its own.
+REVISION_MAX_OUTPUT_TOKENS = {"openai.gpt-oss-20b-1:0": 3000}
+#: Versions that carry the higher gpt-oss ceiling (revision 0, ``/1c``, is a contract change only and keeps v1's).
+HIGHER_CEILING_VERSIONS = frozenset({"palimem-extract/2-pilot", "palimem-extract/2", "palimem-extract/3"})
+
+#: Repair scopes and the rejection reasons that count as *format* errors (never span or identity errors).
+REPAIR_SCOPES = ("output", "output_and_claims")
+FORMAT_REASONS = frozenset({"invalid_json", "invalid_shape", "invalid_claim"})
+
+
+def default_max_output_tokens(model: str, prompt_version: str = PROMPT_VERSION) -> int:
+    if prompt_version in HIGHER_CEILING_VERSIONS and model in REVISION_MAX_OUTPUT_TOKENS:
+        return REVISION_MAX_OUTPUT_TOKENS[model]
+    return DEFAULT_MAX_OUTPUT_TOKENS.get(model, FALLBACK_MAX_OUTPUT_TOKENS)
+
+
+def _format_errors(parsed: ParseResult) -> int:
+    """How badly a reply breaks the grammar: an unusable reply is worse than any number of bad claims."""
+    if parsed.output_invalid:
+        return 1_000_000
+    return sum(1 for r in parsed.rejections if r.reason in FORMAT_REASONS)
 
 
 class TransportNotSent(Exception):
@@ -193,9 +220,15 @@ class ReplayTransport:
 class LLMExtractor:
     """Extractor backed by a model behind a :class:`Transport`, gated by a :class:`CostLedger`.
 
-    ``max_repairs`` (0 or 1) allows one re-prompt when the output is unusable as a whole
-    (not valid JSON / wrong shape). The re-prompt carries only our own validation message, never
-    model text, so it cannot amplify an injection. Each attempt is authorised and billed separately.
+    ``max_repairs`` (0 or 1) allows one re-prompt when parsing fails. ``repair_scope`` says when:
+    ``"output"`` (default) only when the output is unusable as a whole (not valid JSON / wrong shape);
+    ``"output_and_claims"`` also when a claim was rejected as ``invalid_claim`` (a grammar violation).
+    Never for a missing or unsupported span or an identity field: those are semantic or hostile, not format.
+    The re-prompt carries only our own validation message, never model text, so it cannot amplify an
+    injection. Each attempt is authorised and billed separately. The repaired reply replaces the original
+    only if it has strictly fewer format errors; content is never coerced.
+
+    ``prompt_version`` selects the template (``palimem-extract/1`` is frozen; see ``prompt.PROMPT_VERSIONS``).
     """
 
     def __init__(
@@ -206,19 +239,29 @@ class LLMExtractor:
         *,
         max_output_tokens: int | None = None,
         max_repairs: int = 0,
+        repair_scope: str = "output",
+        prompt_version: str = PROMPT_VERSION,
         purpose: str = "extraction",
     ) -> None:
         if max_repairs not in (0, 1):
             raise ValueError("max_repairs must be 0 or 1")
+        if repair_scope not in REPAIR_SCOPES:
+            raise ValueError(f"repair_scope must be one of {REPAIR_SCOPES}")
+        if prompt_version not in PROMPT_VERSIONS:
+            raise ValueError(f"unknown prompt version {prompt_version!r}; known: {PROMPT_VERSIONS}")
         self.model = model
         self.transport = transport
         self.ledger = ledger
-        self.max_output_tokens = max_output_tokens or DEFAULT_MAX_OUTPUT_TOKENS.get(model, FALLBACK_MAX_OUTPUT_TOKENS)
+        self.prompt_version = prompt_version
+        self.max_output_tokens = max_output_tokens or default_max_output_tokens(model, prompt_version)
         self.max_repairs = max_repairs
+        self.repair_scope = repair_scope
         self.purpose = purpose
 
     def stamp(self, ctx: ExtractionContext) -> ExtractorStamp:
-        return ExtractorStamp(model=self.model, version=PROMPT_VERSION, prompt_hash=prompt_hash(ctx.schema))
+        return ExtractorStamp(
+            model=self.model, version=self.prompt_version, prompt_hash=prompt_hash(ctx.schema, self.prompt_version)
+        )
 
     def _call(self, system: str, user: str) -> tuple[TransportResponse, float, int, int]:
         est_in = rough_token_count(system) + rough_token_count(user)
@@ -236,29 +279,45 @@ class LLMExtractor:
             cost = res.commit(in_tok, out_tok)
         return resp, cost, in_tok, out_tok
 
-    def extract(self, text: str, ctx: ExtractionContext) -> ExtractionResult:
-        prompt = build_prompt(text, ctx)
-        user = prompt.user
-        tot_in = tot_out = calls = 0
-        tot_cost = 0.0
-        parsed: ParseResult | None = None
-        for attempt in range(self.max_repairs + 1):
-            resp, cost, i, o = self._call(prompt.system, user)
-            tot_in, tot_out, tot_cost, calls = tot_in + i, tot_out + o, tot_cost + cost, calls + 1
-            parsed = parse_claims(resp.text, text=text, require_span=True)
-            if not parsed.output_invalid or attempt == self.max_repairs:
-                break
+    def _needs_repair(self, parsed: ParseResult) -> bool:
+        if parsed.output_invalid:
+            return True
+        return self.repair_scope == "output_and_claims" and any(r.reason == "invalid_claim" for r in parsed.rejections)
+
+    def _repair_message(self, parsed: ParseResult) -> str:
+        """Our own words only: reason codes and a fixed grammar reminder, never any model text."""
+        if self.repair_scope == "output":
             reason = parsed.rejections[0].reason if parsed.rejections else "invalid"
-            user = prompt.user + (
-                f"\n\n(Your previous reply was rejected: {reason}. "
-                'Reply with only the JSON object {"claims": [...]}.)'
-            )
-        assert parsed is not None
+            return f'\n\n(Your previous reply was rejected: {reason}. Reply with only the JSON object {{"claims": [...]}}.)'
+        reasons = ", ".join(sorted({r.reason for r in parsed.rejections if r.reason in FORMAT_REASONS})) or "invalid"
+        return (
+            f"\n\n(Your previous reply could not be used in full: {reasons}. Reply again with only the complete "
+            'JSON object {"claims": [...]} in which every claim has all eight keys and follows the grammar for '
+            'its cue: a "correct" claim needs a proposition holding the right value; a "withdraw" claim has a null '
+            'proposition and a target_hint; a "change" claim has no target_hint; entity and attr are never null.)'
+        )
+
+    def extract(self, text: str, ctx: ExtractionContext) -> ExtractionResult:
+        prompt = build_prompt(text, ctx, self.prompt_version)
+        resp, cost, i, o = self._call(prompt.system, prompt.user)
+        tot_in, tot_out, tot_cost, calls = i, o, cost, 1
+        parsed = parse_claims(resp.text, text=text, require_span=True)
+        unexpected = set(parsed.unexpected_fields)
+        triggered = used = False
+        if self.max_repairs and self._needs_repair(parsed):
+            triggered = True
+            resp2, cost2, i2, o2 = self._call(prompt.system, prompt.user + self._repair_message(parsed))
+            tot_in, tot_out, tot_cost, calls = tot_in + i2, tot_out + o2, tot_cost + cost2, calls + 1
+            second = parse_claims(resp2.text, text=text, require_span=True)
+            unexpected |= set(second.unexpected_fields)  # a key outside the grammar on any reply is still a signal
+            if _format_errors(second) < _format_errors(parsed):  # never replace a reply with a worse one
+                parsed, used = second, True
         stamp = self.stamp(ctx)
         reports, rej2, notes = build_reports(parsed.claims, ctx, stamp)
         rejections: tuple[Rejection, ...] = parsed.rejections + rej2
         return ExtractionResult(
             reports=reports, rejections=rejections, notes=notes, claims=parsed.claims,
-            identity_fields_seen=parsed.identity_fields_seen, stamp=stamp,
+            identity_fields_seen=parsed.identity_fields_seen or bool(unexpected), stamp=stamp,
             usage=Usage(tot_in, tot_out, tot_cost), calls=calls,
+            unexpected_fields=tuple(sorted(unexpected)), repair_triggered=triggered, repair_used=used,
         )

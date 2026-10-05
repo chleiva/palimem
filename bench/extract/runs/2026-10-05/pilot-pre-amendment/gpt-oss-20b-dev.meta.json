@@ -1,0 +1,10 @@
+{
+  "max_output_tokens": 3000,
+  "max_repairs": 0,
+  "model": "openai.gpt-oss-20b-1:0",
+  "note": "Pilot run made before the author's grammar-contract amendment (2026-10-05); not used for any selection. It was labelled palimem-extract/2 (prompt hash e4627f92... under that label) and its template is preserved as palimem-extract/2-pilot so the cache replays offline; the request texts are identical, only the version label inside the hash differs.",
+  "prompt_hash": "1c581355a26008d718ae7e4db6bf31681588e5669d5f99b2a3429737a5d9165c",
+  "prompt_version": "palimem-extract/2-pilot",
+  "repair_scope": "output",
+  "split": "dev"
+}
