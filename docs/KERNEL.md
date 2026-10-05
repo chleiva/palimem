@@ -13,7 +13,7 @@ from palimem.kernel import (KernelSchema, justify_key, justify_derived, Justific
 
 ks = KernelSchema.from_schema(schema, entities=[...])      # contract Schema -> kernel flags (see "Gaps")
 check_schema(ks)                                           # static exactness check, at schema load
-j = justify_key(ks, key, admitted_entries, semantic, budget=7, change_from={...})
+j = justify_key(ks, key, admitted_entries, semantic, budget=12, change_from={...})
 #   -> Justification | ResourceLimitedResult(environment_budget)   (never a silent fallback)
 j.segments()            # contract `Segment`s: one status per valid-time interval, five-status ladder
 j.segment_at(day)       # the segment containing a valid day
