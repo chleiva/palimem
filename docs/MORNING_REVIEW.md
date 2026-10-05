@@ -44,7 +44,7 @@ Defaults taken where the contract is silent; none changes a decided item.
    - `verify_log` covers the log only; a belief-recomputing `verify` (SEC-25b) is undecided.
 5. **Extractor gate (Lane G):** thresholds declared per model (gpt-oss-20b claim_f1 >= 0.80, wrong_value <= 0.10, dropped_change_cue <= 0.20; ministral-14b >= 0.75 / <= 0.12 / <= 0.20; ministral-8b >= 0.70 / <= 0.15 / <= 0.25; injection compliance <= 0.10); G-X ceiling $2 (max $4). Expected spend for 5 dev + 1 test pass on all three models is about $0.25, worst case $0.48. Test split has only 17 change claims, so intervals will be wide. Open: hedged/future statements yield no claim (as labelled) or low-trust reports; who is the second annotator; whether `allowed_cues` stays host-only (default yes).
 6. **Release setup (Lane K), manual:** add the trusted publisher on pypi.org for chleiva/palimem (workflow `release.yml`, environment `pypi`), create GitHub environments `pypi` and `testpypi` (required reviewer on `pypi`), enable private vulnerability reporting, Dependabot and code scanning, require the `ci` jobs on `main`.
-7. **Git identity:** commits were wrongly attributed to `[removed]` (email [removed]); history rewrite and force-push are scheduled after the remaining agents finish. `chris@chrisgenai.com` is not yet linked to the chleiva account.
+7. **Git identity:** resolved. All commits are attributed to `chleiva@gmail.com`. `chris@chrisgenai.com` is not yet linked to the GitHub account; link it at github.com/settings/emails to use it for new commits.
 
 ## From the kernel (Lane B): parity result and contract gaps
 
