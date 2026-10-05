@@ -29,7 +29,7 @@ from palimem.extract import ExtractionContext, Extractor
 from palimem.extract.claims import TargetHint
 from palimem.kernel.derive import MAX_DEPTH
 from palimem.memory import Memory as CoreMemory
-from palimem.policy import JUSTIFIED, PRESETS, PolicyObject
+from palimem.policy import ABSTAIN, JUSTIFIED, PRESETS, PolicyObject
 from palimem.store import AppendResult, Tombstone, VerifyResult
 from palimem.types import (
     Answer,
@@ -58,7 +58,10 @@ from palimem.types.values import (
 
 from .audit import AuditLog
 
+#: Ruling 16 (2026-10-05): the HOST default abstains on an unresolved key (and always says what would settle it) ...
 DEFAULT_POLICY_LABEL = "p-default"
+#: ... while an AGENT session defaults to asking: abstaining would throw away the verification action an agent can take.
+DEFAULT_AGENT_POLICY_LABEL = "p-ask"
 MAX_EXPLAIN_DEPTH = MAX_DEPTH
 #: Fields that exist on the log row, not on a Report: never caller-supplied, anywhere (R1, S-05, hash chain).
 LOG_ROW_FIELDS = ("id", "recorded_at", "lsn", "prev_hash", "entry_hash", "salt", "admission")
@@ -155,7 +158,7 @@ class SessionContext:
     agent_principal: str
     end_user_principal: str | None = None
     allowed_attrs: tuple[str, ...] | None = None
-    policy_version: str = DEFAULT_POLICY_LABEL  # a label in the host's policy registry
+    policy_version: str = DEFAULT_AGENT_POLICY_LABEL  # a label in the host's policy registry (agent default: ask)
     max_explanation_budget: int = 50
     max_depth: int = MAX_EXPLAIN_DEPTH
     max_alternatives: int = 5
@@ -272,7 +275,7 @@ class Host:
         self.on_undeclared = on_undeclared
         self.audit = audit if audit is not None else AuditLog()
         self.extractor = extractor
-        self._policies: dict[str, PolicyObject] = {DEFAULT_POLICY_LABEL: JUSTIFIED, **PRESETS}
+        self._policies: dict[str, PolicyObject] = {DEFAULT_POLICY_LABEL: ABSTAIN, DEFAULT_AGENT_POLICY_LABEL: JUSTIFIED, **PRESETS}
         if policies:
             self._policies.update(policies)
         self._connectors: dict[str, ConnectorSpec] = {}
@@ -601,7 +604,7 @@ def _identity_fields_seen(result: Any) -> tuple[str, ...]:
 
 
 __all__ = [
-    "DEFAULT_POLICY_LABEL", "LOG_ROW_FIELDS", "MAX_EXPLAIN_DEPTH", "AuditLog", "ConnectorEvent", "ConnectorKind",
+    "DEFAULT_AGENT_POLICY_LABEL", "DEFAULT_POLICY_LABEL", "LOG_ROW_FIELDS", "MAX_EXPLAIN_DEPTH", "AuditLog", "ConnectorEvent", "ConnectorKind",
     "ConnectorSpec", "ExtractorRequired", "Host", "HostAppend", "HostError", "IngestResult", "InvalidAuthorityRule",
     "KeyRef", "Notice", "ReportRow", "SessionContext",
 ]

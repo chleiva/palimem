@@ -71,7 +71,10 @@ types and the schemas.
   `unresolved` → at least two alternatives and no established candidate; `unknown` → no candidates.
   `set` is non-empty (the empty set is `empty`).
 * `Resolved`: an assertion is present exactly when `decision = commit` and must be a candidate of the
-  justified segment; an inquiry is present exactly when `decision = ask`; `kernel_status` and the segment bounds must equal the
+  justified segment; an inquiry is **required** when `decision = ask`, **present on `abstain`** (ruling 16 of 2026-10-05: the host
+  API always says what would settle an abstain) and never present on a commit; an `Inquiry` lists competing candidates (possibly
+  none, for a key with no evidence), the keys whose evidence would decide and the source classes that could supply it, and must
+  offer at least one candidate or one missing key; `kernel_status` and the segment bounds must equal the
   justified view's.
 * `Belief`: `inference.complete` iff `completed_generation = required_generation`, and completed ≤ required;
   segments are ordered and non-overlapping (half-open `[from, to)`); segment candidates belong to the belief's key.

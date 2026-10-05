@@ -31,7 +31,8 @@ def test_unknown_says_do_not_guess() -> None:
     out = Memory(schema=schema()).agent_session("agent:a1").call("recall", Q)
     assert out.text == (
         "alice/employer: UNKNOWN (no admissible evidence). Do not guess; say it is unknown or ask.\n"
-        "  decision=abstain; policy=p-default."
+        "  Resolvers that could decide: trusted, standard, low.\n"
+        "  decision=abstain; policy=p-ask."
     )
 
 
@@ -43,7 +44,7 @@ def test_established_single_origin_is_marked_uncorroborated() -> None:
         "alice/employer: ESTABLISHED = 'Acme'.\n"
         "  SINGLE ORIGIN: rests on one origin group (g_hr); uncorroborated. "
         "Corroboration from a second origin group is what raises it.\n"
-        "  decision=commit; policy=p-default."
+        "  decision=commit; policy=p-ask."
     )
     assert out.data["single_origin"] is True and out.data["kernel_status"] == "established"
 
@@ -56,7 +57,7 @@ def test_established_with_two_origin_groups_is_corroborated() -> None:
     assert out.text == (
         "alice/employer: ESTABLISHED = 'Acme'.\n"
         "  Corroborated by 2 origin groups.\n"
-        "  decision=commit; policy=p-default."
+        "  decision=commit; policy=p-ask."
     )
 
 
@@ -68,7 +69,8 @@ def test_unresolved_lists_alternatives_and_does_not_commit() -> None:
     assert out.text == (
         "alice/employer: UNRESOLVED between 'Acme', 'Globex'.\n"
         "  Evidence does not decide. Ask a source that can, or tell the user it is unsettled.\n"
-        "  decision=ask; policy=p-default."
+        "  Resolvers that could decide: trusted, standard.\n"
+        "  decision=ask; policy=p-ask."
     )
 
 

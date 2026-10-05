@@ -171,8 +171,10 @@ class Inquiry(Codec):
     resolvers: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        if len(self.competing) < 1:
-            raise ValidationError("inquiry.competing must list at least one candidate")
+        # Ruling 16 (2026-10-05): an inquiry also accompanies an `abstain`, and a key with no evidence at all has no
+        # competing candidate. An inquiry must still say what could be done: a candidate to settle or a key to supply.
+        if len(self.competing) < 1 and len(self.missing) < 1:
+            raise ValidationError("inquiry must list at least one competing candidate or one missing key")
         for r in self.resolvers:
             check_nonempty(r, "inquiry.resolvers[]")
 
@@ -209,7 +211,7 @@ class Resolved(Codec):
     explanation: ExplanationState = ExplanationState.COMPLETE
     policy: PolicyInfo
     confidence: float | None = None
-    inquiry: Inquiry | None = None  # exactly when decision = ask
+    inquiry: Inquiry | None = None  # required when decision = ask; present on abstain (ruling 16); never on commit
 
     def __post_init__(self) -> None:
         if not isinstance(self.decision, Decision):
@@ -218,8 +220,10 @@ class Resolved(Codec):
             raise ValidationError("answer.kernel_status: not a KernelStatus")
         if (self.decision is Decision.COMMIT) != (self.assertion is not None):
             raise ValidationError("answer: an assertion is present exactly when decision = commit")
-        if (self.decision is Decision.ASK) != (self.inquiry is not None):
-            raise ValidationError("answer: an inquiry is present exactly when decision = ask")
+        if self.decision is Decision.ASK and self.inquiry is None:
+            raise ValidationError("answer: an inquiry is required when decision = ask")
+        if self.decision is Decision.COMMIT and self.inquiry is not None:
+            raise ValidationError("answer: an inquiry is never present when decision = commit")
         if self.confidence is not None:
             conf = as_float(self.confidence, "answer.confidence")
             if not 0.0 <= conf <= 1.0:

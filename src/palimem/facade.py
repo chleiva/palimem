@@ -105,7 +105,7 @@ class Memory:
         extractor: Extractor | None = None,
         self_update: bool = False,
         profile: Profile = Profile.OPEN_WORLD,
-        policy: str | PolicyObject = "justified",
+        policy: str | PolicyObject | None = None,
         store_secret: bytes | None = None,
         audit_path: str | Path | None = None,
         clock: Callable[[], datetime] | None = None,
@@ -127,7 +127,10 @@ class Memory:
         if stored_sem is not None and (stored_sem.self_update, stored_sem.profile) != (self_update, profile):
             semantic = SemanticConfig(self_update=self_update, profile=profile)
         admission = stored_adm if stored_adm is not None else AdmissionConfig(profile=semantic.profile)
-        want = PRESETS[policy] if isinstance(policy, str) else policy
+        # ruling 16: the host API abstains on an unresolved key by default; a reopened store keeps its stored policy
+        want = stored_pol if (policy is None and stored_pol is not None) else (
+            PRESETS["abstain"] if policy is None else PRESETS[policy] if isinstance(policy, str) else policy
+        )
         if stored_pol is not None and stored_pol.name == want.name and stored_pol.priors == want.priors:
             want = stored_pol  # reopening under the same policy adopts the stored version
         elif stored_pol is not None:

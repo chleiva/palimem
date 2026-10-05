@@ -17,7 +17,13 @@ were produced before Lane Q's intentional product changes. Five of them reach th
 5. an authorised dispute's kernel effect (ruling 3): the adapters' ``AdmissionConfig`` is wrapped to also pass
    ``dispute_is_denial=False`` (the registered behaviour: a dispute had no kernel effect).
 
-``registered_product_v1()`` applies all five inside a ``with`` block and restores the originals on exit, so nothing
+6. the inquiry (ruling 16 of 2026-10-05): an ``ask`` carried only ``competing`` (and the attribution key) and an
+   ``abstain`` carried none; ``palimem.policy.policy.ENRICH_INQUIRY`` is switched off to reproduce that;
+7. the default agent-session policy label (ruling 16): the registered default was ``p-default`` (it asked); the default
+   is now ``p-ask`` (the host default ``p-default`` abstains), so the frozen ``recall`` renderer is given the registered
+   label.
+
+``registered_product_v1()`` applies all seven inside a ``with`` block and restores the originals on exit, so nothing
 outside the block (the product, the other tests) sees any change. It is meant for the offline re-score tests and for
 ``registered_rerun.py``; a NEW run on current main must NOT use it (it would hide the product changes it is meant to
 measure). The registered adapters (``llm_agent.py``, ``llm_systems.py``, ``palimem_system.py``) are not modified:
@@ -62,13 +68,23 @@ def registered_product_v1() -> Iterator[None]:
         (tools, "answer_json"): tools.answer_json,
         (tools, "answer_text"): tools.answer_text,
         (policy, "BeliefOfForm"): policy.BeliefOfForm,
+        (policy, "ENRICH_INQUIRY"): policy.ENRICH_INQUIRY,
         (polarity, "justify_polarity"): polarity.justify_polarity,
     }
     ps.AdmissionConfig = functools.partial(AdmissionConfig, failed_correction_is_allege=False, dispute_is_denial=False)
     polarity.justify_polarity = _refuse_negative_evidence
-    tools.answer_json = frozen.answer_json
+    def _registered_label(fn: object) -> object:
+        def wrapped(*a: object, **k: object) -> object:
+            if k.get("policy_label") == "p-ask":
+                k = {**k, "policy_label": "p-default"}
+            return fn(*a, **k)  # type: ignore[operator]
+
+        return wrapped
+
+    tools.answer_json = _registered_label(frozen.answer_json)
     tools.answer_text = frozen.answer_text
     policy.BeliefOfForm = _NeverMatches
+    policy.ENRICH_INQUIRY = False
     try:
         yield
     finally:

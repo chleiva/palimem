@@ -73,7 +73,9 @@ def test_declared_schema_keeps_alternatives_instead_of_guessing() -> None:
     m.observe(claim("alice", "employer", "Globex"), source="press")
     a = m.ask("employer", "alice")
     assert isinstance(a, Resolved) and a.kernel_status is KernelStatus.UNRESOLVED
-    assert a.decision.value == "ask" and a.assertion is None and len(a.alternatives) == 2
+    # ruling 16 (2026-10-05): the host API abstains on an unresolved key, and says what would settle it
+    assert a.decision.value == "abstain" and a.assertion is None and len(a.alternatives) == 2
+    assert a.inquiry is not None and len(a.inquiry.competing) == 2 and a.inquiry.missing and a.inquiry.resolvers
     with pytest.raises(ValidationError):
         m.observe(claim("alice", "salary", "1"), source="hr")  # declared schema: no auto-declaration
 

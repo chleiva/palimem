@@ -209,7 +209,7 @@ def test_security_index_is_complete_and_consistent() -> None:
 
 def test_trust_boundary_fixtures_are_loaded_not_duplicated() -> None:
     tbs = load_trust_boundary()
-    assert len(tbs) == 20 and len({t["id"] for t in tbs}) == 20
+    assert len(tbs) == 22 and len({t["id"] for t in tbs}) == 22
     assert not any(f["id"].startswith("tb-") for f in FIXTURES)
     assert all(Path(t["path"]).is_file() for t in tbs)
 

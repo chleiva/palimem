@@ -6,6 +6,7 @@ See docs/API_TRUST_BOUNDARY.md and docs/AGENT_GUIDE.md.
 
 from palimem.agent.audit import AuditLog, AuditRow
 from palimem.agent.host import (
+    DEFAULT_AGENT_POLICY_LABEL,
     DEFAULT_POLICY_LABEL,
     MAX_EXPLAIN_DEPTH,
     ConnectorEvent,
@@ -30,6 +31,7 @@ from palimem.agent.render import (
 from palimem.agent.tools import AgentTools, ToolError, ToolOutput, ToolSpec
 
 __all__ = [
+    "DEFAULT_AGENT_POLICY_LABEL",
     "DEFAULT_POLICY_LABEL",
     "MAX_EXPLAIN_DEPTH",
     "AgentTools",

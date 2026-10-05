@@ -21,6 +21,7 @@ from typing import Any
 
 from palimem.admission import AdmissionConfig
 from palimem.agent import (
+    DEFAULT_AGENT_POLICY_LABEL,
     AuditLog,
     ConnectorEvent,
     ConnectorSpec,
@@ -256,7 +257,7 @@ class World:
             session_id=d["session_id"], agent_principal=d["agent_principal"],
             end_user_principal=d.get("end_user_principal"),
             allowed_attrs=None if d.get("allowed_attrs") is None else tuple(d["allowed_attrs"]),
-            policy_version=d.get("policy_version", "p-default"),
+            policy_version=d.get("policy_version", DEFAULT_AGENT_POLICY_LABEL),
             max_explanation_budget=d.get("max_explanation_budget", 50),
         )
 

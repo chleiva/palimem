@@ -10,6 +10,16 @@ Nothing here is released: the only published artefact is the 0.0.1 name reservat
 checkout. What does not exist, was not measured or was not decided is in [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md); the
 numbers and their caveats are in the README (section 7).
 
+### Changed (agent-surface rulings 16 and 17 of 2026-10-05, Lane S3; the compat profile and the registered results are unchanged)
+- **Ruling 16, defaults on an unresolved key.** The host API (`palimem.Memory`, `Host.query`, policy label `p-default`, new preset
+  `abstain`) answers `decision: abstain`; an agent session (`SessionContext.policy_version` now defaults to the new label `p-ask`,
+  the `justified` preset) defaults to `ask`. `Memory(...)`'s `policy` argument now defaults to `None`: a new store uses `abstain`, a
+  reopened store keeps the policy it stored. **Inquiry:** `decide()` populates `Resolved.inquiry` on every `ask` *and* every `abstain`
+  (competing candidates, the keys whose evidence would decide: the key itself plus, for a derived key, the base keys its rule reads;
+  and the source classes that could supply it). **Contract (additive loosening):** `Resolved.inquiry` is required on `ask`, allowed on
+  `abstain`, refused on `commit`; `Inquiry.competing` may be empty when `missing` names a key. JSON Schemas regenerated. Fixture tb-12
+  now passes; tb-21 and tb-22 added.
+
 ### Changed (semantics rulings of 2026-10-05, Lane S2; the compat profile and the registered results are unchanged)
 - **Failed `correct`** (product profile): loses its effect on the *target*, but its content is admitted as an ordinary `assert` from its
   own source (`failed_correction_is_allege` now means exactly the target part). RA-006 and RA-007 answer as registered again.

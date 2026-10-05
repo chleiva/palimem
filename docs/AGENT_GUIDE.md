@@ -83,22 +83,31 @@ value. If `current_available` is true, ask again without `belief_as_of` to read 
 ```text
 alice/employer: ESTABLISHED = 'Acme'.
   SINGLE ORIGIN: rests on one origin group (g_hr); uncorroborated. Corroboration from a second origin group is what raises it.
-  decision=commit; policy=p-default.
+  decision=commit; policy=p-ask.
 
 alice/employer: UNRESOLVED between 'Acme', 'Globex'.
   Evidence does not decide. Ask a source that can, or tell the user it is unsettled.
-  decision=ask; policy=p-default.
+  Resolvers that could decide: trusted, standard.
+  decision=ask; policy=p-ask.
 
 alice/employer: UNKNOWN (no admissible evidence). Do not guess; say it is unknown or ask.
-  decision=abstain; policy=p-default.
+  Resolvers that could decide: trusted, standard, low.
+  decision=abstain; policy=p-ask.
 
 store/refund_window_days: CONTENT UNKNOWN. Only what other parties are reported to believe is established:
   - dave is reported to believe '30' (2 origin groups).
   That does not establish the value itself. Do not state it as a fact; ask a source that can confirm it, or say it is unconfirmed.
-  decision=ask; policy=p-default.
+  decision=ask; policy=p-ask.
 ```
 
 These strings are pinned by golden tests (`tests/test_agent_render.py`): wording is a contract with the prompt.
+
+**Defaults (ruling 16 of 2026-10-05).** An agent session defaults to **ask** (policy label `p-ask`): abstaining would throw
+away the verification action an agent can take. The host API (`Memory.ask`, `Host.query`) defaults to **abstain** (label
+`p-default`). Whenever the decision is `ask` or `abstain` the answer's `inquiry` says what would settle it: the competing
+candidates (none for a key with no evidence), `missing` (the key itself, and for a derived key the base keys its rule reads)
+and `resolvers` (the source classes at least as trusted as the best class already heard from). A host can bind a session to
+another policy label; an LLM cannot choose its own policy (the argument is ignored and audited).
 
 ## 4. A system-prompt fragment
 
