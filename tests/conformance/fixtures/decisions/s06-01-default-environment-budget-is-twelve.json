@@ -1,8 +1,8 @@
 {
   "version": 1,
   "kind": "scenario",
-  "id": "s06-01-default-environment-budget-is-seven",
-  "title": "The default environment budget is 7: seven independent reports resolve, the eighth does not",
+  "id": "s06-01-default-environment-budget-is-twelve",
+  "title": "The default environment budget is 12: twelve independent reports resolve, the thirteenth does not",
   "gate": "G1",
   "area": "budget",
   "status": "active",
@@ -11,8 +11,8 @@
   ],
   "requires": [],
   "spec_dependencies": [],
-  "why": "S-06 (decided): the default per-key budget is 7, the validated envelope of the study generator. Seven independent origin groups reporting one value are seven minimal environments: Resolved. The eighth makes eight: ResourceLimited(environment_budget) naming the key, no kernel_status. Withdrawing the eighth brings the key back to seven and it resolves again. No configure op is used, so this tests the default itself, not the mechanism.",
-  "source": "S-06 decision (2026-10-04)",
+  "why": "S-06 (decided, default raised from 7 to 12 on 2026-10-05): the default per-key budget is 12. S-06 allowed the raise only after the enumeration kernel's answers at 8 to 12 reports per key were cross-checked against the brute-force global oracle on freshly generated streams: docs/BUDGET_CROSSCHECK.md records 1,050 fresh streams and 80,856 query comparisons (P0c and P0cSU, every slot type) with 0 disagreements and 928 / 850 / 714 / 537 / 317 keys at n = 8 / 9 / 10 / 11 / 12. Twelve independent origin groups reporting one value are twelve minimal environments: Resolved. The thirteenth makes thirteen: ResourceLimited(environment_budget) naming the key, no kernel_status. Withdrawing the thirteenth brings the key back to twelve and it resolves again. No configure op is used, so this tests the default itself, not the mechanism.",
+  "source": "S-06 decision (2026-10-04); default raised 2026-10-05 on docs/BUDGET_CROSSCHECK.md",
   "setup": {
     "profile": "open-world",
     "schema": {
@@ -54,6 +54,26 @@
       "s8": {
         "class": "standard",
         "origin_group": "g_s8"
+      },
+      "s9": {
+        "class": "standard",
+        "origin_group": "g_s9"
+      },
+      "s10": {
+        "class": "standard",
+        "origin_group": "g_s10"
+      },
+      "s11": {
+        "class": "standard",
+        "origin_group": "g_s11"
+      },
+      "s12": {
+        "class": "standard",
+        "origin_group": "g_s12"
+      },
+      "s13": {
+        "class": "standard",
+        "origin_group": "g_s13"
       }
     }
   },
@@ -248,25 +268,6 @@
       }
     },
     {
-      "op": "query",
-      "name": "q7",
-      "query": {
-        "key": {
-          "entity": "alice",
-          "attr": "employer"
-        }
-      },
-      "expect": {
-        "kernel_status": "established",
-        "assertion": {
-          "form": {
-            "form": "value",
-            "v": "acme"
-          }
-        }
-      }
-    },
-    {
       "op": "append",
       "ref": "r8",
       "at": "2026-02-08T10:00:00Z",
@@ -294,8 +295,162 @@
       }
     },
     {
+      "op": "append",
+      "ref": "r9",
+      "at": "2026-02-09T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "s9",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_s9",
+        "actor": "connector:s9",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r10",
+      "at": "2026-02-10T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "s10",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_s10",
+        "actor": "connector:s10",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r11",
+      "at": "2026-02-11T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "s11",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_s11",
+        "actor": "connector:s11",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r12",
+      "at": "2026-02-12T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "s12",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_s12",
+        "actor": "connector:s12",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
       "op": "query",
-      "name": "q8",
+      "name": "q12",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "acme"
+          }
+        }
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r13",
+      "at": "2026-02-13T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "s13",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_s13",
+        "actor": "connector:s13",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q13",
       "query": {
         "key": {
           "entity": "alice",
@@ -316,8 +471,8 @@
     },
     {
       "op": "append",
-      "ref": "r9",
-      "at": "2026-02-09T10:00:00Z",
+      "ref": "r14",
+      "at": "2026-02-14T10:00:00Z",
       "report": {
         "key": {
           "entity": "alice",
@@ -325,14 +480,14 @@
         },
         "proposition": null,
         "cue": "withdraw",
-        "target": "$r8",
+        "target": "$r13",
         "source": {
-          "id": "s8",
+          "id": "s13",
           "class": "standard"
         },
         "origin": "external_observation",
-        "origin_group": "g_s8",
-        "actor": "connector:s8",
+        "origin_group": "g_s13",
+        "actor": "connector:s13",
         "valid_from": null,
         "valid_to": null,
         "precision": "day"
@@ -340,7 +495,7 @@
     },
     {
       "op": "query",
-      "name": "q7b",
+      "name": "q12b",
       "query": {
         "key": {
           "entity": "alice",

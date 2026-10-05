@@ -32,7 +32,8 @@ d = justify_derived(ks, derived_key, JustificationProvider({base_key: j, ...}), 
   selects classification only (below).
 * **Time** is day-granular: anchor = day of `valid_from`, else of the log's `recorded_at`. Precision other than
   day, `valid_to`, and negative evidence raise `KernelUnsupported` (no oracle; S-09).
-* **Budget:** default `DEFAULT_ENVIRONMENT_BUDGET = 7` admitted reports per key.
+* **Budget:** default `DEFAULT_ENVIRONMENT_BUDGET = 12` admitted reports per key (raised from 7 on the
+  cross-check against the global oracle: `docs/BUDGET_CROSSCHECK.md`).
 * **Totality ladder** of SEMANTICS §6 is implemented; `Justification.relax_level` reports it (0 on all of
   Setting 1).
 

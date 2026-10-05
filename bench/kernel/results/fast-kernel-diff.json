@@ -1,0 +1,115 @@
+{
+ "by_kind": {},
+ "disagreements": 0,
+ "enumeration_route_reasons": {
+  "multi-valued key": 5528,
+  "no evidence": 1788,
+  "stable key": 1437
+ },
+ "examples": [],
+ "inject_bug": "none",
+ "kernel_seconds": {
+  "enumeration": 8.19,
+  "fast_path_dispatch": 4.15
+ },
+ "passed": true,
+ "per_slot": {
+  "asof": {
+   "prov_queries": 1339,
+   "queries": 1339
+  },
+  "belief_asof": {
+   "prov_queries": 1418,
+   "queries": 1418
+  },
+  "current": {
+   "prov_queries": 8782,
+   "queries": 8782
+  },
+  "downstream": {
+   "prov_queries": 14643,
+   "queries": 14643
+  },
+  "reported": {
+   "prov_queries": 1452,
+   "queries": 1452
+  },
+  "yesno:changed": {
+   "prov_queries": 498,
+   "queries": 498
+  },
+  "yesno:erroneous": {
+   "prov_queries": 744,
+   "queries": 744
+  },
+  "yesno:holds": {
+   "prov_queries": 1396,
+   "queries": 1396
+  }
+ },
+ "provenance": {
+  "enabled": true,
+  "queries": 30272
+ },
+ "queries": 30272,
+ "relax_events": 0,
+ "resource_limited": 0,
+ "routes": {
+  "enumeration": 8753,
+  "fast": 45567
+ },
+ "speed": [
+  {
+   "enumeration_median_s": 0.0005,
+   "fast_median_s": 0.0005,
+   "n": 6
+  },
+  {
+   "enumeration_median_s": 0.0028,
+   "fast_median_s": 0.0007,
+   "n": 8
+  },
+  {
+   "enumeration_median_s": 0.0146,
+   "fast_median_s": 0.0012,
+   "n": 10
+  },
+  {
+   "enumeration_median_s": 0.0783,
+   "fast_median_s": 0.002,
+   "n": 12
+  },
+  {
+   "enumeration_median_s": 0.4155,
+   "fast_median_s": 0.003,
+   "n": 14
+  },
+  {
+   "enumeration_median_s": 2.0435,
+   "fast_median_s": 0.004,
+   "n": 16
+  },
+  {
+   "enumeration_median_s": null,
+   "fast_median_s": 0.0134,
+   "n": 24
+  },
+  {
+   "enumeration_median_s": null,
+   "fast_median_s": 0.0579,
+   "n": 40
+  },
+  {
+   "enumeration_median_s": null,
+   "fast_median_s": 0.3738,
+   "n": 70
+  },
+  {
+   "enumeration_median_s": null,
+   "fast_median_s": 1.0718,
+   "n": 100
+  }
+ ],
+ "streams": 500,
+ "wall_seconds": 277.9
+}

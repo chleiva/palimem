@@ -1,0 +1,462 @@
+{
+ "budget": 12,
+ "cells": {
+  "P0cSU|10|asof": {
+   "disagreements": 0,
+   "queries": 1428
+  },
+  "P0cSU|10|belief_asof": {
+   "disagreements": 0,
+   "queries": 714
+  },
+  "P0cSU|10|current": {
+   "disagreements": 0,
+   "queries": 714
+  },
+  "P0cSU|10|derived:downstream": {
+   "disagreements": 0,
+   "queries": 118
+  },
+  "P0cSU|10|reported": {
+   "disagreements": 0,
+   "queries": 714
+  },
+  "P0cSU|10|yesno:changed": {
+   "disagreements": 0,
+   "queries": 1334
+  },
+  "P0cSU|10|yesno:erroneous": {
+   "disagreements": 0,
+   "queries": 2142
+  },
+  "P0cSU|10|yesno:holds": {
+   "disagreements": 0,
+   "queries": 1428
+  },
+  "P0cSU|11|asof": {
+   "disagreements": 0,
+   "queries": 1074
+  },
+  "P0cSU|11|belief_asof": {
+   "disagreements": 0,
+   "queries": 537
+  },
+  "P0cSU|11|current": {
+   "disagreements": 0,
+   "queries": 537
+  },
+  "P0cSU|11|derived:downstream": {
+   "disagreements": 0,
+   "queries": 79
+  },
+  "P0cSU|11|reported": {
+   "disagreements": 0,
+   "queries": 537
+  },
+  "P0cSU|11|yesno:changed": {
+   "disagreements": 0,
+   "queries": 1010
+  },
+  "P0cSU|11|yesno:erroneous": {
+   "disagreements": 0,
+   "queries": 1611
+  },
+  "P0cSU|11|yesno:holds": {
+   "disagreements": 0,
+   "queries": 1074
+  },
+  "P0cSU|12|asof": {
+   "disagreements": 0,
+   "queries": 634
+  },
+  "P0cSU|12|belief_asof": {
+   "disagreements": 0,
+   "queries": 317
+  },
+  "P0cSU|12|current": {
+   "disagreements": 0,
+   "queries": 317
+  },
+  "P0cSU|12|derived:downstream": {
+   "disagreements": 0,
+   "queries": 41
+  },
+  "P0cSU|12|reported": {
+   "disagreements": 0,
+   "queries": 317
+  },
+  "P0cSU|12|yesno:changed": {
+   "disagreements": 0,
+   "queries": 606
+  },
+  "P0cSU|12|yesno:erroneous": {
+   "disagreements": 0,
+   "queries": 951
+  },
+  "P0cSU|12|yesno:holds": {
+   "disagreements": 0,
+   "queries": 634
+  },
+  "P0cSU|8|asof": {
+   "disagreements": 0,
+   "queries": 1856
+  },
+  "P0cSU|8|belief_asof": {
+   "disagreements": 0,
+   "queries": 928
+  },
+  "P0cSU|8|current": {
+   "disagreements": 0,
+   "queries": 928
+  },
+  "P0cSU|8|derived:current": {
+   "disagreements": 0,
+   "queries": 91
+  },
+  "P0cSU|8|derived:downstream": {
+   "disagreements": 0,
+   "queries": 225
+  },
+  "P0cSU|8|reported": {
+   "disagreements": 0,
+   "queries": 928
+  },
+  "P0cSU|8|yesno:changed": {
+   "disagreements": 0,
+   "queries": 1686
+  },
+  "P0cSU|8|yesno:erroneous": {
+   "disagreements": 0,
+   "queries": 2784
+  },
+  "P0cSU|8|yesno:holds": {
+   "disagreements": 0,
+   "queries": 1856
+  },
+  "P0cSU|9|asof": {
+   "disagreements": 0,
+   "queries": 1700
+  },
+  "P0cSU|9|belief_asof": {
+   "disagreements": 0,
+   "queries": 850
+  },
+  "P0cSU|9|current": {
+   "disagreements": 0,
+   "queries": 850
+  },
+  "P0cSU|9|derived:current": {
+   "disagreements": 0,
+   "queries": 41
+  },
+  "P0cSU|9|derived:downstream": {
+   "disagreements": 0,
+   "queries": 173
+  },
+  "P0cSU|9|reported": {
+   "disagreements": 0,
+   "queries": 850
+  },
+  "P0cSU|9|yesno:changed": {
+   "disagreements": 0,
+   "queries": 1564
+  },
+  "P0cSU|9|yesno:erroneous": {
+   "disagreements": 0,
+   "queries": 2550
+  },
+  "P0cSU|9|yesno:holds": {
+   "disagreements": 0,
+   "queries": 1700
+  },
+  "P0c|10|asof": {
+   "disagreements": 0,
+   "queries": 1428
+  },
+  "P0c|10|belief_asof": {
+   "disagreements": 0,
+   "queries": 714
+  },
+  "P0c|10|current": {
+   "disagreements": 0,
+   "queries": 714
+  },
+  "P0c|10|derived:downstream": {
+   "disagreements": 0,
+   "queries": 118
+  },
+  "P0c|10|reported": {
+   "disagreements": 0,
+   "queries": 714
+  },
+  "P0c|10|yesno:changed": {
+   "disagreements": 0,
+   "queries": 1334
+  },
+  "P0c|10|yesno:erroneous": {
+   "disagreements": 0,
+   "queries": 2142
+  },
+  "P0c|10|yesno:holds": {
+   "disagreements": 0,
+   "queries": 1428
+  },
+  "P0c|11|asof": {
+   "disagreements": 0,
+   "queries": 1074
+  },
+  "P0c|11|belief_asof": {
+   "disagreements": 0,
+   "queries": 537
+  },
+  "P0c|11|current": {
+   "disagreements": 0,
+   "queries": 537
+  },
+  "P0c|11|derived:downstream": {
+   "disagreements": 0,
+   "queries": 79
+  },
+  "P0c|11|reported": {
+   "disagreements": 0,
+   "queries": 537
+  },
+  "P0c|11|yesno:changed": {
+   "disagreements": 0,
+   "queries": 1010
+  },
+  "P0c|11|yesno:erroneous": {
+   "disagreements": 0,
+   "queries": 1611
+  },
+  "P0c|11|yesno:holds": {
+   "disagreements": 0,
+   "queries": 1074
+  },
+  "P0c|12|asof": {
+   "disagreements": 0,
+   "queries": 634
+  },
+  "P0c|12|belief_asof": {
+   "disagreements": 0,
+   "queries": 317
+  },
+  "P0c|12|current": {
+   "disagreements": 0,
+   "queries": 317
+  },
+  "P0c|12|derived:downstream": {
+   "disagreements": 0,
+   "queries": 41
+  },
+  "P0c|12|reported": {
+   "disagreements": 0,
+   "queries": 317
+  },
+  "P0c|12|yesno:changed": {
+   "disagreements": 0,
+   "queries": 606
+  },
+  "P0c|12|yesno:erroneous": {
+   "disagreements": 0,
+   "queries": 951
+  },
+  "P0c|12|yesno:holds": {
+   "disagreements": 0,
+   "queries": 634
+  },
+  "P0c|8|asof": {
+   "disagreements": 0,
+   "queries": 1856
+  },
+  "P0c|8|belief_asof": {
+   "disagreements": 0,
+   "queries": 928
+  },
+  "P0c|8|current": {
+   "disagreements": 0,
+   "queries": 928
+  },
+  "P0c|8|derived:current": {
+   "disagreements": 0,
+   "queries": 91
+  },
+  "P0c|8|derived:downstream": {
+   "disagreements": 0,
+   "queries": 225
+  },
+  "P0c|8|reported": {
+   "disagreements": 0,
+   "queries": 928
+  },
+  "P0c|8|yesno:changed": {
+   "disagreements": 0,
+   "queries": 1686
+  },
+  "P0c|8|yesno:erroneous": {
+   "disagreements": 0,
+   "queries": 2784
+  },
+  "P0c|8|yesno:holds": {
+   "disagreements": 0,
+   "queries": 1856
+  },
+  "P0c|9|asof": {
+   "disagreements": 0,
+   "queries": 1700
+  },
+  "P0c|9|belief_asof": {
+   "disagreements": 0,
+   "queries": 850
+  },
+  "P0c|9|current": {
+   "disagreements": 0,
+   "queries": 850
+  },
+  "P0c|9|derived:current": {
+   "disagreements": 0,
+   "queries": 41
+  },
+  "P0c|9|derived:downstream": {
+   "disagreements": 0,
+   "queries": 173
+  },
+  "P0c|9|reported": {
+   "disagreements": 0,
+   "queries": 850
+  },
+  "P0c|9|yesno:changed": {
+   "disagreements": 0,
+   "queries": 1564
+  },
+  "P0c|9|yesno:erroneous": {
+   "disagreements": 0,
+   "queries": 2550
+  },
+  "P0c|9|yesno:holds": {
+   "disagreements": 0,
+   "queries": 1700
+  }
+ },
+ "examples": [],
+ "features": {
+  "10|change_cues": 429,
+  "10|corrections": 414,
+  "10|multi_valued": 667,
+  "10|origins>=3": 575,
+  "10|states": 714,
+  "11|change_cues": 345,
+  "11|corrections": 314,
+  "11|multi_valued": 505,
+  "11|origins>=3": 426,
+  "11|states": 537,
+  "12|change_cues": 207,
+  "12|corrections": 195,
+  "12|multi_valued": 303,
+  "12|origins>=3": 253,
+  "12|states": 317,
+  "8|change_cues": 534,
+  "8|corrections": 489,
+  "8|multi_valued": 843,
+  "8|origins>=3": 779,
+  "8|states": 928,
+  "9|change_cues": 506,
+  "9|corrections": 467,
+  "9|multi_valued": 782,
+  "9|origins>=3": 703,
+  "9|states": 850
+ },
+ "gold_status_current": {
+  "P0cSU|10|established": 306,
+  "P0cSU|10|unresolved": 408,
+  "P0cSU|11|established": 230,
+  "P0cSU|11|unresolved": 307,
+  "P0cSU|12|established": 135,
+  "P0cSU|12|unresolved": 182,
+  "P0cSU|8|established": 408,
+  "P0cSU|8|unresolved": 520,
+  "P0cSU|9|established": 369,
+  "P0cSU|9|unresolved": 481,
+  "P0c|10|established": 252,
+  "P0c|10|unresolved": 462,
+  "P0c|11|established": 191,
+  "P0c|11|unresolved": 346,
+  "P0c|12|established": 113,
+  "P0c|12|unresolved": 204,
+  "P0c|8|established": 346,
+  "P0c|8|unresolved": 582,
+  "P0c|9|established": 308,
+  "P0c|9|unresolved": 542
+ },
+ "oracle_seconds": 861.1,
+ "per_n": {
+  "P0cSU|n=10": {
+   "disagreements": 0,
+   "keys": 714,
+   "queries": 8592
+  },
+  "P0cSU|n=11": {
+   "disagreements": 0,
+   "keys": 537,
+   "queries": 6459
+  },
+  "P0cSU|n=12": {
+   "disagreements": 0,
+   "keys": 317,
+   "queries": 3817
+  },
+  "P0cSU|n=8": {
+   "disagreements": 0,
+   "keys": 928,
+   "queries": 11282
+  },
+  "P0cSU|n=9": {
+   "disagreements": 0,
+   "keys": 850,
+   "queries": 10278
+  },
+  "P0c|n=10": {
+   "disagreements": 0,
+   "keys": 714,
+   "queries": 8592
+  },
+  "P0c|n=11": {
+   "disagreements": 0,
+   "keys": 537,
+   "queries": 6459
+  },
+  "P0c|n=12": {
+   "disagreements": 0,
+   "keys": 317,
+   "queries": 3817
+  },
+  "P0c|n=8": {
+   "disagreements": 0,
+   "keys": 928,
+   "queries": 11282
+  },
+  "P0c|n=9": {
+   "disagreements": 0,
+   "keys": 850,
+   "queries": 10278
+  }
+ },
+ "relax_levels": {
+  "0": 7484
+ },
+ "seed_base": 7700000,
+ "shapes": [
+  "employer",
+  "residence",
+  "birth_date",
+  "nickname",
+  "derived",
+  "tax",
+  "selfupdate"
+ ],
+ "streams": 1050,
+ "total_disagreements": 0,
+ "total_queries": 80856,
+ "wall_seconds": 717.5,
+ "workers": 6
+}

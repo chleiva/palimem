@@ -45,34 +45,55 @@ PENDING_SEC = "Threat-model mitigation {} is [proposed], not ratified (docs/THRE
 
 def s06() -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
+    # default budget 12 (raised from 7 on the budget cross-check, docs/BUDGET_CROSSCHECK.md): twelve reports resolve, the thirteenth not
     ops: list[dict[str, Any]] = []
-    for i in range(1, 8):
+    for i in range(1, 13):
         ops.append(append(f"r{i}", d(2, i), "alice", "employer", V("acme"), source=f"s{i}"))
-    ops.append(query("q7", Q("alice", "employer"), resolved("established", assertion=c_value("acme"))))
-    ops.append(append("r8", d(2, 8), "alice", "employer", V("acme"), source="s8"))
-    ops.append(query("q8", Q("alice", "employer"), limited("environment_budget", reason_key=K("alice", "employer"))))
-    ops.append(withdraw("r9", d(2, 9), "$r8", "alice", "employer", source="s8"))
-    ops.append(query("q7b", Q("alice", "employer"), resolved("established", assertion=c_value("acme"))))
+    ops.append(query("q12", Q("alice", "employer"), resolved("established", assertion=c_value("acme"))))
+    ops.append(append("r13", d(2, 13), "alice", "employer", V("acme"), source="s13"))
+    ops.append(query("q13", Q("alice", "employer"), limited("environment_budget", reason_key=K("alice", "employer"))))
+    ops.append(withdraw("r14", d(2, 14), "$r13", "alice", "employer", source="s13"))
+    ops.append(query("q12b", Q("alice", "employer"), resolved("established", assertion=c_value("acme"))))
     out.append(scen(
-        "s06-01-default-environment-budget-is-seven", "The default environment budget is 7: seven independent reports resolve, the eighth does not",
+        "s06-01-default-environment-budget-is-twelve", "The default environment budget is 12: twelve independent reports resolve, the thirteenth does not",
         "G1", "budget", ["S-06"],
-        "S-06 (decided): the default per-key budget is 7, the validated envelope of the study generator. Seven independent origin groups "
-        "reporting one value are seven minimal environments: Resolved. The eighth makes eight: ResourceLimited(environment_budget) naming "
-        "the key, no kernel_status. Withdrawing the eighth brings the key back to seven and it resolves again. No configure op is used, so "
-        "this tests the default itself, not the mechanism.",
-        EMP, ops, sources=GRP(8), source="S-06 decision (2026-10-04)"))
+        "S-06 (decided, default raised from 7 to 12 on 2026-10-05): the default per-key budget is 12. S-06 allowed the raise only after the "
+        "enumeration kernel's answers at 8 to 12 reports per key were cross-checked against the brute-force global oracle on freshly "
+        "generated streams: docs/BUDGET_CROSSCHECK.md records 1,050 fresh streams and 80,856 query comparisons (P0c and P0cSU, every slot "
+        "type) with 0 disagreements and 928 / 850 / 714 / 537 / 317 keys at n = 8 / 9 / 10 / 11 / 12. Twelve independent origin groups "
+        "reporting one value are twelve minimal environments: Resolved. The thirteenth makes thirteen: ResourceLimited(environment_budget) "
+        "naming the key, no kernel_status. Withdrawing the thirteenth brings the key back to twelve and it resolves again. No configure op "
+        "is used, so this tests the default itself, not the mechanism.",
+        EMP, ops, sources=GRP(13), source="S-06 decision (2026-10-04); default raised 2026-10-05 on docs/BUDGET_CROSSCHECK.md"))
+
+    # the previous default (7, the study generator's envelope) stays available as an explicit budget
+    ops7: list[dict[str, Any]] = [op("configure", limits={"environment_budget": 7})]
+    for i in range(1, 8):
+        ops7.append(append(f"r{i}", d(2, i), "alice", "employer", V("acme"), source=f"s{i}"))
+    ops7.append(query("q7", Q("alice", "employer"), resolved("established", assertion=c_value("acme"))))
+    ops7.append(append("r8", d(2, 8), "alice", "employer", V("acme"), source="s8"))
+    ops7.append(query("q8", Q("alice", "employer"), limited("environment_budget", reason_key=K("alice", "employer"))))
+    ops7.append(withdraw("r9", d(2, 9), "$r8", "alice", "employer", source="s8"))
+    ops7.append(query("q7b", Q("alice", "employer"), resolved("established", assertion=c_value("acme"))))
+    out.append(scen(
+        "s06-05-explicit-environment-budget-of-seven", "An explicit budget of 7 (the previously validated envelope) is still honoured",
+        "G1", "budget", ["S-06"],
+        "The default is 12 (see s06-01) but a deployment may set a smaller budget: here 7, the envelope the study generator produces. Seven "
+        "independent origin groups resolve, the eighth exceeds the budget and answers ResourceLimited(environment_budget), withdrawing it "
+        "brings the key back to seven. This is the explicit-budget variant of what s06-01 tested as the default before 2026-10-05.",
+        EMP, ops7, requires=["budget_control"], sources=GRP(8), source="S-06 decision (2026-10-04); budget variant"))
 
     ops2: list[dict[str, Any]] = []
-    for i in range(1, 9):
+    for i in range(1, 14):
         ops2.append(append(f"r{i}", d(2, i), "alice", "employer", V(f"emp{i}"), source=f"s{i}"))
     ops2.append(query("q1", Q("alice", "employer"), limited("environment_budget", reason_key=K("alice", "employer"))))
     out.append(scen(
         "s06-02-over-budget-is-never-unresolved", "Over the budget the answer is ResourceLimited even when the evidence is plainly conflicting",
         "G1", "budget", ["S-06", "design-row-8"],
-        "Eight conflicting values from eight sources would be 'unresolved' for a kernel that could list them. Above the default budget of "
-        "7 the key must answer ResourceLimited(environment_budget) instead: no kernel_status, so it can never be mistaken for a "
+        "Thirteen conflicting values from thirteen sources would be 'unresolved' for a kernel that could list them. Above the default budget "
+        "of 12 the key must answer ResourceLimited(environment_budget) instead: no kernel_status, so it can never be mistaken for a "
         "legitimate 'unresolved' (S-06: a key above budget never degrades silently).",
-        EMP, ops2, sources=GRP(8), source="S-06 decision (2026-10-04)"))
+        EMP, ops2, sources=GRP(13), source="S-06 decision (2026-10-04); default raised 2026-10-05"))
 
     for sid, title, vts in (
         ("s06-03-collapse-invariance-interchangeable", "Collapsing interchangeable reports changes no answer on either axis", False),

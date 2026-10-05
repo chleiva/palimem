@@ -46,7 +46,8 @@ def test_the_adapter_passes_a_meaningful_core_of_the_suite() -> None:
     core = {
         "ind-04-retrospective-correction-two-axes", "ind-06-agent-repeats-own-hypothesis",
         "ind-08a-environment-budget-resource-limited", "ind-14-cascade-budget-stale-c",
-        "s06-01-default-environment-budget-is-seven", "s06-02-over-budget-is-never-unresolved",
+        "s06-01-default-environment-budget-is-twelve", "s06-02-over-budget-is-never-unresolved",
+        "s06-05-explicit-environment-budget-of-seven",
         "compat-02-per-slot-type-closed-world", "sec-27-sql-metacharacters-round-trip",
         "sec-30-tombstone-leaks-no-key-text", "s10-05-shared-ancestor-rule-refused", "s12-03-rule-depth-nine-refused",
     }
