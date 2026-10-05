@@ -23,12 +23,14 @@ from collections import deque
 from collections.abc import Callable, Mapping, Sequence
 from datetime import UTC, datetime
 
-from palimem.admission import EVIDENCE_CUES, Admitter, Evaluation
+from palimem.admission import EVIDENCE_CUES, Admitter, Attribution, Evaluation
 from palimem.engine.logview import ViewLog
 from palimem.kernel import (
+    AttrSpec,
     DerivedJustification,
     Justification,
     KernelSchema,
+    KernelUnsupported,
     ResourceLimitedResult,
     base_attrs_closure,
     check_schema,
@@ -36,13 +38,16 @@ from palimem.kernel import (
     justify_derived,
     justify_key,
 )
+from palimem.kernel.derive import MAX_DEPTH as MAX_RULE_DEPTH
 from palimem.kernel.justify import Family, segment_at
 from palimem.store import AdmissionContext, InputKind, RevisionContext, StoreView
 from palimem.types import (
     AdmissionOutcome,
     AdmissionRecord,
     Belief,
+    BeliefOfForm,
     BeliefOfProp,
+    Candidate,
     Dependency,
     EmptyForm,
     Inference,
@@ -88,6 +93,19 @@ def direct_entries(ev: Evaluation) -> dict[Key, list[LogEntry]]:
     return out
 
 
+def attribution_segments(key: Key, attributions: Sequence[Attribution]) -> tuple[PSegment, ...]:
+    """The segment of a key that has attributed claims and no direct evidence: ``belief_of(holder, P)`` is established
+    (several different claims: unresolved), and the inner proposition ``P`` is **never** a candidate (T-D5, S-11)."""
+    cands = [
+        Candidate(key=key, form=BeliefOfForm(holder=a.proposition.holder, proposition=a.proposition.proposition))
+        for a in attributions
+    ]
+    if len(cands) == 1:
+        return (PSegment(valid_from=None, valid_to=None, kernel_status=KernelStatus.ESTABLISHED, established=cands[0]),)
+    cands.sort(key=lambda c: c.id)
+    return (PSegment(valid_from=None, valid_to=None, kernel_status=KernelStatus.UNRESOLVED, alternatives=tuple(cands)),)
+
+
 def _ids(entries: Sequence[LogEntry] | None) -> tuple[str, ...]:
     return tuple(e.report.id or "" for e in (entries or ()))
 
@@ -120,16 +138,50 @@ class _Incomplete(Exception):
         self.key = key
 
 
+class Resolver:
+    """Per-revision cache over "the belief of a key" (new versions of this append overlaid on the stored current
+    ones) and over the breakpoints of each belief. Decoding a stored belief is the expensive step, so every derived
+    key of one revision shares one resolver."""
+
+    def __init__(self, view: StoreView, overlay: Mapping[Key, Belief] | None = None) -> None:
+        self._view = view
+        self._overlay = overlay or {}
+        self._cache: dict[Key, Belief | None] = {}
+        self._bps: dict[Key, frozenset[int]] = {}
+
+    def belief(self, key: Key) -> Belief | None:
+        b = self._overlay.get(key)
+        if b is not None:
+            return b
+        if key not in self._cache:
+            self._cache[key] = self._view.current_belief(key)
+        return self._cache[key]
+
+    def breakpoints(self, key: Key) -> frozenset[int]:
+        hit = self._bps.get(key)
+        if hit is None:
+            b = self.belief(key)
+            pts: set[int] = set()
+            if b is not None and b.inference.complete:  # an irrelevant incomplete key must not poison derived keys
+                for s in b.segments:
+                    if s.valid_from is not None:
+                        pts.add(day_of(s.valid_from))
+                    if s.valid_to is not None:
+                        pts.add(day_of(s.valid_to))
+            hit = self._bps[key] = frozenset(pts)
+        return hit
+
+
 class _BeliefProvider:
     """Kernel ``Provider`` over stored base beliefs. Records the keys whose candidates were actually read: those
     (and only those) become the derived belief's ``depends_on``."""
 
-    def __init__(self, resolve: Callable[[Key], Belief | None]) -> None:
-        self._resolve = resolve
+    def __init__(self, resolver: Resolver) -> None:
+        self._r = resolver
         self.consulted: dict[Key, Belief | None] = {}
 
     def candidates(self, key: Key, t: int) -> Family:
-        b = self._resolve(key)
+        b = self._r.belief(key)
         self.consulted[key] = b
         if b is None:
             return frozenset({frozenset()})
@@ -138,16 +190,30 @@ class _BeliefProvider:
         return family_of_segment(segment_at(b.segments, t))
 
     def breakpoints(self, key: Key) -> frozenset[int]:
-        b = self._resolve(key)
-        if b is None or not b.inference.complete:
-            return frozenset()  # an irrelevant incomplete key must not poison unrelated derived keys
-        pts: set[int] = set()
-        for s in b.segments:
-            if s.valid_from is not None:
-                pts.add(day_of(s.valid_from))
-            if s.valid_to is not None:
-                pts.add(day_of(s.valid_to))
-        return frozenset(pts)
+        return self._r.breakpoints(key)
+
+
+def derivation_depths(ks: KernelSchema) -> dict[str, int]:
+    """Derivation depth per attribute: 0 for a base attribute, ``1 + max(depth of the derived attributes its rules
+    read)`` for a derived one. Also the order in which derived keys are revised."""
+    memo: dict[str, int] = {}
+
+    def depth(a: str, stack: tuple[str, ...]) -> int:
+        if a in memo:
+            return memo[a]
+        if not ks.spec(a).derived:
+            return 0
+        if a in stack:
+            raise KernelUnsupported(f"rule cycle through {a!r}")
+        reads = [x for r in ks.rules_for(a) for (x, _e, _v) in (*r.body, *r.exceptions)]
+        memo[a] = 1 + max((depth(x, (*stack, a)) for x in reads), default=0)
+        return memo[a]
+
+    return {a: depth(a, ()) for a in ks.attrs}
+
+
+class RuleDepthError(ValueError):
+    """A derivation chain is deeper than the kernel's rule-evaluation limit; refused at load (never at query time)."""
 
 
 def store_closure(view: StoreView, seed: Key) -> set[Key]:
@@ -180,8 +246,15 @@ class Pipeline:
         entities: Sequence[str] | None = None,
         budget: int = DEFAULT_ENVIRONMENT_BUDGET,
         change_from_of: ChangeFrom | None = None,
+        revision_budget: int | None = None,
     ) -> None:
         check_schema(kernel_schema)  # static exactness: refuse a schema the per-key kernel cannot justify exactly
+        depths = derivation_depths(kernel_schema)
+        if max(depths.values(), default=0) > MAX_RULE_DEPTH:
+            raise RuleDepthError(
+                f"derivation chain of depth {max(depths.values())} exceeds the kernel limit {MAX_RULE_DEPTH}"
+            )
+        self._depths = depths
         self.schema = schema
         self._kernel_schema = kernel_schema
         self.semantic = semantic
@@ -189,6 +262,9 @@ class Pipeline:
         self.entities = None if entities is None else tuple(entities)
         self.budget = budget
         self.change_from_of = change_from_of
+        self.revision_budget = revision_budget
+        """Maximum number of belief versions one ``revise`` call may return. Keys beyond it (derived keys, after the
+        touched ones) stay marked stale and are finished by a completion job (the design's inference budget)."""
         self._log: ViewLog | None = None
         self._evals: dict[tuple[int, str | None, int], Evaluation] = {}
 
@@ -225,6 +301,12 @@ class Pipeline:
             self._evals[ck] = hit
         return hit
 
+    def attr_spec(self, attr: str) -> AttrSpec:
+        return self._kernel_schema.spec(attr)
+
+    def depth_of(self, attr: str) -> int:
+        return self._depths.get(attr, 0)
+
     def kernel_schema(self, ev: Evaluation) -> KernelSchema:
         """The kernel schema with the entity universe: configured, else the entities that appear in the log."""
         if self.entities is not None:
@@ -260,10 +342,11 @@ class Pipeline:
 
     def base_belief(
         self, ks: KernelSchema, key: Key, entries: Sequence[LogEntry], *, version: int, lsn: int, generation: int,
-        inputs: Mapping[str, int], recorded_at: datetime,
+        inputs: Mapping[str, int], recorded_at: datetime, attributions: Sequence[Attribution] = (),
     ) -> Belief:
         j = self.justify_base(ks, key, entries)
         av = self.admitter.config.admission_version
+        attributed = tuple(e.report.id or "" for a in attributions for e in a.entries)
         if isinstance(j, ResourceLimitedResult):
             return Belief(
                 key=key, version=version, lsn=lsn, required_generation=generation,
@@ -272,18 +355,21 @@ class Pipeline:
                 depends_on=(), invalidated_by=None, versions=self._versions(inputs),
                 inference=Inference(complete=False, reason=f"{j.reason.value}: {j.detail}"), recorded_at=recorded_at,
             )
+        segments = j.segments()
+        if not entries and attributions:
+            segments = attribution_segments(key, attributions)
+        pins = tuple(Pin(report_id=i, admission_version=av) for i in (*j.admitted_ids, *attributed))
         return Belief(
             key=key, version=version, lsn=lsn, required_generation=generation, completed_generation=generation,
-            segments=j.segments(), pinned=tuple(Pin(report_id=i, admission_version=av) for i in j.admitted_ids),
-            depends_on=(), invalidated_by=None, versions=self._versions(inputs),
+            segments=segments, pinned=pins, depends_on=(), invalidated_by=None, versions=self._versions(inputs),
             inference=Inference(complete=True), recorded_at=recorded_at,
         )
 
     def derived_belief(
-        self, ks: KernelSchema, key: Key, resolve: Callable[[Key], Belief | None], *, version: int, lsn: int,
+        self, ks: KernelSchema, key: Key, resolver: Resolver, *, version: int, lsn: int,
         generation: int, inputs: Mapping[str, int], recorded_at: datetime,
     ) -> Belief:
-        prov = _BeliefProvider(resolve)
+        prov = _BeliefProvider(resolver)
         dj: DerivedJustification = justify_derived(ks, key, prov, self.semantic)
         def deps_of() -> tuple[Dependency, ...]:
             return tuple(
@@ -366,11 +452,13 @@ class KernelReviser:
             cur = view.current_belief(k)
             return (cur.version if cur is not None else 0) + 1
 
+        has_attr = any(isinstance(e.report.proposition, BeliefOfProp) for e in ev.entries)
         overlay: dict[Key, Belief] = {}
         for k in base_changed:
             overlay[k] = p.base_belief(
                 ks, k, now.get(k, []), version=next_version(k), lsn=lsn, generation=ctx.generation,
                 inputs=ctx.inputs, recorded_at=ctx.entry.recorded_at,
+                attributions=p.admitter.evidence_set_of(ev, k).attributions if has_attr else (),
             )
         out: list[Belief] = list(overlay.values())
 
@@ -379,16 +467,13 @@ class KernelReviser:
         affected = [a for a in derived_attrs if base_attrs_closure(ks, a) & changed_attrs]
         if affected:
             marked = store_closure(view, touched)
-
-            def resolve(k: Key) -> Belief | None:
-                return overlay.get(k) or view.current_belief(k)
-
-            for a in sorted(affected):
+            resolver = Resolver(view, overlay)
+            for a in sorted(affected, key=lambda x: (p.depth_of(x), x)):  # shallow first: a revision budget keeps these
                 for e in ks.entities:
                     dk = Key(entity=e, attr=a)
                     cur = view.current_belief(dk)
                     new = p.derived_belief(
-                        ks, dk, resolve, version=(cur.version if cur is not None else 0) + 1, lsn=lsn,
+                        ks, dk, resolver, version=(cur.version if cur is not None else 0) + 1, lsn=lsn,
                         generation=ctx.generation, inputs=ctx.inputs, recorded_at=ctx.entry.recorded_at,
                     )
                     same = (
@@ -400,6 +485,8 @@ class KernelReviser:
                     )
                     if not same or dk in marked:
                         out.append(new)
+        if p.revision_budget is not None and len(out) > max(p.revision_budget, 1):
+            out = out[: max(p.revision_budget, 1)]  # touched keys come first; the rest are completed later
         return out
 
     def recompute(self, key: Key, view: StoreView) -> Belief | None:
@@ -416,12 +503,13 @@ class KernelReviser:
         gen = max(head.generation, 0)
         if ks.spec(key.attr).derived:
             return p.derived_belief(
-                ks, key, view.current_belief, version=version, lsn=lsn, generation=gen, inputs=inputs,
+                ks, key, Resolver(view), version=version, lsn=lsn, generation=gen, inputs=inputs,
                 recorded_at=recorded_at,
             )
+        has_attr = any(isinstance(e.report.proposition, BeliefOfProp) for e in ev.entries)
         return p.base_belief(
             ks, key, direct_entries(ev).get(key, []), version=version, lsn=lsn, generation=gen, inputs=inputs,
-            recorded_at=recorded_at,
+            recorded_at=recorded_at, attributions=p.admitter.evidence_set_of(ev, key).attributions if has_attr else (),
         )
 
 

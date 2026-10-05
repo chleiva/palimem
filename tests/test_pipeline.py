@@ -123,11 +123,49 @@ def test_environment_budget_is_resource_limited_never_unresolved() -> None:
     assert isinstance(d, ResourceLimited)
 
 
-def test_open_world_profile_is_enforced_per_query(mem: Memory) -> None:
+def test_query_profile_reprojects_the_stored_segment(mem: Memory) -> None:
+    """S-04: the profile only decides how an empty candidate family is classified. The same stored belief answers
+    ``unknown`` under open-world and ``established_empty`` under revise-stream-v1 for a multi-valued key."""
     from palimem.types import Profile
 
-    with pytest.raises(ValueError, match="profile"):
-        mem.query(Query(key=Key(entity="alex", attr="employer"), profile=Profile.REVISE_STREAM_V1))
+    key = Key(entity="alex", attr="affiliations")
+    ow = mem.query(Query(key=key, profile=Profile.OPEN_WORLD))
+    cp = mem.query(Query(key=key, profile=Profile.REVISE_STREAM_V1))
+    assert isinstance(ow, Resolved) and isinstance(cp, Resolved)
+    assert ow.kernel_status is KernelStatus.UNKNOWN and cp.kernel_status is KernelStatus.ESTABLISHED_EMPTY
+    single = mem.query(Query(key=Key(entity="alex", attr="employer"), profile=Profile.REVISE_STREAM_V1))
+    assert isinstance(single, Resolved) and single.kernel_status is KernelStatus.UNKNOWN
+
+
+def test_derivation_chain_deeper_than_the_kernel_limit_is_refused_at_load() -> None:
+    from palimem.admission import AdmissionConfig
+    from palimem.compat import schema_from_kernel
+    from palimem.engine import RuleDepthError
+    from palimem.kernel import AttrSpec, KernelSchema, RuleSpec
+    from palimem.types import Profile, SemanticConfig
+
+    attrs = {"a0": AttrSpec("a0", "single", True)}
+    rules = []
+    for i in range(1, 10):
+        attrs[f"a{i}"] = AttrSpec(f"a{i}", "single", True, error_allowed=False, derived=True)
+        rules.append(RuleSpec(id=f"r{i}", head=(f"a{i}", "?e", "?c"), body=((f"a{i-1}", "?e", "?c"),)))
+    ks = KernelSchema(attrs=attrs, rules=tuple(rules), entities=("alex",))
+    with pytest.raises(RuleDepthError):
+        Memory(make_backend("memory", Clock()), schema_from_kernel(ks), kernel_schema=ks, entities=ks.entities,
+               semantic=SemanticConfig(self_update=False, profile=Profile.OPEN_WORLD),
+               admission=AdmissionConfig(profile=Profile.OPEN_WORLD))
+
+
+def test_revision_budget_leaves_deeper_derived_keys_stale_until_completion() -> None:
+    """A revision that stops before a deep derived key never serves its old value as current; a completion job stamps it."""
+    clock = Clock()
+    m = toy_memory(make_backend("memory", clock), revision_budget=1)
+    m.append(assertion("alex", "employer", "veltran"), complete=False)
+    ans = current(m, "alex", "work_city")
+    assert isinstance(ans, ResourceLimited) and ans.reason.value == "stale_dependency"
+    m.complete()
+    ans2 = current(m, "alex", "work_city")
+    assert isinstance(ans2, Resolved)
 
 
 def test_undeclared_attribute_is_refused(mem: Memory) -> None:

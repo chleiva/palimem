@@ -11,7 +11,9 @@ from palimem.engine.logview import ViewLog
 from palimem.engine.pipeline import (
     KernelReviser,
     Pipeline,
+    RuleDepthError,
     StoreAdmitter,
+    derivation_depths,
     direct_entries,
     family_of_segment,
 )
@@ -19,8 +21,10 @@ from palimem.engine.pipeline import (
 __all__ = [
     "KernelReviser",
     "Pipeline",
+    "RuleDepthError",
     "StoreAdmitter",
     "ViewLog",
+    "derivation_depths",
     "direct_entries",
     "family_of_segment",
 ]
