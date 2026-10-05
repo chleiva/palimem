@@ -1,0 +1,382 @@
+{
+ "adapter_sha256": "feb0b348e7c3db24cdb2b6bfa4a34c1fd5f5070015fd32141638d2683d15f732",
+ "backend": "memory (primary) + sqlite (equivalence check)",
+ "config": {
+  "policy": "lww",
+  "self_update": true
+ },
+ "errors": {},
+ "responses": {
+  "RA-003": {
+   "RA-003.d1": {
+    "action": "act",
+    "value": "globex"
+   },
+   "RA-003.d2": {
+    "action": "act",
+    "value": "acme"
+   }
+  },
+  "RA-007": {
+   "RA-007.d1": {
+    "action": "act",
+    "value": "manchester"
+   }
+  },
+  "RA-011": {
+   "RA-011.d1": {
+    "action": "act",
+    "value": "acc-111"
+   }
+  },
+  "RA-014": {
+   "RA-014.d1": {
+    "action": "act",
+    "value": "acc-111"
+   }
+  },
+  "RA-018": {
+   "RA-018.d1": {
+    "action": "ask",
+    "value": null
+   }
+  },
+  "RA-021": {
+   "RA-021.d1": {
+    "action": "act",
+    "value": "9 pine st"
+   },
+   "RA-021.d2": {
+    "action": "act",
+    "value": "4 oak rd"
+   }
+  },
+  "RA-024": {
+   "RA-024.d1": {
+    "action": "act",
+    "value": "acme"
+   },
+   "RA-024.d2": {
+    "action": "act",
+    "value": "globex"
+   }
+  },
+  "RA-026": {
+   "RA-026.d1": {
+    "action": "act",
+    "value": "paris"
+   },
+   "RA-026.d2": {
+    "action": "act",
+    "value": "paris"
+   },
+   "RA-026.d3": {
+    "action": "ask",
+    "value": null
+   }
+  },
+  "RA-028": {
+   "RA-028.d1": {
+    "action": "revalidate",
+    "value": "22 mill ln"
+   }
+  },
+  "RA-030": {
+   "RA-030.d1": {
+    "action": "act",
+    "value": "erin@x.org"
+   },
+   "RA-030.d2": {
+    "action": "act",
+    "value": "dana@x.org"
+   }
+  }
+ },
+ "scenario_ids": [
+  "RA-003",
+  "RA-007",
+  "RA-011",
+  "RA-014",
+  "RA-018",
+  "RA-021",
+  "RA-024",
+  "RA-026",
+  "RA-028",
+  "RA-030"
+ ],
+ "scenarios_sha256": "7f11bd8b4e50ba6e2d7c3af98eeeb03e638ad1fff5c75b12a5c429cb4c97f2c5",
+ "sqlite_differences": [],
+ "sqlite_responses_identical": true,
+ "system": "lww",
+ "traces": [
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "globex"
+   },
+   "point": "RA-003.d1",
+   "reference": null,
+   "scenario": "RA-003",
+   "value": "globex"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "acme"
+   },
+   "point": "RA-003.d2",
+   "reference": null,
+   "scenario": "RA-003",
+   "value": "acme"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "manchester"
+   },
+   "point": "RA-007.d1",
+   "reference": null,
+   "scenario": "RA-007",
+   "value": "manchester"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "acc-111"
+   },
+   "point": "RA-011.d1",
+   "reference": null,
+   "scenario": "RA-011",
+   "value": "acc-111"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "acc-111"
+   },
+   "point": "RA-014.d1",
+   "reference": null,
+   "scenario": "RA-014",
+   "value": "acc-111"
+  },
+  {
+   "action": "ask",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "defer",
+    "note": "commit to a non-value candidate (BeliefOfForm)",
+    "value": null
+   },
+   "point": "RA-018.d1",
+   "reference": null,
+   "scenario": "RA-018",
+   "value": null
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "unresolved",
+    "kind": "value",
+    "note": "",
+    "value": "9 pine st"
+   },
+   "point": "RA-021.d1",
+   "reference": null,
+   "scenario": "RA-021",
+   "value": "9 pine st"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "4 oak rd"
+   },
+   "point": "RA-021.d2",
+   "reference": null,
+   "scenario": "RA-021",
+   "value": "4 oak rd"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "acme"
+   },
+   "point": "RA-024.d1",
+   "reference": null,
+   "scenario": "RA-024",
+   "value": "acme"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "globex"
+   },
+   "point": "RA-024.d2",
+   "reference": null,
+   "scenario": "RA-024",
+   "value": "globex"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "unresolved",
+    "kind": "value",
+    "note": "",
+    "value": "paris"
+   },
+   "point": "RA-026.d1",
+   "reference": null,
+   "scenario": "RA-026",
+   "value": "paris"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "paris"
+   },
+   "point": "RA-026.d2",
+   "reference": null,
+   "scenario": "RA-026",
+   "value": "paris"
+  },
+  {
+   "action": "ask",
+   "events": 1,
+   "note": "the belief an executed action rested on changed: gap surfaced",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "paris"
+   },
+   "point": "RA-026.d3",
+   "reference": {
+    "decision": "commit",
+    "kernel_status": "unresolved",
+    "kind": "value",
+    "note": "",
+    "value": "paris"
+   },
+   "scenario": "RA-026",
+   "value": null
+  },
+  {
+   "action": "revalidate",
+   "events": 1,
+   "note": "a subscribed belief changed since planning: re-read, then act on the current value",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "22 mill ln"
+   },
+   "point": "RA-028.d1",
+   "reference": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "7 high st"
+   },
+   "scenario": "RA-028",
+   "value": "22 mill ln"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "erin@x.org"
+   },
+   "point": "RA-030.d1",
+   "reference": null,
+   "scenario": "RA-030",
+   "value": "erin@x.org"
+  },
+  {
+   "action": "act",
+   "events": 0,
+   "note": "",
+   "now": {
+    "decision": "commit",
+    "kernel_status": "established",
+    "kind": "value",
+    "note": "",
+    "value": "dana@x.org"
+   },
+   "point": "RA-030.d2",
+   "reference": null,
+   "scenario": "RA-030",
+   "value": "dana@x.org"
+  }
+ ],
+ "warnings": []
+}
