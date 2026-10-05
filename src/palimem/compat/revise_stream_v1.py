@@ -47,11 +47,17 @@ evidence at the snapshot (the audit path of ``Memory``); they are profile projec
 from __future__ import annotations
 
 import json
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any
 
-from palimem.admission import AdmissionConfig, Admitter, Evaluation, Withdrawal
+from palimem.admission import (
+    AdmissionConfig,
+    Admitter,
+    Evaluation,
+    IncrementalAdmission,
+    Withdrawal,
+)
 from palimem.kernel import AttrSpec, KernelSchema
 from palimem.kernel.spec import rule_fn
 from palimem.types import (
@@ -178,6 +184,42 @@ class CompatAdmitter(Admitter):
             admission_version=ev.admission_version, as_of_lsn=ev.as_of_lsn, entries=ev.entries,
             decisions=ev.decisions, withdrawn=MappingProxyType(withdrawn),
         )
+
+    # -- the same rule for incremental admission (docs/PIPELINE.md): the base withdrawals are computed by the
+    # incremental state, this overlay adds the retracted sources exactly as ``_evaluate`` above does.
+
+    @staticmethod
+    def _retracted_sources(inc: IncrementalAdmission, base_withdrawn: Mapping[str, Withdrawal]) -> dict[str, str]:
+        retracted: dict[str, str] = {}
+        for e in inc.by_attr.get(SOURCE_STATUS_ATTR, ()):
+            r = e.report
+            rid = r.id
+            assert rid is not None
+            if (
+                isinstance(r.proposition, ValueProp)
+                and r.proposition.value == RETRACTED
+                and inc.decision(rid).record.outcome is AdmissionOutcome.ADMISSIBLE
+                and rid not in base_withdrawn
+            ):
+                retracted.setdefault(r.key.entity, rid)
+        return retracted
+
+    def incremental_overlay_trigger(self, inc: IncrementalAdmission, entry: LogEntry) -> bool:
+        """May this append change the retracted-source overlay? A marker, or a report of an already retracted source."""
+        if entry.report.key.attr == SOURCE_STATUS_ATTR:
+            return True
+        return entry.report.source.id in self._retracted_sources(inc, inc.withdrawn_base)
+
+    def incremental_overlay(self, inc: IncrementalAdmission, base_withdrawn: Mapping[str, Withdrawal]) -> dict[str, Withdrawal]:
+        retracted = self._retracted_sources(inc, base_withdrawn)
+        out = dict(base_withdrawn)
+        for src, by in retracted.items():
+            for x in inc.by_source.get(src, ()):
+                if x.report.key.attr != SOURCE_STATUS_ATTR:
+                    rid = x.report.id
+                    assert rid is not None
+                    out.setdefault(rid, Withdrawal(by=by, kind="source_withdraw"))
+        return out
 
 
 # --------------------------------------------------------------------------- schema conversion

@@ -21,9 +21,28 @@ agent tool API binds them itself and is a separate task (T-F2). The three-call f
 
 ## 2. How a revision works
 
-* **Admission is a pure function of (log prefix, admission config).** `StoreAdmitter` evaluates it at `lsn - 1` and at
-  `lsn`; the record for the new report comes first, and an earlier report whose decision changed (a confirmation lifting a
-  quarantine, a lapsed confirmation) gets a fresh record, so admission history stays append-only.
+* **Admission is a pure function of (log prefix, admission config), computed incrementally.** The definition is the
+  whole-log evaluation (`Admitter.evaluate`): the audit oracle. The append path does not run it. `IncrementalAdmission`
+  (`src/palimem/admission/incremental.py`) keeps the evaluation's state for the committed head and updates it by the
+  reports an append can change: the new report's own-merit decision (memoised), the withdrawal effects (recomputed over the
+  *actors* only, and only when the append is an actor or a source a standing source-level withdrawal covers), the derived
+  confirmations (only for keys that hold quarantined evidence), and the direct evidence of the keys whose status changed.
+  A plain append therefore does no work that grows with the log. The record for the new report comes first, and an earlier
+  report whose decision changed (a confirmation lifting a quarantine, a lapsed confirmation) gets a fresh record, so
+  admission history stays append-only. Every mutation goes through an undo journal, because the store's append is one
+  transaction that can roll back after admission ran; the state settles against the committed log before each use and is
+  rebuilt from the log after a history rewrite (erasure, restore) or an admission change.
+  * **Modes** (`Pipeline(admission=...)` or `PALIMEM_ADMISSION`): `incremental` (default), `whole-log` (the audit path, one
+    full evaluation per append, also forced by `exhaustive=True`), `crosscheck` (incremental, compared with the whole-log
+    evaluation decision for decision after every append; used by the tests and available as a debugging aid).
+  * **One rule stays on a bounded slow path:** withdrawal effects. They depend on the order of the actors (newest first under
+    `acting_reports_must_be_live`) and on source-level extents, so an actor append recomputes the effects over the actors
+    (O(actors), plus the reports of a covered source), never over the log. A subclass that overrides the whole-log internals
+    (`CompatAdmitter`'s source retraction) must provide `incremental_overlay` / `incremental_overlay_trigger` or it runs on the
+    whole-log path (`supports_incremental`).
+  * **Completion jobs** recompute from the same state (`KernelReviser.recompute`), so a job costs the key it recomputes. (The
+    first incremental draft routed `recompute` through a whole-log evaluation, which the old evaluation cache had hidden; the
+    work-count test `tests/test_pipeline_incremental.py` now fails if an append path runs `Admitter.evaluate`.)
 * **Touched keys.** A key is touched when its admitted evidence set differs between the two evaluations, plus the key of the
   appended report. One rule covers an assertion, a withdrawal, a self-correction, a derived confirmation and the compat
   source-level retraction.

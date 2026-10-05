@@ -10,7 +10,7 @@ last entry is still the committed row at that LSN and truncates otherwise.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 
 from palimem.store import StoreView
 from palimem.types import LogEntry
@@ -58,6 +58,24 @@ class ViewLog:
     def get(self, report_id: str) -> LogEntry | None:
         self._fill(self._view.head().lsn)
         return self._by_id.get(report_id)
+
+    def head_lsn(self) -> int:
+        """The committed head of the log (what a rolled-back append never reached)."""
+        return self._view.head().lsn
+
+    # Uncached reads for the incremental admission state, which keeps the entries it needs itself: reading through
+    # ``get``/``entries`` would fill this cache with a second decoded copy of every report (~0.7 KiB per report).
+
+    def peek(self, report_id: str) -> LogEntry | None:
+        """The committed row of ``report_id`` (never cached; ``None`` if absent or erased)."""
+        row = self._view.get_entry(report_id)
+        return row if isinstance(row, LogEntry) else None
+
+    def scan(self, from_lsn: int, to_lsn: int) -> Iterator[LogEntry]:
+        """Committed entries ``from_lsn..to_lsn`` in LSN order, decoded on the fly and not cached."""
+        for row in self._view.scan(from_lsn, to_lsn):
+            if isinstance(row, LogEntry):
+                yield row
 
     def entries(self, *, upto_lsn: int | None = None) -> Sequence[LogEntry]:
         head = self._view.head().lsn

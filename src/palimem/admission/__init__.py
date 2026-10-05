@@ -21,6 +21,11 @@ from palimem.admission.equivalence import (
     proposition_signature,
 )
 from palimem.admission.ids import derive_ulid
+from palimem.admission.incremental import (
+    AdmissionDelta,
+    IncrementalAdmission,
+    supports_incremental,
+)
 from palimem.admission.log import ListLog, LogView
 
 __all__ = [
@@ -28,12 +33,14 @@ __all__ = [
     "EVIDENCE_CUES",
     "AdmissionConfig",
     "AdmissionDecision",
+    "AdmissionDelta",
     "Admitter",
     "Attribution",
     "AuthDecision",
     "Authorizer",
     "Evaluation",
     "EvidenceSet",
+    "IncrementalAdmission",
     "ListLog",
     "LogView",
     "SourceStatus",
@@ -43,4 +50,5 @@ __all__ = [
     "normalise_value",
     "origin_group_count",
     "proposition_signature",
+    "supports_incremental",
 ]

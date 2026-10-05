@@ -19,12 +19,21 @@ How a revision works (docs/PIPELINE.md):
 
 from __future__ import annotations
 
+import os
 from collections import Counter, OrderedDict, deque
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
-from palimem.admission import EVIDENCE_CUES, Admitter, Attribution, Evaluation
+from palimem.admission import (
+    EVIDENCE_CUES,
+    AdmissionDelta,
+    Admitter,
+    Attribution,
+    Evaluation,
+    IncrementalAdmission,
+    supports_incremental,
+)
 from palimem.engine.dependents import DependentsPlans, ValueIndex, resolve
 from palimem.engine.logview import ViewLog
 from palimem.kernel import (
@@ -72,6 +81,8 @@ from palimem.types.limits import DEFAULT_ENVIRONMENT_BUDGET
 
 ChangeFrom = Callable[[Report], Value | None]
 
+ADMISSION_MODES = ("incremental", "whole-log", "crosscheck")
+
 EVAL_CACHE_SIZE = 4
 """Admission evaluations kept (an append reads the one at ``lsn`` and the one at ``lsn - 1``; the rest serve the
 historical queries that re-evaluate). Each holds a decision per log entry, so the cache must stay small: the
@@ -98,6 +109,53 @@ def direct_entries(ev: Evaluation) -> dict[Key, list[LogEntry]]:
             and r.origin is Origin.EXTERNAL_OBSERVATION
         ):
             out.setdefault(r.key, []).append(e)
+    return out
+
+
+def incremental_mismatches(inc: IncrementalAdmission, ev: Evaluation) -> list[str]:
+    """Differences between the incremental admission state and a whole-log evaluation of the same prefix: decisions
+    (every field), withdrawals (``by`` and ``kind`` included), direct evidence per key, attributions per key, the
+    entity universe and the attribution flag. Empty when they agree."""
+    problems: list[str] = []
+    if inc.head != (ev.entries[-1].lsn if ev.entries else 0):
+        problems.append(f"head {inc.head} != {ev.entries[-1].lsn if ev.entries else 0}")
+        return problems
+    decisions, withdrawn, direct = inc.snapshot()
+    if set(decisions) != set(ev.decisions):
+        problems.append("different report sets")
+        return problems
+    for rid, d in ev.decisions.items():
+        if decisions[rid] != d:
+            problems.append(f"decision of {rid}: {decisions[rid].record.outcome.value}/{decisions[rid].record.reason.value} vs {d.record.outcome.value}/{d.record.reason.value}")
+    if dict(ev.withdrawn) != withdrawn:
+        problems.append("withdrawn differs")
+    want = {k: _ids(v) for k, v in direct_entries(ev).items()}
+    if want != direct:
+        problems.append("direct evidence differs")
+    if inc.entities != tuple(sorted({e.report.key.entity for e in ev.entries})):
+        problems.append("entities differ")
+    n_belief = sum(isinstance(e.report.proposition, BeliefOfProp) for e in ev.entries)
+    if inc.belief_of_count != n_belief:
+        problems.append("belief_of count differs")
+    if n_belief:
+        for k in {e.report.key for e in ev.entries if isinstance(e.report.proposition, BeliefOfProp)}:
+            if inc.attributions_of(k) != inc.admitter.evidence_set_of(ev, k).attributions:
+                problems.append(f"attributions of {k.entity}/{k.attr} differ")
+    return problems
+
+
+def whole_log_records(prev: Evaluation | None, ev: Evaluation, rid: str) -> list[AdmissionRecord]:
+    """The admission records of the append that took ``prev`` to ``ev``: the new report's first, then every earlier
+    report whose (outcome, reason, confirmers) changed, in log order. The whole-log definition the incremental
+    delta is compared with."""
+    out = [ev.decisions[rid].record]
+    if prev is not None:
+        for e in prev.entries:
+            r2 = e.report.id
+            assert r2 is not None
+            a, b = prev.decisions[r2].record, ev.decisions[r2].record
+            if (a.outcome, a.reason, a.confirmed_by) != (b.outcome, b.reason, b.confirmed_by):
+                out.append(b)
     return out
 
 
@@ -340,6 +398,7 @@ class Pipeline:
         change_from_of: ChangeFrom | None = None,
         revision_budget: int | None = None,
         exhaustive: bool = False,
+        admission: str | None = None,
     ) -> None:
         check_schema(kernel_schema)  # static exactness: refuse a schema the per-key kernel cannot justify exactly
         depths = derivation_depths(kernel_schema)
@@ -365,6 +424,18 @@ class Pipeline:
         """Audit mode: re-justify the derived keys of **every** entity on each revision, with the exhaustive
         breakpoint gathering (the first version's behaviour). The default revises only the dependents of the changed
         keys; the tests compare the two."""
+        mode = admission if admission is not None else os.environ.get("PALIMEM_ADMISSION", "incremental")
+        if mode not in ADMISSION_MODES:
+            raise ValueError(f"admission mode {mode!r}: expected one of {ADMISSION_MODES}")
+        if exhaustive:
+            mode = "whole-log"  # the audit mode is the first version's behaviour end to end
+        self.admission_mode = mode
+        """``incremental`` (default): admission is updated one append at a time (:class:`IncrementalAdmission`);
+        ``whole-log``: the audit path, a full evaluation per append; ``crosscheck``: incremental, compared with the
+        whole-log evaluation after every append (tests). Also selectable with ``PALIMEM_ADMISSION``."""
+        self._inc: IncrementalAdmission | None = None
+        self._delta: AdmissionDelta | None = None
+        self._ks_cache: tuple[tuple[str, ...], KernelSchema] | None = None
         self.plans = DependentsPlans.of(kernel_schema)
         self._vi: ValueIndex | None = None
         self._vi_lsn: int | None = None
@@ -380,6 +451,8 @@ class Pipeline:
         self.admitter.clear_cache()
         self._evals.clear()
         self._facts.clear()
+        self._inc = None
+        self._delta = None
         self.drop_index()
 
     def drop_index(self) -> None:
@@ -414,13 +487,70 @@ class Pipeline:
         self.admitter.clear_cache()
         self._evals.clear()
         self._facts.clear()
+        self._inc = None
+        self._delta = None
         self.drop_index()
 
     def set_admitter(self, admitter: Admitter) -> None:
         self.admitter = admitter
         self._evals.clear()
         self._facts.clear()
+        self._inc = None
+        self._delta = None
         self.drop_index()
+
+    # -- incremental admission
+
+    @property
+    def incremental_enabled(self) -> bool:
+        """The incremental path runs unless the audit mode is selected or the admitter overrides whole-log internals
+        without providing the overlay hooks (then every append is a whole-log evaluation, as before)."""
+        return self.admission_mode != "whole-log" and supports_incremental(self.admitter)
+
+    def incremental_append(self, entry: LogEntry) -> AdmissionDelta:
+        """Admission of one appended report by update, not by re-evaluation (the state first settles the previous
+        append: committed in the log, or rolled back)."""
+        inc = self.synced_incremental(entry.lsn - 1)
+        delta = inc.append(entry)
+        self._delta = delta
+        return delta
+
+    def synced_incremental(self, head_lsn: int) -> IncrementalAdmission:
+        """The incremental state brought to the committed log prefix ``<= head_lsn`` (settle, catch up or rebuild)."""
+        inc = self._inc
+        if inc is None or inc.admitter is not self.admitter:
+            inc = self._inc = IncrementalAdmission(self.admitter)
+        inc.sync(self.log, before_lsn=head_lsn + 1)
+        return inc
+
+    def incremental_state(self) -> IncrementalAdmission:
+        assert self._inc is not None, "no incremental admission state (admit has not run)"
+        return self._inc
+
+    def take_delta(self, lsn: int) -> AdmissionDelta | None:
+        """The delta of the append at ``lsn`` if the incremental path ran for it (consumed once)."""
+        d = self._delta
+        self._delta = None
+        if d is not None and d.lsn == lsn and self.incremental_enabled:
+            return d
+        return None
+
+    def crosscheck(self, delta: AdmissionDelta) -> None:
+        """Compare the incremental state with the whole-log evaluation decision for decision (audit/tests)."""
+        inc = self.incremental_state()
+        ev = self.admitter.evaluate(self.log, as_of_lsn=delta.lsn)
+        problems = incremental_mismatches(inc, ev)
+        if problems:
+            raise AssertionError("incremental admission differs from the whole-log evaluation: " + "; ".join(problems[:5]))
+        prev = self.admitter.evaluate(self.log, as_of_lsn=delta.lsn - 1) if delta.lsn > 1 else None
+        expect = whole_log_records(prev, ev, delta.report_id)
+        if list(delta.records) != expect:
+            raise AssertionError("incremental admission records differ from the whole-log diff")
+        direct_ev = direct_entries(ev)
+        got = {k for k in direct_ev if _ids(direct_ev[k]) != _ids(inc.direct_of(k))}
+        want_changed = {k for k in direct_ev.keys() | inc.direct.keys() if _ids(direct_ev.get(k)) != _ids(inc.direct_of(k))}
+        if got or want_changed:
+            raise AssertionError("incremental direct evidence differs from the whole-log evaluation")
 
     def evaluate(self, upto_lsn: int) -> Evaluation:
         """Admission over the log prefix ``<= upto_lsn`` under the current admission config (cached)."""
@@ -461,11 +591,19 @@ class Pipeline:
 
     def kernel_schema(self, ev: Evaluation) -> KernelSchema:
         """The kernel schema with the entity universe: configured, else the entities that appear in the log."""
-        ents = self.entities if self.entities is not None else self.facts(ev).entities
+        return self.kernel_schema_for(self.facts(ev).entities)
+
+    def kernel_schema_for(self, entities: tuple[str, ...]) -> KernelSchema:
+        """The kernel schema for an entity universe (cached by the identity of the entity tuple, so an append that
+        introduces no entity neither rebuilds the schema nor compares the universes)."""
+        ents = self.entities if self.entities is not None else entities
+        hit = self._ks_cache
+        if hit is not None and hit[0] is ents:
+            return hit[1]
         ks = self._kernel_schema
-        if tuple(ks.entities) == ents:
-            return ks
-        return KernelSchema(attrs=ks.attrs, rules=ks.rules, entities=ents)
+        out = ks if tuple(ks.entities) == ents else KernelSchema(attrs=ks.attrs, rules=ks.rules, entities=ents)
+        self._ks_cache = (ents, out)
+        return out
 
     # -- justification
 
@@ -570,6 +708,11 @@ class StoreAdmitter:
         p, lsn = self.p, ctx.entry.lsn
         rid = ctx.entry.report.id
         assert rid is not None
+        if p.incremental_enabled:
+            delta = p.incremental_append(ctx.entry)
+            if p.admission_mode == "crosscheck":
+                p.crosscheck(delta)
+            return list(delta.records)
         ev = p.evaluate(lsn)
         records: list[AdmissionRecord] = [ev.decisions[rid].record]
         if lsn > 1:
@@ -595,12 +738,32 @@ class KernelReviser:
     def revise(self, ctx: RevisionContext) -> Sequence[Belief]:
         p, view = self.p, ctx.view
         lsn = ctx.entry.lsn
-        ev = p.evaluate(lsn)
-        now = p.facts(ev).direct
-        prev = p.facts(p.evaluate(lsn - 1)).direct if lsn > 1 else {}
-        ks = p.kernel_schema(ev)
         touched = ctx.entry.report.key
-        changed = {k for k in now.keys() | prev.keys() if _ids(now.get(k)) != _ids(prev.get(k))}
+        delta = p.take_delta(lsn)
+        entries_of: Callable[[Key], Sequence[LogEntry]]
+        attributions_of: Callable[[Key], Sequence[Attribution]]
+        if delta is not None:
+            # incremental admission already knows which keys' admitted evidence changed and holds each key's
+            # direct entries: nothing here scans the log
+            inc = p.incremental_state()
+            ks = p.kernel_schema_for(inc.entities)
+            changed = set(delta.changed_keys)
+            entries_of = inc.direct_of
+            attributions_of = inc.attributions_of if inc.belief_of_count else (lambda _k: ())
+        else:
+            ev = p.evaluate(lsn)
+            now = p.facts(ev).direct
+            prev = p.facts(p.evaluate(lsn - 1)).direct if lsn > 1 else {}
+            ks = p.kernel_schema(ev)
+            changed = {k for k in now.keys() | prev.keys() if _ids(now.get(k)) != _ids(prev.get(k))}
+            has_attr_ev = p.facts(ev).has_attributions
+
+            def entries_of(k: Key) -> Sequence[LogEntry]:
+                return now.get(k, [])
+
+            def attributions_of(k: Key) -> Sequence[Attribution]:
+                return p.admitter.evidence_set_of(ev, k).attributions if has_attr_ev else ()
+
         changed.add(touched)
         base_changed = sorted((k for k in changed if not ks.spec(k.attr).derived), key=lambda k: (k.entity, k.attr))
 
@@ -608,13 +771,12 @@ class KernelReviser:
             cur = view.current_belief(k)
             return (cur.version if cur is not None else 0) + 1
 
-        has_attr = p.facts(ev).has_attributions
         overlay: dict[Key, Belief] = {}
         for k in base_changed:
             overlay[k] = p.base_belief(
-                ks, k, now.get(k, []), version=next_version(k), lsn=lsn, generation=ctx.generation,
+                ks, k, entries_of(k), version=next_version(k), lsn=lsn, generation=ctx.generation,
                 inputs=ctx.inputs, recorded_at=ctx.entry.recorded_at,
-                attributions=p.admitter.evidence_set_of(ev, k).attributions if has_attr else (),
+                attributions=attributions_of(k),
             )
         out: list[Belief] = list(overlay.values())
 
@@ -676,13 +838,28 @@ class KernelReviser:
         p.drop_index()  # its result becomes a stored belief outside a revision
         head = view.head()
         lsn = max(head.lsn, 1)
-        ev = p.evaluate(head.lsn)
-        ks = p.kernel_schema(ev)
         cur = view.current_belief(key)
         version = (cur.version if cur is not None else 0) + 1
-        recorded_at = ev.entries[-1].recorded_at if ev.entries else datetime.now(UTC)
         inputs = {k: v for k, v in _inputs_of(view).items()}
         gen = max(head.generation, 0)
+        if p.incremental_enabled:
+            # the incremental state is brought to the head (usually it already is: completion runs right after the
+            # append), so a completion job costs the key it recomputes, not a whole-log evaluation
+            inc = p.synced_incremental(head.lsn)
+            ks = p.kernel_schema_for(inc.entities)
+            recorded_at = inc.entries[-1].recorded_at if inc.entries else datetime.now(UTC)
+            if ks.spec(key.attr).derived:
+                return p.derived_belief(
+                    ks, key, Resolver(view), version=version, lsn=lsn, generation=gen, inputs=inputs,
+                    recorded_at=recorded_at,
+                )
+            return p.base_belief(
+                ks, key, inc.direct_of(key), version=version, lsn=lsn, generation=gen, inputs=inputs,
+                recorded_at=recorded_at, attributions=inc.attributions_of(key) if inc.belief_of_count else (),
+            )
+        ev = p.evaluate(head.lsn)
+        ks = p.kernel_schema(ev)
+        recorded_at = ev.entries[-1].recorded_at if ev.entries else datetime.now(UTC)
         if ks.spec(key.attr).derived:
             return p.derived_belief(
                 ks, key, Resolver(view), version=version, lsn=lsn, generation=gen, inputs=inputs,

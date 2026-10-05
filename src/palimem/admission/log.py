@@ -7,7 +7,7 @@ reads anything but entries at or below the requested LSN (the belief axis, S-05)
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Iterator, Sequence
 from typing import Protocol
 
 from palimem.types import LogEntry
@@ -42,6 +42,17 @@ class ListLog:
 
     def get(self, report_id: str) -> LogEntry | None:
         return self._by_id.get(report_id)
+
+    def head_lsn(self) -> int:
+        return self._entries[-1].lsn if self._entries else 0
+
+    def peek(self, report_id: str) -> LogEntry | None:
+        return self._by_id.get(report_id)
+
+    def scan(self, from_lsn: int, to_lsn: int) -> Iterator[LogEntry]:
+        for e in self._entries:
+            if from_lsn <= e.lsn <= to_lsn:
+                yield e
 
     def entries(self, *, upto_lsn: int | None = None) -> Sequence[LogEntry]:
         if upto_lsn is None:
