@@ -54,6 +54,9 @@ class OverlayResult:
 
     canon: Canon | None
     added: tuple[Key, ...]
+    alias_keys: tuple[Key, ...] = ()
+    """The same attributes under every other name of the affected classes (before and after the decision): a rule
+    that binds a value equal to an alias name must still find its dependents when the representative's key changes."""
 
 
 class EntityLayer:
@@ -223,7 +226,12 @@ class EntityLayer:
                 generation=ctx.generation, inputs=ctx.inputs, recorded_at=ctx.entry.recorded_at,
             )
             added.append(k)
-        return OverlayResult(canon=self.canon_fn(after), added=tuple(added))
+        aliases: dict[Key, None] = {}
+        for k in added:
+            for m in {*before.members(k.entity), *after.members(k.entity)}:
+                if m != k.entity:
+                    aliases[Key(entity=m, attr=k.attr)] = None
+        return OverlayResult(canon=self.canon_fn(after), added=tuple(added), alias_keys=tuple(aliases))
 
     # -- recompute hook (verify, completion jobs, erasure repair)
 

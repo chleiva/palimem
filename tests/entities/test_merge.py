@@ -16,8 +16,24 @@ from palimem.entities import (
 from palimem.entities.registry import MergeOp, decode_marker, encode_marker
 from palimem.memory import Memory
 from palimem.store import APPEND_STEPS
-from palimem.types import Cue, KernelStatus, Key, MemberProp, Origin, Query, Report, Resolved
-from tests._pipeline_helpers import Clock, assertion, current, established_value, make_backend, src
+from palimem.types import (
+    Cue,
+    KernelStatus,
+    Key,
+    MemberProp,
+    Origin,
+    Query,
+    Report,
+    Resolved,
+)
+from tests._pipeline_helpers import (
+    Clock,
+    assertion,
+    current,
+    established_value,
+    make_backend,
+    src,
+)
 from tests.entities._helpers import core, merge_memory, merge_setup, versions
 
 BACKENDS = ["memory", "sqlite"]
@@ -58,7 +74,7 @@ def test_a_merge_justifies_the_class_as_one_entity_and_reading_an_alias_reads_th
     assert status(m, "Veltran Inc", "hq_city")[0] is KernelStatus.ESTABLISHED  # ashford on its own
     rec = ent.merge("Veltran Inc", "veltran", reason="same registered company")
     assert rec.representative == "veltran" and rec.members == ("Veltran Inc", "veltran")
-    st, ans = status(m, "veltran", "hq_city")
+    st, _ans = status(m, "veltran", "hq_city")
     assert st is KernelStatus.UNRESOLVED  # tessaly vs ashford: the merge exposes a real conflict, it does not hide one
     st2, ans2 = status(m, "Veltran Inc", "hq_city")
     assert st2 is KernelStatus.UNRESOLVED and ans2.justified.key == Key(entity="veltran", attr="hq_city")  # type: ignore[attr-defined]
@@ -93,7 +109,7 @@ def test_a_new_report_on_a_member_updates_the_class_belief(ms: tuple[Memory, Ent
     seed(m)
     ent.merge("Veltran Inc", "veltran", reason="r")
     m.append(assertion("Veltran Inc", "hq_city", "tessaly", source="blog"))  # a second source agrees with the registry
-    st, ans = status(m, "veltran", "hq_city")
+    st, _ans = status(m, "veltran", "hq_city")
     # ashford (wire) still disputes it: three reports, two values, no cue to explain either away
     assert st is KernelStatus.UNRESOLVED
     assert m.backend.verify_beliefs(m.reviser).ok and m.backend.verify_log().ok
@@ -185,7 +201,7 @@ def test_chained_merges_and_reversing_the_middle_one(ms: tuple[Memory, Entities]
     assert {a.id, b.id} <= pins  # evidence from the far alias crossed both merges
     ent.unmerge(a.id, reason="undo the first")  # Veltran Inc leaves; Corp and veltran stay merged
     assert ent.members("veltran") == ("Veltran Corp", "veltran")
-    st, ans = status(m, "veltran", "hq_city")
+    st, _ans = status(m, "veltran", "hq_city")
     assert st is KernelStatus.UNRESOLVED  # brook vs tessaly
     assert status(m, "Veltran Inc", "hq_city")[0] is KernelStatus.ESTABLISHED  # back to its own ashford
     assert m.backend.verify_beliefs(m.reviser).ok
@@ -328,7 +344,9 @@ def test_a_malformed_marker_is_ignored(ms: tuple[Memory, Entities]) -> None:
 def test_a_rejected_marker_is_reported_by_the_host_api(ms: tuple[Memory, Entities]) -> None:
     m, _ = ms
     seed(m)
-    from palimem.admission import AdmissionConfig  # noqa: F401  (documents the dependency: admission decides)
+    from palimem.admission import (
+        AdmissionConfig,  # noqa: F401  (documents the dependency: admission decides)
+    )
 
     other = Entities(m, actor="connector:evil", source=src("connector:evil", "trusted"))
     with pytest.raises(MergeRejected):
@@ -343,3 +361,35 @@ def test_the_marker_attribute_is_not_a_queryable_belief_of_an_agent_scope(ms: tu
     assert isinstance(ans, Resolved)  # the host can read it (it is an ordinary multi-valued attribute) ...
     # ... and it is never treated as an entity class: querying it must not recurse into the merge layer
     assert ans.justified.key.attr == ENTITY_MERGE_ATTR
+
+
+# --------------------------------------------------------------------------- documented limits (docs/ENTITIES.md)
+
+
+def test_a_derived_key_that_names_an_alias_value_follows_the_merge_and_later_reports_on_the_representative(ms: tuple[Memory, Entities]) -> None:
+    m, ent = ms
+    m.append(assertion("alex", "employer", "Veltran Inc", source="press"))  # the employer is named by the *alias*
+    m.append(assertion("Veltran Inc", "hq_city", "ashford", source="wire"))
+    m.append(assertion("veltran", "affiliations", "x", source="registry"))
+    ent.merge("Veltran Inc", "veltran", reason="r")
+    st, ans = status(m, "alex", "work_city")
+    assert st is KernelStatus.ESTABLISHED and established_value(ans) == "ashford"  # type: ignore[arg-type]
+    # a later report lands on the representative: the rule names the alias, the revision must still reach alex
+    m.append(assertion("veltran", "hq_city", "tessaly", source="registry"))
+    st2, _ = status(m, "alex", "work_city")
+    assert st2 is KernelStatus.UNRESOLVED  # ashford (wire) vs tessaly (registry), seen through the alias value
+    assert m.backend.verify_beliefs(m.reviser).ok
+
+
+@pytest.mark.xfail(strict=True, reason="known gap: admission is per raw key, so a confirmation never crosses a merge")
+def test_known_gap_confirmation_does_not_cross_aliases(ms: tuple[Memory, Entities]) -> None:
+    from palimem.admission import AdmissionConfig, SourceStatus
+
+    m, ent = ms
+    cfg = AdmissionConfig(profile=m.semantic.profile, source_status={"blog": SourceStatus.QUARANTINED})
+    m.set_admission(cfg)
+    m.append(assertion("Veltran Inc", "hq_city", "ashford", source="blog"))  # quarantined: not admitted on its own
+    m.append(assertion("veltran", "hq_city", "ashford", source="wire"))  # an independent report of the same value
+    ent.merge("Veltran Inc", "veltran", reason="r")
+    # once the names are one entity, the wire report should confirm the blog's; admission still reads two raw keys
+    assert len(m.admitted()) == 2

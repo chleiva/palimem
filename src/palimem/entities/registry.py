@@ -21,7 +21,16 @@ from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass, field
 from enum import Enum
 
-from palimem.types import AdmissionOutcome, Cue, Key, LogEntry, MemberProp, Origin, PrincipalKind, Report
+from palimem.types import (
+    AdmissionOutcome,
+    Cue,
+    LogEntry,
+    MemberProp,
+    Origin,
+    PrincipalKind,
+    Report,
+    ValidationError,
+)
 from palimem.types.authority import principal_kind
 
 ENTITY_MERGE_ATTR = "__entity_merge__"
@@ -120,7 +129,7 @@ def from_host(report: Report) -> bool:
     try:
         if principal_kind(report.actor) not in HOST_KINDS:
             return False
-    except Exception:
+    except ValidationError:
         return False
     return report.source.id.split(":", 1)[0] in {k.value for k in HOST_KINDS}
 
@@ -316,6 +325,16 @@ def iter_markers(entries: Iterable[LogEntry]) -> Iterator[LogEntry]:
 
 
 __all__ = [
-    "ENTITY_MERGE_ATTR", "ClassState", "Edge", "EMPTY_STATE", "MergeDecision", "MergeOp", "MergeRegistry", "apply_ops",
-    "decode_marker", "encode_marker", "from_host", "iter_markers",
+    "EMPTY_STATE",
+    "ENTITY_MERGE_ATTR",
+    "ClassState",
+    "Edge",
+    "MergeDecision",
+    "MergeOp",
+    "MergeRegistry",
+    "apply_ops",
+    "decode_marker",
+    "encode_marker",
+    "from_host",
+    "iter_markers",
 ]

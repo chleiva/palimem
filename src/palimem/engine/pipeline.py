@@ -795,9 +795,10 @@ class KernelReviser:
             )
         canon = None
         added: tuple[Key, ...] = ()
+        alias_keys: tuple[Key, ...] = ()
         if p.layer is not None:  # entity layer: the representative's aggregated beliefs for merged classes
             res = p.layer.revise_overlay(p, ctx, ks, overlay, entries_of, attributions_of, base_changed, next_version)
-            canon, added = res.canon, res.added
+            canon, added, alias_keys = res.canon, res.added, res.alias_keys
         out: list[Belief] = list(overlay.values())
 
         changed_attrs = {k.attr for k in base_changed} | {k.attr for k in added}
@@ -815,6 +816,7 @@ class KernelReviser:
             resolver = Resolver(view, overlay, canon)
             order = {e: i for i, e in enumerate(ks.entities)}
             changed_keys: dict[Key, None] = dict.fromkeys(overlay)
+            changed_keys.update(dict.fromkeys(alias_keys))  # rules that name an alias value find their dependents too
             for a in sorted(affected, key=lambda x: (p.depth_of(x), x)):  # shallow first: a revision budget keeps these
                 heads = None if p.exhaustive else resolve(p.plans, a, changed_keys, index, ks.entities)
                 if heads is None:

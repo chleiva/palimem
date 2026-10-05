@@ -7,7 +7,7 @@ Everything here is **privileged host code**. The agent tool API has no merge too
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -15,6 +15,7 @@ from palimem.entities.layer import EntityLayer
 from palimem.entities.normalize import canonical_form
 from palimem.entities.registry import (
     ENTITY_MERGE_ATTR,
+    ClassState,
     MergeDecision,
     MergeOp,
     encode_marker,
@@ -172,7 +173,7 @@ class Entities:
 
     # -- state
 
-    def _state(self, as_of: BeliefAsOf | None = None):  # type: ignore[no-untyped-def]
+    def _state(self, as_of: BeliefAsOf | None = None) -> ClassState:
         return self.layer.state_at(self.mem.lsn_of(as_of))
 
     def canonical(self, entity: str, as_of: BeliefAsOf | None = None) -> str:

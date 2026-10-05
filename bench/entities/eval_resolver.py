@@ -14,7 +14,11 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[1] / "src"))
 
-from palimem.entities.resolver import RESOLVER_VERSION, AliasTable, similarity  # noqa: E402
+from palimem.entities.resolver import (
+    RESOLVER_VERSION,
+    AliasTable,
+    similarity,
+)
 
 THRESHOLDS = (0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 1.0)
 

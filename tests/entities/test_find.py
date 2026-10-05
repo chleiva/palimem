@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from palimem import Memory as Facade
-from palimem.entities import Entities, EntitiesNotEnabled
+from palimem.entities import Entities, EntitiesError, EntitiesNotEnabled
 from palimem.memory import Memory
 from palimem.types import KernelStatus
 from tests._pipeline_helpers import Clock, assertion, make_backend
@@ -61,7 +61,7 @@ def test_attribute_text_resolves_through_declared_aliases(ms: tuple[Memory, Enti
     assert ent.find("alex", "works at") == []
     ent.declare_attr_alias("works at", "employer")
     assert [c.attr for c in ent.find("alex", "works at")] == ["employer"]
-    with pytest.raises(Exception):
+    with pytest.raises(EntitiesError):
         ent.declare_attr_alias("x", "nope")
 
 
@@ -74,7 +74,7 @@ def test_find_by_attribute_alone_lists_the_entities_that_hold_it(ms: tuple[Memor
 
 def test_find_needs_something_to_look_for(ms: tuple[Memory, Entities]) -> None:
     _, ent = ms
-    with pytest.raises(Exception):
+    with pytest.raises(EntitiesError):
         ent.find()
 
 

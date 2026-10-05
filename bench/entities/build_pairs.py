@@ -201,11 +201,11 @@ def build() -> dict[str, list[dict[str, str]]]:
     by_cat: dict[str, list[dict[str, str]]] = {}
     for r in rows:
         by_cat.setdefault(r["category"], []).append(r)
-    for cat in sorted(by_cat):
-        for i, r in enumerate(sorted(by_cat[cat], key=lambda r: r["id"])):
+    for _cat, group in sorted(by_cat.items()):
+        for i, r in enumerate(sorted(group, key=lambda r: r["id"])):
             split["dev" if i % 2 == 0 else "test"].append(r)
-    for name in split:
-        split[name].sort(key=lambda r: r["id"])
+    for rows_ in split.values():
+        rows_.sort(key=lambda r: r["id"])
     return split
 
 
