@@ -1,0 +1,187 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "r03-withdrawing-the-dispute-restores-the-target",
+  "title": "Withdrawal of the dispute (by its own source) restores the target",
+  "gate": "G1",
+  "area": "authority",
+  "status": "active",
+  "covers": [
+    "ruling-3",
+    "S-02"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "The disputer withdraws its own dispute (the default authority: the target's own source, here the chat source of r2): the dispute no longer acts, everything it affected is repaired like any withdrawal, and the registry's Acme is established again.",
+  "source": "docs/decisions/RULINGS-2026-10-05.md item 3",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "chat": {
+        "class": "standard",
+        "origin_group": "g_chat"
+      },
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    },
+    "authority": [
+      {
+        "who": {
+          "kind": "target_source"
+        },
+        "may": [
+          "correct",
+          "withdraw",
+          "dispute"
+        ],
+        "on": {},
+        "targets": "report",
+        "over_origins": null
+      },
+      {
+        "who": {
+          "kind": "principal",
+          "value": "user:alice"
+        },
+        "may": [
+          "dispute"
+        ],
+        "on": {
+          "attr": "employer",
+          "entity": "*"
+        },
+        "targets": "report",
+        "over_origins": null
+      }
+    ]
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-05T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": null,
+        "cue": "dispute",
+        "target": "$r1",
+        "source": {
+          "id": "chat",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_chat",
+        "actor": "user:alice",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_disputed",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "unresolved",
+        "assertion": "$absent"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r3",
+      "at": "2026-02-06T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": null,
+        "cue": "withdraw",
+        "target": "$r2",
+        "source": {
+          "id": "chat",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_chat",
+        "actor": "user:alice",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q_restored",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "decision": "commit",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "acme"
+          }
+        },
+        "_environments": {
+          "$unordered": [
+            {
+              "$unordered": [
+                "$r1"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

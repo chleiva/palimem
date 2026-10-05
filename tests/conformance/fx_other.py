@@ -19,6 +19,7 @@ from .dsl import (
     V,
     append,
     c_empty,
+    c_not_value,
     c_value,
     contains,
     envs,
@@ -144,8 +145,9 @@ def s10() -> list[dict[str, Any]]:
         append("r1", d(2, 1), "alice", "employer", V("veltran"), source="press"),
         append("r2", d(2, 2), "veltran", "hq_city", V("tessaly")),
     ]
-    ex = [("Rule has no structured 'exceptions' in palimem.types.Rule (only reads and fn); fixtures name them in fn and in rule.exceptions, "
-          "which the type must grow (S-10 needs exception attributes to be identifiable).")]
+    ex = [("AUTHOR RULING 10 of 2026-10-05: rule exceptions are RESERVED (not in 0.x; S-10 narrows rules to strict rules). The product profile "
+          "refuses a rule with exceptions at load (see r07-*). The compat profile keeps the paper's closed-world exception handling, "
+          "which is what the s10 fixtures that stay active now exercise.")]
     out.append(scen(
         "s10-01-exception-absent-closed-fires", "Rule exception absent on a closed (declared) attribute: the rule fires",
         "G1", "rules", ["S-10", "S-04"],
@@ -154,7 +156,8 @@ def s10() -> list[dict[str, Any]]:
         "profile reproduces).",
         rule_schema("declared"),
         [*base_ops, query("q1", Q("alice", "work_city"), resolved("established", assertion=c_value("tessaly")))],
-        deps=ex, source="S-10 decision (accepted 2026-10-04)"))
+        profile="revise-stream-v1", requires=["profile_revise_stream_v1"],
+        deps=ex, source="S-10 decision (accepted 2026-10-04); compat profile since ruling 10"))
     out.append(scen(
         "s10-02-exception-unknown-open-unresolved", "Rule exception unknown on an open attribute: the derived belief is unresolved",
         "G1", "rules", ["S-10"],
@@ -164,7 +167,9 @@ def s10() -> list[dict[str, Any]]:
         "choosing ask, so it is not asserted here.",
         rule_schema("open"),
         [*base_ops, query("q1", Q("alice", "work_city"), resolved("unresolved", _candidates=unordered(c_value("tessaly"), c_empty())))],
-        deps=ex, source="S-10 decision (accepted 2026-10-04)"))
+        status="shell",
+        reason="Reserved with the feature: rule exceptions are not in 0.x (ruling 10 of 2026-10-05). The open-world semantic is derived when exceptions are admitted.",
+        deps=ex, source="S-10 decision (accepted 2026-10-04); reserved by ruling 10"))
     out.append(scen(
         "s10-03-exception-established-true-blocks", "Rule exception established true: the rule is blocked",
         "G1", "rules", ["S-10"],
@@ -173,7 +178,8 @@ def s10() -> list[dict[str, Any]]:
         rule_schema("open"),
         [*base_ops, append("r3", d(2, 3), "alice", "remote", V(True)), query("q1", Q("alice", "work_city"), NOT_FOUND),
          query("q2", Q("alice", "employer"), resolved("established", assertion=c_value("veltran")))],
-        deps=ex, source="S-10 decision (accepted 2026-10-04)"))
+        profile="revise-stream-v1", requires=["profile_revise_stream_v1"],
+        deps=ex, source="S-10 decision (accepted 2026-10-04); compat profile since ruling 10"))
     out.append(scen(
         "s10-04-exception-unresolved-two-worlds", "Rule exception unresolved: two worlds, the derived belief is unresolved",
         "G1", "rules", ["S-10"],
@@ -182,7 +188,8 @@ def s10() -> list[dict[str, Any]]:
         rule_schema("open"),
         [*base_ops, append("r3", d(2, 3), "alice", "remote", V(True)), append("r4", d(2, 3), "alice", "remote", V(False), source="press"),
          query("q1", Q("alice", "work_city"), resolved("unresolved", _candidates=unordered(c_value("tessaly"), c_empty())))],
-        deps=ex, source="S-10 decision (accepted 2026-10-04)"))
+        profile="revise-stream-v1", requires=["profile_revise_stream_v1"],
+        deps=ex, source="S-10 decision (accepted 2026-10-04); compat profile since ruling 10"))
     f = scen(
         "s10-05-shared-ancestor-rule-refused", "A rule whose body reaches one base attribute twice is refused at schema load",
         "G0", "rules", ["S-10", "T-B5", "design-exactness-conditions"],
@@ -419,8 +426,9 @@ def security() -> list[dict[str, Any]]:
 
     f = sec("sec-22-component-scoped-dirty-marker", "Traversal-budget exhaustion marks only the affected dependency component",
             "G1", "resource_limits", ["SEC-22", "T-20", "H4"],
-            "Same set-up as ind-20 but expecting the PROPOSED behaviour: only the component whose closure could not be marked answers "
-            "ResourceLimited; an unrelated key (site(bob)) keeps serving. This contradicts design row 20 (store-wide marker) and waits for decision H4.",
+            "Same set-up as ind-20, now the DECIDED behaviour (H4, reaffirmed by author ruling 15 of 2026-10-05): only the component whose closure "
+            "could not be marked answers ResourceLimited; an unrelated key (site(bob)) keeps serving. A store-wide marker remains the last resort. "
+            "Design row 20 as first written (store-wide) is superseded; ind-20 is reconciled with this.",
             {"employer": A("single_changeable", vt="entity"), "hq_city": A("single_stable", vt="entity"), "work_city": WORK_CITY,
              "local_tax_city": A("derived", vt="entity", reads=["work_city"], fn="local_tax_city(e,c) <- work_city(e,c)"), "site": A("single_stable")},
             [append("r1", d(2, 1), "alice", "employer", V("veltran"), source="press"), append("r2", d(2, 2), "veltran", "hq_city", V("tessaly")),
@@ -428,7 +436,7 @@ def security() -> list[dict[str, Any]]:
              withdraw("r4", d(2, 10), "$r1", "alice", "employer", source="press"),
              query("q_dependant", Q("alice", "local_tax_city"), limited("store_dirty")),
              query("q_unrelated", Q("bob", "site"), resolved("established", assertion=c_value("north")))],
-            requires=["budget_control"], status=P, reason="H4 (component-scoped dirty marker) is not decided; design row 20 says store-wide.")
+            requires=["budget_control"])
     del f
 
     srcs7 = GRP(7)
@@ -568,17 +576,17 @@ def security() -> list[dict[str, Any]]:
               append("r2", d(2, 5), "alice", "employer", V("globex"), valid_from=day(1, 1)),
               query("q1", Q("alice", "employer"), resolved("unresolved", _candidates=unordered(c_value("acme"), c_value("globex"))))])
 
-    sec("sec-40b-trusted-injection-with-change-cue", "A change-cued injection from a trusted source against an EARLIER contradicting report",
+    sec("sec-40b-trusted-injection-with-change-cue", "A change-cued injection from a trusted source against an EARLIER contradicting report is established and marked single-origin",
         "G1", "poisoning", ["SEC-40", "T-17", "poisoning-gate-trusted"],
-        "The study's attack used change cues. Under P0c a report with a change cue is not disputed by competitors anchored strictly earlier, so a "
-        "legitimate update and an injection look identical: the injected Globex becomes established while the press's EARLIER Acme 'contradicts' "
-        "it only in the sense of an earlier value. The decided gate wording ('never established while another origin group contradicts it') does "
-        "not say whether an earlier-anchored report counts. This fixture records P0c's behaviour plus the single-origin marking, and asks the author to "
-        "settle the wording.",
+        "The study's attack used change cues. AUTHOR RULING 13 of 2026-10-05 settles the gate wording: an earlier-anchored report does NOT contradict a "
+        "change-cued claim under P0c (a change says the value was X and is now Y), and only a report anchored at or after the claimed change "
+        "does. The press says Acme from 1 Jan (r1); the trusted registry then reports Globex with a change cue from 1 Mar (r2). At 15 Mar the key is "
+        "established Globex (the legitimate update and the injection look identical to the kernel) and, as the gate requires, the commit rests on a "
+        "single origin group and is visibly marked as such (one environment {r2}). Contrast sec-40a: a report anchored at the SAME time as the "
+        "claim contradicts it, so the key is unresolved.",
         EMP, [append("r1", d(2, 1), "alice", "employer", V("acme"), source="press", valid_from=day(1, 1)),
               append("r2", d(3, 5), "alice", "employer", V("globex"), cue="change", valid_from=day(3, 1)),
-              query("q1", Q("alice", "employer", valid_at=day(3, 15)), resolved("established", assertion=c_value("globex"), provenance=length(1)))],
-        status=P, reason="Gate wording undecided for earlier-anchored contradictions under P0c cue shielding (see why).")
+              query("q1", Q("alice", "employer", valid_at=day(3, 15)), resolved("established", assertion=c_value("globex"), provenance=length(1)))])
 
     ws = {**BASE, "work_city": WORK_CITY}
     sec("sec-41a-source-withdraws-its-own-single-origin-report", "A trusted source withdrawing its own report repairs everything downstream",
@@ -594,14 +602,18 @@ def security() -> list[dict[str, Any]]:
               "targets": "report", "over_origins": None}]
     sec("sec-41b-later-dispute-repairs-single-origin-belief", "A later authorised dispute stops a single-origin belief from standing as established",
         "G1", "poisoning", ["SEC-41", "T-17"],
-        "A user granted the dispute power on employer disputes r1 and states the competing value. The key can no longer be established on r1 alone: "
-        "it is unresolved with both candidates; the single-origin belief does not survive the dispute.",
-        EMP, [append("r1", d(2, 1), "alice", "employer", V("acme"), valid_from=day(1, 1)),
-              append("r2", d(2, 5), "alice", "employer", V("globex"), cue="dispute", target="$r1", source="chat", actor="user:alice", valid_from=day(1, 1),
+        "A user granted the dispute power on employer disputes r1 (the dispute also states a competing value). Author ruling 3 of 2026-10-05 fixes "
+        "the kernel meaning: the target's candidate becomes unresolved against 'disputed' (here value(acme) against not_value(acme)), with NO value "
+        "asserted (the competing value the dispute states is not asserted by it), until confirmation from another origin group or withdrawal. "
+        "The single-origin belief does not survive the dispute. (The earlier version of this fixture assumed the dispute was an A-ERR "
+        "competitor with candidates {Acme, Globex}; the ruling supersedes it.)",
+        EMP, [append("r1", d(2, 1), "alice", "employer", V("acme")),
+              append("r2", d(2, 5), "alice", "employer", V("globex"), cue="dispute", target="$r1", source="chat", actor="user:alice",
                      expect={"recorded_cue": "dispute"}),
-              query("q1", Q("alice", "employer"), resolved("unresolved", _candidates=unordered(c_value("acme"), c_value("globex"))))],
-        authority=grant,
-        deps=["S-02: the kernel semantics of an authorised dispute is not defined in design v0.3; assumes the dispute plays the A-ERR competitor role."])
+              query("q1", Q("alice", "employer"),
+                    resolved("unresolved", decision="ask", assertion=ABSENT,
+                             _candidates=unordered(c_value("acme"), c_not_value("acme"))))],
+        authority=grant)
     return out
 
 

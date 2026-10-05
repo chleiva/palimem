@@ -138,16 +138,22 @@ class KernelSchema:
           ``multi_set`` -> multi, not changeable, values do not compete (a member is a member).
         * ``derived`` -> the rule JSON in ``Attr.rule.fn`` (see :func:`rule_fn`) carries cardinality and
           rules.
-        * ``Attr.inertia`` must be true: the semantics of ``inertia=False`` are not specified (S-08 kept
-          the boolean but did not define the false case), so the kernel refuses rather than invent one.
+        * ``Attr.inertia`` must be true: ``inertia=False`` is specified (the value holds only within its stated
+          valid interval, with no extension; S-08, author ruling of 2026-10-05) but not implemented, so the kernel
+          refuses it.
         """
-        del profile  # the profile selects classification, not the schema mapping
+        from palimem.kernel.exactness import (
+            reject_reserved_rule_features,  # circular at import time
+        )
+
         attrs: dict[str, AttrSpec] = {}
         rules: list[RuleSpec] = []
         for a in schema.attrs:
             attrs[a.name], rs = _spec_from_attr(a)
             rules.extend(rs)
-        return cls(attrs=attrs, rules=tuple(rules), entities=tuple(entities))
+        ks = cls(attrs=attrs, rules=tuple(rules), entities=tuple(entities))
+        reject_reserved_rule_features(ks, profile)
+        return ks
 
 
 def _spec_from_attr(a: Attr) -> tuple[AttrSpec, tuple[RuleSpec, ...]]:
@@ -160,8 +166,9 @@ def _spec_from_attr(a: Attr) -> tuple[AttrSpec, tuple[RuleSpec, ...]]:
         return AttrSpec(name=a.name, cardinality=card, changeable=True, error_allowed=False, derived=True), rules
     if not a.inertia:
         raise KernelUnsupported(
-            f"attr {a.name!r}: inertia=False has no specified semantics yet (S-08 kept the boolean but did "
-            "not define the false case); set inertia=True"
+            f"attr {a.name!r}: inertia=False means the value holds only within its stated valid interval, with no "
+            "extension (S-08, author ruling of 2026-10-05); that mode is specified but not implemented yet, so it is "
+            "refused: set inertia=True"
         )
     if a.attr_class is AttrClass.SINGLE_STABLE:
         return AttrSpec(name=a.name, cardinality="single", changeable=False), ()

@@ -19,7 +19,13 @@ from palimem.kernel.evidence import (
     dt_of_day,
     evidence_from_entries,
 )
-from palimem.kernel.exactness import ExactnessViolation, check_schema, find_overlaps
+from palimem.kernel.exactness import (
+    ExactnessViolation,
+    RuleExceptionsReserved,
+    check_schema,
+    find_overlaps,
+    reject_reserved_rule_features,
+)
 from palimem.kernel.justify import (
     Justification,
     ResourceLimitedResult,
@@ -61,6 +67,7 @@ __all__ = [
     "KernelUnsupported",
     "Provider",
     "ResourceLimitedResult",
+    "RuleExceptionsReserved",
     "RuleSpec",
     "SupportProvider",
     "base_attrs_closure",
@@ -79,6 +86,7 @@ __all__ = [
     "minimize",
     "parse_rule_fn",
     "policy_of",
+    "reject_reserved_rule_features",
     "relevant_base_keys",
     "rule_fn",
 ]

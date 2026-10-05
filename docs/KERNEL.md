@@ -212,10 +212,11 @@ withdrawn` rows.
    values (Setting 1 has 500; the Alex `residence` slot), the **cardinality of a derived attribute**, and the
    explicit `error_allowed` / `competing_values` flags. `KernelSchema.from_schema` maps what it can
    (`multi_set` -> multi, stable, non-competing) and the harness builds the full kernel schema directly.
-3. **`Attr.inertia=False` has no specified semantics.** S-08 kept the boolean but did not define the false
-   case; `from_schema` refuses it. The compat profile sets `inertia: true` on **all** attributes (the deposited
-   code applies persistence to every attribute); this differs from the S-08 decision text, which says stable
-   keys and sets do not hold.
+3. **`Attr.inertia=False` is specified but not implemented** (author ruling 14 of 2026-10-05, S-08): the value
+   holds only within its stated valid interval, with no extension. `from_schema` refuses it with that explanation
+   until it is implemented. The compat profile sets `inertia: true` on **all** attributes (the deposited code
+   applies persistence to every attribute) and parity with the oracle is the arbiter there; the S-08 decision
+   text ("stable keys and sets do not hold") is amended accordingly.
 4. **Source-scope withdraw** does not exist in the contract (see the one class above).
 5. **Admission flag** `acting_reports_must_be_live=false` is required by the compat profile (retracted
    corrections still withdraw their target: 387 in Setting 1); `CompatAdmission` implements it.
@@ -232,3 +233,13 @@ python -m harness.kernel_diff --limit 100 --source-retract sidetable --provenanc
 
 `harness/convert.py` (study stream -> `LogEntry`s, LSN = arrival index; `CompatAdmission` is the temporary
 admission stub until T-D1/T-D2) and `harness/kernel_diff.py` are wired into the CI `harness` job.
+
+## Negative evidence (product profile; ruling 4 of 2026-10-05)
+
+`palimem.kernel.polarity` justifies a base key whose admitted evidence includes `not_value` / `not_member` reports. It is a closed-form derivation over the consistent TRUE/ERR labellings (every ERR report disputed by a TRUE one; a denial and an affirmation of the same value conflict, nothing else does), checked in `tests/test_negative_evidence.py` against an independent brute-force enumeration. `justify_key` routes a key with a denial to it; the compat profile raises `KernelUnsupported` (the oracle cannot represent denials). The fast-kernel dispatch routes such keys to the enumeration path ("negative evidence"). The decision, the statuses, the scope and the open points are in `docs/decisions/S-04.md`.
+
+Time-free by construction: the result is one segment over all valid time, `breakpoints()` is empty and `candidates_at(t)` does not depend on `t`; derived rules read the positive candidates only, and `admitted_ids` pins every report, denials included. Supports are subset-minimal environments over base reports (the TRUE positives of a value reading, the TRUE denials of a denial candidate).
+
+## A-ERR is per key, in both profiles (ruling 5 of 2026-10-05)
+
+An interpretation labels a *report* TRUE or ERR, and a report is one object, so admissibility (A-ERR: a report may be ERR only if a TRUE report disputes it) is decided **once per key**; the valid-time segments are cut afterwards from the interpretations (`build_segments`). This is the paper's per-key kernel and is identical under `open-world` and `revise-stream-v1`. A later report therefore still makes an earlier report possibly wrong in the segments before the later one starts, so those segments are not established (a per-segment A-ERR would have called them established). `tests/test_a_err_per_key.py` pins it with a hand-derived case; conformance `r05-a-err-is-per-key-segments-are-cut-afterwards` runs through the pipeline; conformance row 12 (`ind-12`) is reconciled with it and stays a shell until valid-time intervals have an oracle (S-09).

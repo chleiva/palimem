@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "r07-rule-exceptions-are-reserved-in-the-product-profile",
+  "title": "A rule that declares exceptions is refused at load in the product profile",
+  "gate": "G0",
+  "area": "rules",
+  "status": "active",
+  "covers": [
+    "ruling-10",
+    "S-10"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "AUTHOR RULING 10 of 2026-10-05: rule exceptions are not in 0.x; S-10 narrows to strict rules and `exceptions` is reserved. A schema whose derived attribute declares an exception attribute is refused when the store is opened, with an explanation naming the rule. (The compat profile keeps the paper's closed-world exception handling, exercised by s10-01, s10-03 and s10-04.)",
+  "source": "docs/decisions/RULINGS-2026-10-05.md item 10",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      },
+      "hq_city": {
+        "class": "single_stable",
+        "value_type": "entity",
+        "inertia": false
+      },
+      "remote": {
+        "class": "single_changeable",
+        "value_type": "bool",
+        "inertia": true
+      },
+      "work_city": {
+        "class": "derived",
+        "value_type": "entity",
+        "inertia": false,
+        "rule": {
+          "reads": [
+            "employer",
+            "hq_city",
+            "remote"
+          ],
+          "fn": "work_city(e,c) <- employer(e,x), hq_city(x,c) unless remote(e,true)",
+          "exceptions": [
+            "remote"
+          ]
+        }
+      }
+    },
+    "sources": {},
+    "expect_load_error": {
+      "reason": "rule_exceptions_reserved"
+    }
+  },
+  "ops": []
+}

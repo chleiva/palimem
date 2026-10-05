@@ -33,6 +33,8 @@ from palimem.admission import (
     Attribution,
     Evaluation,
     IncrementalAdmission,
+    apply_disputes,
+    kernel_view,
     supports_incremental,
 )
 from palimem.engine.dependents import DependentsPlans, ValueIndex, resolve
@@ -49,6 +51,7 @@ from palimem.kernel import (
     day_of,
     justify_derived,
     justify_key,
+    reject_reserved_rule_features,
 )
 from palimem.kernel.derive import MAX_DEPTH as MAX_RULE_DEPTH
 from palimem.kernel.justify import Family, segment_at
@@ -61,6 +64,7 @@ from palimem.types import (
     BeliefOfForm,
     BeliefOfProp,
     Candidate,
+    Cue,
     Dependency,
     Inference,
     KernelStatus,
@@ -96,9 +100,10 @@ first version kept 512, which was ~100-200 KiB per report of heap."""
 # --------------------------------------------------------------------------- helpers
 
 
-def direct_entries(ev: Evaluation) -> dict[Key, list[LogEntry]]:
+def direct_entries(ev: Evaluation, disputes: bool = False) -> dict[Key, list[LogEntry]]:
     """Per key, the entries the kernel may read, in log order: the same set as ``EvidenceSet.direct`` (admissible,
-    not withdrawn, external, plain proposition, evidence cue), computed in one pass."""
+    not withdrawn, external, plain proposition, evidence cue), computed in one pass. With ``disputes`` (the product
+    profile, ruling 3) the denials of the active authorised disputes are merged in (see ``palimem.admission.disputes``)."""
     out: dict[Key, list[LogEntry]] = {}
     for e in ev.entries:
         r = e.report
@@ -112,7 +117,19 @@ def direct_entries(ev: Evaluation) -> dict[Key, list[LogEntry]]:
             and not isinstance(r.proposition, BeliefOfProp)
             and r.origin is Origin.EXTERNAL_OBSERVATION
         ):
-            out.setdefault(r.key, []).append(e)
+            out.setdefault(r.key, []).append(kernel_view(e, ev.decisions[rid]))
+    if disputes:
+        active: dict[Key, list[LogEntry]] = {}
+        for e in ev.entries:
+            rid = e.report.id
+            assert rid is not None
+            d = ev.decisions[rid]
+            if d.effective_cue is Cue.DISPUTE and d.record.outcome is AdmissionOutcome.ADMISSIBLE and rid not in ev.withdrawn:
+                active.setdefault(e.report.key, []).append(e)
+        for k, ds in active.items():
+            merged = apply_disputes(out.get(k, []), ds)
+            if merged:
+                out[k] = merged
     return out
 
 
@@ -133,7 +150,7 @@ def incremental_mismatches(inc: IncrementalAdmission, ev: Evaluation) -> list[st
             problems.append(f"decision of {rid}: {decisions[rid].record.outcome.value}/{decisions[rid].record.reason.value} vs {d.record.outcome.value}/{d.record.reason.value}")
     if dict(ev.withdrawn) != withdrawn:
         problems.append("withdrawn differs")
-    want = {k: _ids(v) for k, v in direct_entries(ev).items()}
+    want = {k: _ids(v) for k, v in direct_entries(ev, inc.admitter.config.dispute_denial).items()}
     if want != direct:
         problems.append("direct evidence differs")
     if inc.entities != tuple(sorted({e.report.key.entity for e in ev.entries})):
@@ -411,6 +428,7 @@ class Pipeline:
         admission: str | None = None,
     ) -> None:
         check_schema(kernel_schema)  # static exactness: refuse a schema the per-key kernel cannot justify exactly
+        reject_reserved_rule_features(kernel_schema, semantic.profile)  # rule exceptions are reserved in the product (ruling 10)
         depths = derivation_depths(kernel_schema)
         if max(depths.values(), default=0) > MAX_RULE_DEPTH:
             raise RuleDepthError(
@@ -564,7 +582,7 @@ class Pipeline:
         expect = whole_log_records(prev, ev, delta.report_id)
         if list(delta.records) != expect:
             raise AssertionError("incremental admission records differ from the whole-log diff")
-        direct_ev = direct_entries(ev)
+        direct_ev = direct_entries(ev, self.admitter.config.dispute_denial)
         got = {k for k in direct_ev if _ids(direct_ev[k]) != _ids(inc.direct_of(k))}
         want_changed = {k for k in direct_ev.keys() | inc.direct.keys() if _ids(direct_ev.get(k)) != _ids(inc.direct_of(k))}
         if got or want_changed:
@@ -598,7 +616,7 @@ class Pipeline:
             self._facts.move_to_end(id(ev))
             return hit[1]
         f = EvalFacts(
-            direct=direct_entries(ev),
+            direct=direct_entries(ev, self.admitter.config.dispute_denial),
             has_attributions=any(isinstance(e.report.proposition, BeliefOfProp) for e in ev.entries),
             entities=tuple(sorted({e.report.key.entity for e in ev.entries})),
         )

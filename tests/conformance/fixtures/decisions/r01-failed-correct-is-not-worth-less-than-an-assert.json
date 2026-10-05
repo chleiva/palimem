@@ -1,0 +1,219 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "r01-failed-correct-is-not-worth-less-than-an-assert",
+  "title": "A cross-source correction and a plain assert of the same value give the same answer",
+  "gate": "G1",
+  "area": "authority",
+  "status": "active",
+  "covers": [
+    "ruling-1",
+    "S-02"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "The registry asserts Acme (r1); the forum then states Globex, once as a correction of r1 (fails authority) and, in the control, as a plain assert. The ruling: the failed correction loses its effect on the target but keeps its content, so both forms give exactly the same answer (unresolved {Acme, Globex}, the policy asks). Here both appear on two different keys of one store so they can be compared: alice gets the correction, bob the plain assert.",
+  "source": "docs/decisions/RULINGS-2026-10-05.md item 1",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "forum": {
+        "class": "low",
+        "origin_group": "g_forum"
+      },
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "a1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "a2",
+      "at": "2026-02-05T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "globex"
+        },
+        "cue": "correct",
+        "target": "$a1",
+        "source": {
+          "id": "forum",
+          "class": "low"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_forum",
+        "actor": "connector:forum",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "b1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "bob",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "b2",
+      "at": "2026-02-05T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "bob",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "globex"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "forum",
+          "class": "low"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_forum",
+        "actor": "connector:forum",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "query",
+      "name": "qa",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "unresolved",
+        "decision": "ask",
+        "_candidates": {
+          "$unordered": [
+            {
+              "form": {
+                "form": "value",
+                "v": "acme"
+              }
+            },
+            {
+              "form": {
+                "form": "value",
+                "v": "globex"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "qb",
+      "query": {
+        "key": {
+          "entity": "bob",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "unresolved",
+        "decision": "ask",
+        "_candidates": {
+          "$unordered": [
+            {
+              "form": {
+                "form": "value",
+                "v": "acme"
+              }
+            },
+            {
+              "form": {
+                "form": "value",
+                "v": "globex"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "expect": {
+    "equal": [
+      {
+        "a": "qa",
+        "b": "qb",
+        "fields": [
+          "kernel_status",
+          "decision"
+        ]
+      }
+    ]
+  }
+}

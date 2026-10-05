@@ -8,14 +8,14 @@ Records are grounded in the deposited study code (`~/palimpsest`, v1.0): `revise
 |---|---|---|---|---|
 | [S-01](S-01.md) | `confirm` cue vs derived confirmation | Remove `confirm`; confirmation always derived | no | accepted |
 | [S-02](S-02.md) | Authority: origin vs source; paper's retract rules | **Amended:** compat profile origin-based; product authority = source/principal, `origin_group` for corroboration only; agents act only on their own agent-origin reports | **yes** | amended |
-| [S-03](S-03.md) | `blocked` vs `quarantined` | Two classes: `excluded` and `quarantined` | no (unexercised) | accepted |
-| [S-04](S-04.md) | One status enum; paper's closed-world asymmetries | Five statuses; `possible` is adapter-only; profile defined per key class | **yes** | accepted |
+| [S-03](S-03.md) | `blocked` vs `quarantined` | Two classes: `excluded` and `quarantined` | no (unexercised) | accepted; **ruling 2 (2026-10-05): `exclude_source` is an admission operation** |
+| [S-04](S-04.md) | One status enum; paper's closed-world asymmetries | Five statuses; `possible` is adapter-only; profile defined per key class | **yes** | accepted; **ruling 4 (2026-10-05): negative evidence in the product kernel** |
 | [S-05](S-05.md) | Belief axis | LSN is canonical; `recorded_at` is an index; τ→LSN batch map | **yes** (adapter) | accepted |
 | [S-06](S-06.md) | Above the environment cap | `ResourceLimited(environment_budget)`; default budget 12 after the `oracle_v2` cross-check (was 7); collapsing only for provably interchangeable reports | no | accepted |
 | [S-07](S-07.md) | Principal/authority model | Typed principal ids + declarative grant table; agents can never be granted withdraw/correct on external evidence | no | accepted |
 | [S-08](S-08.md) | Inertia | **Amended:** keep the `Attr.inertia` boolean; profile sets it per the paper | **yes** | amended |
 | [S-09](S-09.md) | Partial dates, `valid_to`, negative evidence | Staged; extended oracle written separately; none in 0.1 | no | accepted |
-| [S-10](S-10.md) | Rule exceptions in open world | Exceptions follow the exception attribute's completeness | no | accepted |
+| [S-10](S-10.md) | Rule exceptions in open world | Exceptions follow the exception attribute's completeness | no | accepted, **narrowed by ruling 10 (2026-10-05): exceptions are reserved, strict rules only** |
 | [S-11](S-11.md) | Attributed reports | Uniform rules; nesting depth ≤ 1 | no | accepted |
 | [S-12](S-12.md) | `explain` depth / provenance contract | Depth parameter, default full closure; flatten = oracle set | **yes** | accepted |
 | [S-13](S-13.md) | Tombstone contents | Minimal pseudonymised tombstone; preserves the log hash chain with the original entry hash | no | accepted |
@@ -35,3 +35,5 @@ Records are grounded in the deposited study code (`~/palimpsest`, v1.0): `revise
 ## How to decide
 
 Edit the record's `Status:` to `accepted`, `rejected` or `amended`, add `Decided: <date>` and any amendment text at the end of the file, and update the table. Contract-affecting decisions also need an RFC under `docs/rfcs/` once G0 is frozen (see `docs/VERSIONING.md`).
+
+The author's rulings of 2026-10-05, with the lane that implements each, are in [`RULINGS-2026-10-05.md`](RULINGS-2026-10-05.md). Lane S2 implemented rulings 1-3 and 10-15 (semantics); the amendments are at the end of S-02, S-03, S-04, S-08 and S-10.

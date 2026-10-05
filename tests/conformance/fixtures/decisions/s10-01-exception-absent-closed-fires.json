@@ -10,14 +10,16 @@
     "S-10",
     "S-04"
   ],
-  "requires": [],
+  "requires": [
+    "profile_revise_stream_v1"
+  ],
   "spec_dependencies": [
-    "Rule has no structured 'exceptions' in palimem.types.Rule (only reads and fn); fixtures name them in fn and in rule.exceptions, which the type must grow (S-10 needs exception attributes to be identifiable)."
+    "AUTHOR RULING 10 of 2026-10-05: rule exceptions are RESERVED (not in 0.x; S-10 narrows rules to strict rules). The product profile refuses a rule with exceptions at load (see r07-*). The compat profile keeps the paper's closed-world exception handling, which is what the s10 fixtures that stay active now exercise."
   ],
   "why": "remote is declared completeness declared(all). Closed world means absence of a remote(alice) report is 'remote is false', so the defeasible rule is not blocked and work_city(alice) = tessaly is established (this is the paper's behaviour, which the compat profile reproduces).",
-  "source": "S-10 decision (accepted 2026-10-04)",
+  "source": "S-10 decision (accepted 2026-10-04); compat profile since ruling 10",
   "setup": {
-    "profile": "open-world",
+    "profile": "revise-stream-v1",
     "schema": {
       "employer": {
         "class": "single_changeable",

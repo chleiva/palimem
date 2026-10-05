@@ -257,7 +257,8 @@ def decide(
         assert seg.established is not None
         return answer(Decision.COMMIT, RuleFired.NONE, assertion=seg.established)
     if status is KernelStatus.UNKNOWN:
-        return answer(Decision.ABSTAIN, RuleFired.NONE)
+        # an `unknown` segment may list negative constraints (denials that narrow the value without determining it)
+        return answer(Decision.ABSTAIN, RuleFired.NONE, alternatives=seg.alternatives)
 
     # unresolved: the kernel lists alternatives; reliability and recency enter only here
     alts = seg.alternatives

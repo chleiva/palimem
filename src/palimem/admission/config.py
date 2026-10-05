@@ -71,6 +71,13 @@ class AdmissionConfig:
     ``revise-stream-v1``): it stays an admissible report carrying a correction cue, a competing assertion. ``None``
     selects the profile default. The switch lets the author reverse the default in one line."""
 
+    dispute_is_denial: bool | None = None
+    """What an *authorised dispute* does to the kernel's evidence (author ruling 3 of 2026-10-05). ``True`` (the
+    ``open-world`` default): the dispute is read as a denial of its target, so the target's candidate becomes unresolved
+    against "disputed" until another origin group confirms it or the dispute is withdrawn (:mod:`.disputes`). ``False``:
+    a dispute has no kernel effect (it stays audit-visible). ``revise-stream-v1`` ignores the flag: the paper's oracle has no
+    disputes. ``None`` selects the profile default."""
+
     def __post_init__(self) -> None:
         check_nat(self.admission_version, "admission.admission_version", minimum=1)
         if not isinstance(self.profile, Profile):
@@ -95,6 +102,12 @@ class AdmissionConfig:
         if self.failed_correction_is_allege is not None:
             return self.failed_correction_is_allege
         return True
+
+    @property
+    def dispute_denial(self) -> bool:
+        if self.profile is Profile.REVISE_STREAM_V1:
+            return False  # the paper's oracle has no disputes
+        return True if self.dispute_is_denial is None else self.dispute_is_denial
 
     def effective_rules(self) -> tuple[AuthorityRule, ...]:
         return self.rules or default_authority_rules(self.profile)

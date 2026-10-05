@@ -33,7 +33,6 @@ from .dsl import (
     length,
     limited,
     none,
-    oneof,
     op,
     query,
     reports,
@@ -337,33 +336,32 @@ def build() -> list[dict[str, Any]]:
 
     # 12 ----------------------------------------------------------------------------------------
     out.append(scen(
-        "ind-12-overlapping-intervals-one-closed", "Conflicting candidates in overlapping intervals; one later closed: segments split at the boundaries",
-        "G1", "segments", ["design-row-12", "S-04"],
+        "ind-12-overlapping-intervals-one-closed", "Conflicting candidates in overlapping intervals; one later closed: per-key admissibility, segments cut afterwards",
+        "G1", "segments", ["design-row-12", "S-04", "ruling-5"],
         "employer has no inertia. R1 (registry): Acme from 1 Jan, open-ended. R2 (press): Globex from 1 Mar, open-ended. They overlap from 1 Mar. "
-        "Before R3: segment [1 Jan,1 Mar) = Acme established, segment [1 Mar,end) = unresolved with both candidates. On 10 Apr the registry "
-        "corrects R1 to close it at 1 Apr (R3: same value, valid 1 Jan to 1 Apr; a same-source correction withdraws R1). After R3 the "
-        "segments are [1 Jan,1 Mar) Acme, [1 Mar,1 Apr) unresolved {Acme,Globex}, [1 Apr,end) Globex established, each with its own status.",
+        "On 10 Apr the registry corrects R1 to close it at 1 Apr (R3: same value, valid 1 Jan to 1 Apr; a same-source correction withdraws R1). "
+        "RECONCILED with AUTHOR RULING 5 of 2026-10-05 (docs/decisions/RULINGS-2026-10-05.md item 12): A-ERR is evaluated PER KEY in both "
+        "profiles, because an interpretation labels a report and a report is one object; the segments are cut afterwards. The first draft's "
+        "segment-local expectation (the segment before R2 established Acme, the segment after R3 established Globex) is therefore withdrawn: "
+        "R2 may make R1 (or R3) ERR whatever the segment, and R1/R3 may make R2 ERR, so every segment of every query below is unresolved; none is "
+        "established. The per-key labelling is demonstrated with evidence the kernel supports today in "
+        "r05-a-err-is-per-key-segments-are-cut-afterwards. This fixture stays a SHELL: it needs valid_to / interval cues and inertia=false, "
+        "which have no oracle yet (S-09; ruling 14 specifies inertia=false but it is refused until implemented), and its expectations are "
+        "derived by hand and must be re-derived when they do.",
         {"employer": A("single_changeable", vt="entity", inertia=False)},
         [
             append("r1", d(2, 1), "alice", "employer", V("acme"), valid_from=day(1, 1)),
             append("r2", d(3, 5), "alice", "employer", V("globex"), source="press", valid_from=day(3, 1)),
-            query("q_feb_before", Q("alice", "employer", valid_at=day(2, 1)), resolved("established", assertion=c_value("acme"))),
-            query("q_mar_before", Q("alice", "employer", valid_at=day(3, 15)),
-                  resolved("unresolved", _candidates=unordered(c_value("acme"), c_value("globex")), segment={"valid_from": day(3, 1)})),
+            query("q_feb_before", Q("alice", "employer", valid_at=day(2, 1)), resolved("unresolved")),
+            query("q_mar_before", Q("alice", "employer", valid_at=day(3, 15)), resolved("unresolved")),
             append("r3", d(4, 10), "alice", "employer", V("acme"), cue="correct", target="$r1", valid_from=day(1, 1), valid_to=day(4, 1)),
-            query("q_feb", Q("alice", "employer", valid_at=day(2, 1)),
-                  resolved("established", assertion=c_value("acme"), segment={"valid_from": day(1, 1), "valid_to": day(3, 1)})),
-            query("q_mar", Q("alice", "employer", valid_at=day(3, 15)),
-                  resolved("unresolved", _candidates=unordered(c_value("acme"), c_value("globex")),
-                           segment={"valid_from": day(3, 1), "valid_to": day(4, 1)})),
-            query("q_may", Q("alice", "employer", valid_at=day(5, 1)),
-                  resolved("established", assertion=c_value("globex"), segment={"valid_from": day(4, 1)})),
-            query("q_mar_asof", Q("alice", "employer", valid_at=day(3, 15), belief_as_of="$r2.lsn"),
-                  resolved("unresolved", segment={"valid_from": day(3, 1)})),
+            query("q_feb", Q("alice", "employer", valid_at=day(2, 1)), resolved("unresolved")),
+            query("q_mar", Q("alice", "employer", valid_at=day(3, 15)), resolved("unresolved")),
+            query("q_may", Q("alice", "employer", valid_at=day(5, 1)), resolved("unresolved")),
+            query("q_mar_asof", Q("alice", "employer", valid_at=day(3, 15), belief_as_of="$r2.lsn"), resolved("unresolved")),
         ],
-        deps=[("Segment-local status assumes admissibility (A-ERR) is evaluated per segment, as design v0.3 'each segment reports its own "
-              "status' implies. The paper's per-key kernel lets any report be ERR when disputed anywhere, which would make the non-overlap "
-              "segments unresolved too. Needs a decision before G1.")],
+        status="shell",
+        reason="valid_to / interval cues and inertia=false have no oracle yet (S-09, ruling 14); expectations reconciled with ruling 5 by hand.",
         source=ROW.format(12)))
 
     # 13 ----------------------------------------------------------------------------------------
@@ -491,18 +489,19 @@ def build() -> list[dict[str, Any]]:
         "G1", "negative_evidence", ["design-row-18", "S-04"],
         "Two denials about different values are compatible evidence (the employer is neither). Candidates are identified by their content, "
         "so not_value(acme) and not_value(globex) are two different candidates, each carrying its value; neither collapses to a bare "
-        "'false', and no positive value candidate appears. The kernel status is established_false or unresolved depending on how several "
-        "negative candidates are summarised, which the design does not fix.",
+        "'false', and no positive value candidate appears. AUTHOR RULING of 2026-10-05 (docs/decisions/RULINGS-2026-10-05.md item 11) fixes "
+        "the status the design left open: two compatible not_value candidates give kernel_status unknown, with both negatives listed as "
+        "constraints in alternatives (the value is narrowed, not determined; a single established candidate cannot carry two denials); "
+        "established_false only when completeness makes them exhaustive.",
         {"employer": A("single_changeable", vt="entity")},
         [
             append("r1", d(2, 1), "alice", "employer", NV("acme")),
             append("r2", d(2, 2), "alice", "employer", NV("globex"), source="press"),
             query("q1", Q("alice", "employer"),
-                  {"kernel_status": oneof("established_false", "unresolved"),
+                  {"kernel_status": "unknown", "assertion": ABSENT,
                    "_candidates": unordered(c_not_value("acme"), c_not_value("globex"))}),
             query("q2", Q("alice", "employer"), {"_candidates": none({"form": {"form": "value"}})}),
         ],
-        deps=["Status for several compatible negative candidates is not defined by design v0.3 or S-04."],
         source=ROW.format(18)))
 
     # 19 ----------------------------------------------------------------------------------------
@@ -542,13 +541,15 @@ def build() -> list[dict[str, Any]]:
 
     # 20 ----------------------------------------------------------------------------------------
     out.append(scen(
-        "ind-20-traversal-budget-store-dirty", "Traversal budget exhausted mid-cascade: store-wide dirty marker, every read ResourceLimited(store_dirty)",
+        "ind-20-traversal-budget-store-dirty", "Traversal budget exhausted mid-cascade: the dirty marker is scoped to the component, every read in it is ResourceLimited(store_dirty)",
         "G1", "resource_limits", ["design-row-20", "S-06", "H4"],
         "The per-append traversal (marking) budget is 1 key, but the dependency closure of employer(alice) has two derived keys (work_city, "
-        "local_tax_city). The commit cannot mark the closure, so it sets the store-wide dirty marker instead of a partial marking: EVERY read, "
-        "including a key in an unrelated component (site(bob)), returns ResourceLimited(store_dirty) until the completion job clears it. "
-        "This is the design as written; the threat model's proposal to scope the marker to a component (SEC-22, H4) contradicts it and is "
-        "tracked as a pending decision.",
+        "local_tax_city). The commit cannot mark the closure, so it sets a dirty marker instead of a partial marking. RECONCILED with the author's "
+        "decision H4 and ruling 15 of 2026-10-05: the marker is scoped to the CONNECTED COMPONENT of the attribute dependency graph (known statically "
+        "from the schema rules), with a store-wide marker only as a last resort. So every read in alice's component (employer, work_city, "
+        "local_tax_city) returns ResourceLimited(store_dirty) until the completion job clears it, while a key in an unrelated component (site(bob)) is "
+        "unaffected and keeps answering. (Design row 20 as first written said the marker is store-wide; that wording is superseded. A store-wide marker "
+        "remains the fallback when the component cannot be determined.)",
         {**CHAIN, "site": A("single_stable")},
         [
             append("r1", d(2, 1), "alice", "employer", V("veltran"), source="press"),
@@ -558,13 +559,12 @@ def build() -> list[dict[str, Any]]:
             withdraw("r4", d(2, 10), "$r1", "alice", "employer", source="press"),
             query("q_touched", Q("alice", "employer"), limited("store_dirty")),
             query("q_dependant", Q("alice", "local_tax_city"), limited("store_dirty")),
-            query("q_unrelated", Q("bob", "site"), limited("store_dirty")),
+            query("q_unrelated", Q("bob", "site"), resolved("established", assertion=c_value("north"))),
             op("complete_jobs", name="jobs"),
             query("q_touched2", Q("alice", "employer"), NOT_FOUND),
             query("q_unrelated2", Q("bob", "site"), resolved("established", assertion=c_value("north"))),
         ],
         requires=["budget_control", "completion_jobs"],
-        deps=["H4: component-scoped dirty marker (SEC-22) vs the store-wide marker of design row 20 is undecided."],
         source=ROW.format(20)))
 
     # 21 ----------------------------------------------------------------------------------------

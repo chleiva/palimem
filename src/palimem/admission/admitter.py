@@ -13,10 +13,15 @@ Rules, in the order they apply to a report:
    the target must exist earlier in the log (``target_missing``), and the actor must hold authority
    (:mod:`.authz`). Failed authority downgrades the cue to ``allege``: recorded
    ``excluded / authority_failed``, no effect on admissibility, visible to audits and the inquiry.
-   A failed ``correct`` is *not* an allege (S-02 recommendation A): its proposition stays an ordinary
-   admissible assert carrying the correction hint (the kernel's A-CORR), it just does not withdraw
-   its target. Operator effects are independent of evidence admissibility: an agent's
-   self-withdrawal acts although agent-origin content is never evidence.
+   A failed ``correct`` splits (author ruling of 2026-10-05, S-02): its effect on the *target* becomes an
+   ``allege`` (``effective_cue`` is ``allege``: the target is neither withdrawn nor forced to ``ERR``), but its
+   proposition is still a claim by its own source and, if that source is admissible, is admitted as an ordinary
+   ``assert`` (the kernel reads :func:`kernel_view`: the report with its cue demoted to ``assert``). Design v0.3's
+   "no effect on admissibility" is amended to "no effect on the target; content admitted as an assert from its
+   own source". The paper's behaviour (the correction stays a competing assertion carrying a correction cue,
+   A-CORR) is the compat profile's and the ``failed_correction_is_allege=False`` switch's. Operator effects are
+   independent of evidence admissibility: an agent's self-withdrawal acts although agent-origin content is never
+   evidence.
 3. **Origin**: only ``external_observation`` is direct evidence. ``attributed`` (and any report whose
    proposition is ``belief_of``) is evidence for the attribution only (:class:`Attribution`),
    never for the inner proposition. Agent-class origins (``agent_hypothesis``, ``agent_statement``,
@@ -47,7 +52,7 @@ paper's ``retract(source)``.
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from types import MappingProxyType
 
 from palimem.types import (
@@ -67,6 +72,7 @@ from palimem.types.authority import AGENT_CLASS_ORIGINS
 
 from .authz import AuthDecision, Authorizer
 from .config import AdmissionConfig, SourceStatus
+from .disputes import apply_disputes
 from .equivalence import equivalent, proposition_signature
 from .ids import derive_ulid
 from .log import LogView
@@ -77,10 +83,21 @@ _ACTING_ORIGINS = frozenset({Origin.EXTERNAL_OBSERVATION}) | AGENT_CLASS_ORIGINS
 _EVIDENCE_ORIGINS = frozenset({Origin.EXTERNAL_OBSERVATION, Origin.ATTRIBUTED})
 
 
+def kernel_view(entry: LogEntry, decision: AdmissionDecision) -> LogEntry:
+    """The entry as the kernel reads it. A ``correct`` whose effect on its target was dropped by admission (its
+    ``effective_cue`` is not ``correct``: the product profile's failed or unchecked correction) is read as the ordinary
+    ``assert`` its source made, with no target: the content is evidence, the correction is not. Every other entry is
+    returned unchanged (the same object), so the log itself is never altered."""
+    r = entry.report
+    if r.cue is Cue.CORRECT and decision.effective_cue is not Cue.CORRECT:
+        return replace(entry, report=replace(r, cue=Cue.ASSERT, target=None))
+    return entry
+
+
 @dataclass(frozen=True)
 class Withdrawal:
     by: str  # id of the acting report
-    kind: str  # "withdraw" | "self_correction" | "source_withdraw"
+    kind: str  # "withdraw" | "self_correction" | "source_withdraw" (compat) | "source_exclusion" (admission operation)
 
 
 @dataclass(frozen=True)
@@ -214,7 +231,7 @@ class Admitter:
                     if isinstance(r.proposition, BeliefOfProp):
                         groups.setdefault(proposition_signature(r.proposition), []).append(e)
                     elif r.origin is Origin.EXTERNAL_OBSERVATION:
-                        direct.append(e)
+                        direct.append(kernel_view(e, d))
                 elif d.record.outcome is AdmissionOutcome.QUARANTINED:
                     quarantined.append(e)
             if d.effective_cue in (Cue.DISPUTE, Cue.ALLEGE) and r.target is not None:
@@ -226,6 +243,9 @@ class Admitter:
                         allegations.append(e)
         attributions = attributions_from_groups(groups)
         withdrawn = {rid: w for rid, w in ev.withdrawn.items() if by_id[rid].report.key == key}
+        if self.config.dispute_denial and disputes:
+            # ruling 3: an active (not withdrawn) authorised dispute is read as a denial of its target (see .disputes)
+            direct = apply_disputes(direct, [e for e in disputes if _rid(e) not in ev.withdrawn])
         return EvidenceSet(
             key=key,
             admission_version=ev.admission_version,
@@ -306,14 +326,16 @@ class Admitter:
             auth = None
             if status is SourceStatus.NORMAL and r.origin in _ACTING_ORIGINS:
                 auth = self.authz.check(r, Power.CORRECT, target_entry.report)
-            if auth is not None and not auth.allowed and self.config.failed_correction_allege:
-                # Product profile (design v0.3 §Write API; S-02 implementation note): a correction that fails the
-                # authority check is recorded as an ``allege`` with no effect on admissibility or the kernel, exactly
-                # like a failed withdraw or dispute. The paper's behaviour (a cross-origin correction stays a
-                # competing assertion carrying a correction cue, A-CORR) is the compat profile's and is kept below.
-                return self._decision(entry, excl, AdmissionReason.AUTHORITY_FAILED, Cue.ALLEGE, authority=auth)
             base = self._evidence_decision(entry, status)
-            withdraws = (r.target,) if (auth is not None and auth.allowed) else ()
+            allowed = auth is not None and auth.allowed
+            if self.config.failed_correction_allege and not allowed:
+                # Product profile (author ruling of 2026-10-05): the target part of a correction that does not hold
+                # authority (it failed the check, or its source is quarantined and was never checked) is an allege,
+                # but the content stays what its source said: the record is the ordinary evidence decision and the
+                # kernel reads the report as an assert (:func:`kernel_view`). The paper's A-CORR (the compat
+                # profile, and the switch set to False) keeps the correction cue as a competing assertion.
+                return AdmissionDecision(record=base.record, effective_cue=Cue.ALLEGE, authority=auth)
+            withdraws = (r.target,) if allowed else ()
             return AdmissionDecision(record=base.record, effective_cue=Cue.CORRECT, withdraws=withdraws, authority=auth)
 
         # withdraw / dispute: an operator action; a quarantined report acts on nothing

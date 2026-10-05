@@ -147,6 +147,8 @@ class Rule(Codec):
 
     @classmethod
     def from_dict(cls, d: Any) -> Self:
+        if isinstance(d, dict) and "exceptions" in d:
+            raise ValidationError("rule.exceptions is reserved (not in 0.x; S-10 narrows rules to strict rules)")
         o = as_obj(d, "rule", ["reads", "fn"])
         return cls(reads=tuple_of(o["reads"], "rule.reads", as_str), fn=as_str(o["fn"], "rule.fn"))
 

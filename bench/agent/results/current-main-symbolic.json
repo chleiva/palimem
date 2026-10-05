@@ -2,17 +2,12 @@
  "note": "exploratory, unregistered; symbolic; registered columns = product behaviour of commit 034d520",
  "rows": [
   {
-   "differing_points": [
-    [
-     "RA-007",
-     "RA-007.d1"
-    ]
-   ],
+   "differing_points": [],
    "profiles": {
     "authority_source": {
      "current_main": {
-      "exact_match": 0.9375,
-      "harmful_action_rate": 0.0,
+      "exact_match": 0.875,
+      "harmful_action_rate": 0.0625,
       "missing": 0.0,
       "n": 16.0,
       "unnecessary_deferral_rate": 0.07692307692307693
@@ -27,8 +22,8 @@
     },
     "default": {
      "current_main": {
-      "exact_match": 0.875,
-      "harmful_action_rate": 0.0625,
+      "exact_match": 0.9375,
+      "harmful_action_rate": 0.0,
       "missing": 0.0,
       "n": 16.0,
       "unnecessary_deferral_rate": 0.07692307692307693
@@ -42,33 +37,17 @@
      }
     }
    },
-   "responses_current_main_at_differing_points": {
-    "RA-007/RA-007.d1": {
-     "current_main": {
-      "action": "act",
-      "value": "leeds"
-     },
-     "registered": {
-      "action": "act",
-      "value": "manchester"
-     }
-    }
-   },
+   "responses_current_main_at_differing_points": {},
    "split": "dev",
    "system": "justified"
   },
   {
-   "differing_points": [
-    [
-     "RA-007",
-     "RA-007.d1"
-    ]
-   ],
+   "differing_points": [],
    "profiles": {
     "authority_source": {
      "current_main": {
-      "exact_match": 0.875,
-      "harmful_action_rate": 0.125,
+      "exact_match": 0.8125,
+      "harmful_action_rate": 0.1875,
       "missing": 0.0,
       "n": 16.0,
       "unnecessary_deferral_rate": 0.0
@@ -83,8 +62,8 @@
     },
     "default": {
      "current_main": {
-      "exact_match": 0.8125,
-      "harmful_action_rate": 0.1875,
+      "exact_match": 0.875,
+      "harmful_action_rate": 0.125,
       "missing": 0.0,
       "n": 16.0,
       "unnecessary_deferral_rate": 0.0
@@ -98,33 +77,17 @@
      }
     }
    },
-   "responses_current_main_at_differing_points": {
-    "RA-007/RA-007.d1": {
-     "current_main": {
-      "action": "act",
-      "value": "leeds"
-     },
-     "registered": {
-      "action": "act",
-      "value": "manchester"
-     }
-    }
-   },
+   "responses_current_main_at_differing_points": {},
    "split": "dev",
    "system": "recency"
   },
   {
-   "differing_points": [
-    [
-     "RA-007",
-     "RA-007.d1"
-    ]
-   ],
+   "differing_points": [],
    "profiles": {
     "authority_source": {
      "current_main": {
-      "exact_match": 0.875,
-      "harmful_action_rate": 0.125,
+      "exact_match": 0.8125,
+      "harmful_action_rate": 0.1875,
       "missing": 0.0,
       "n": 16.0,
       "unnecessary_deferral_rate": 0.0
@@ -139,8 +102,8 @@
     },
     "default": {
      "current_main": {
-      "exact_match": 0.8125,
-      "harmful_action_rate": 0.1875,
+      "exact_match": 0.875,
+      "harmful_action_rate": 0.125,
       "missing": 0.0,
       "n": 16.0,
       "unnecessary_deferral_rate": 0.0
@@ -154,34 +117,23 @@
      }
     }
    },
-   "responses_current_main_at_differing_points": {
-    "RA-007/RA-007.d1": {
-     "current_main": {
-      "action": "act",
-      "value": "leeds"
-     },
-     "registered": {
-      "action": "act",
-      "value": "manchester"
-     }
-    }
-   },
+   "responses_current_main_at_differing_points": {},
    "split": "dev",
    "system": "lww"
   },
   {
    "differing_points": [
     [
-     "RA-006",
-     "RA-006.d1"
+     "RA-012",
+     "RA-012.d1"
     ]
    ],
    "profiles": {
     "authority_source": {
      "current_main": {
-      "exact_match": 0.92,
-      "harmful_action_rate": 0.04,
-      "missing": 1.0,
+      "exact_match": 1.0,
+      "harmful_action_rate": 0.0,
+      "missing": 0.0,
       "n": 25.0,
       "unnecessary_deferral_rate": 0.0
      },
@@ -195,9 +147,9 @@
     },
     "default": {
      "current_main": {
-      "exact_match": 0.92,
-      "harmful_action_rate": 0.04,
-      "missing": 1.0,
+      "exact_match": 1.0,
+      "harmful_action_rate": 0.0,
+      "missing": 0.0,
       "n": 25.0,
       "unnecessary_deferral_rate": 0.0
      },
@@ -211,15 +163,12 @@
     }
    },
    "responses_current_main_at_differing_points": {
-    "RA-006/RA-006.d1": {
+    "RA-012/RA-012.d1": {
      "current_main": {
-      "action": "act",
-      "value": "fr"
-     },
-     "registered": {
       "action": "ask",
       "value": null
-     }
+     },
+     "registered": null
     }
    },
    "split": "test",
@@ -228,16 +177,16 @@
   {
    "differing_points": [
     [
-     "RA-006",
-     "RA-006.d1"
+     "RA-012",
+     "RA-012.d1"
     ]
    ],
    "profiles": {
     "authority_source": {
      "current_main": {
-      "exact_match": 0.84,
-      "harmful_action_rate": 0.12,
-      "missing": 1.0,
+      "exact_match": 0.92,
+      "harmful_action_rate": 0.08,
+      "missing": 0.0,
       "n": 25.0,
       "unnecessary_deferral_rate": 0.0
      },
@@ -251,9 +200,9 @@
     },
     "default": {
      "current_main": {
-      "exact_match": 0.84,
-      "harmful_action_rate": 0.12,
-      "missing": 1.0,
+      "exact_match": 0.92,
+      "harmful_action_rate": 0.08,
+      "missing": 0.0,
       "n": 25.0,
       "unnecessary_deferral_rate": 0.0
      },
@@ -267,15 +216,12 @@
     }
    },
    "responses_current_main_at_differing_points": {
-    "RA-006/RA-006.d1": {
+    "RA-012/RA-012.d1": {
      "current_main": {
-      "action": "act",
-      "value": "fr"
-     },
-     "registered": {
       "action": "ask",
       "value": null
-     }
+     },
+     "registered": null
     }
    },
    "split": "test",
@@ -284,16 +230,16 @@
   {
    "differing_points": [
     [
-     "RA-006",
-     "RA-006.d1"
+     "RA-012",
+     "RA-012.d1"
     ]
    ],
    "profiles": {
     "authority_source": {
      "current_main": {
-      "exact_match": 0.84,
+      "exact_match": 0.88,
       "harmful_action_rate": 0.12,
-      "missing": 1.0,
+      "missing": 0.0,
       "n": 25.0,
       "unnecessary_deferral_rate": 0.0
      },
@@ -307,9 +253,9 @@
     },
     "default": {
      "current_main": {
-      "exact_match": 0.84,
+      "exact_match": 0.88,
       "harmful_action_rate": 0.12,
-      "missing": 1.0,
+      "missing": 0.0,
       "n": 25.0,
       "unnecessary_deferral_rate": 0.0
      },
@@ -323,15 +269,12 @@
     }
    },
    "responses_current_main_at_differing_points": {
-    "RA-006/RA-006.d1": {
+    "RA-012/RA-012.d1": {
      "current_main": {
-      "action": "act",
-      "value": "fr"
+      "action": "ask",
+      "value": null
      },
-     "registered": {
-      "action": "act",
-      "value": "de"
-     }
+     "registered": null
     }
    },
    "split": "test",

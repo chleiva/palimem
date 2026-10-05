@@ -127,7 +127,7 @@ def build_schemas(setup: dict[str, Any]) -> tuple[Schema, KernelSchema]:
             specs[name] = AttrSpec(name, "single", True, error_allowed=False, derived=True)
         elif cls is AttrClass.SINGLE_CHANGEABLE:
             if not inertia:
-                raise KernelUnsupported(f"{name}: inertia=false on a changeable attribute has no specified semantics (S-08)")
+                raise KernelUnsupported(f"{name}: inertia=false on a changeable attribute is specified (S-08, ruling 14) but not implemented")
             specs[name] = AttrSpec(name, "single", True)
         elif cls is AttrClass.SINGLE_STABLE:
             specs[name] = AttrSpec(name, "single", False)
@@ -137,16 +137,19 @@ def build_schemas(setup: dict[str, Any]) -> tuple[Schema, KernelSchema]:
 
 
 def _with_merge_attr(schema: Schema) -> Schema:
+    from palimem.admission import enable_source_exclusions
     from palimem.entities import enable_entity_merges
 
-    return enable_entity_merges(schema)  # type: ignore[return-value]
+    return enable_source_exclusions(enable_entity_merges(schema))  # type: ignore[arg-type,return-value]
 
 
 def _with_merge_spec(ks: KernelSchema) -> KernelSchema:
+    from palimem.admission import SOURCE_EXCLUSION_ATTR, exclusion_attr_spec
     from palimem.entities import ENTITY_MERGE_ATTR, merge_attr_spec
 
     attrs = dict(ks.attrs)
     attrs[ENTITY_MERGE_ATTR] = merge_attr_spec()  # type: ignore[assignment]
+    attrs[SOURCE_EXCLUSION_ATTR] = exclusion_attr_spec()  # type: ignore[assignment]
     return KernelSchema(attrs=attrs, rules=ks.rules, entities=ks.entities)
 
 
@@ -175,7 +178,7 @@ class MemoryImplementation:
     # ------------------------------------------------------------------ protocol
 
     def capabilities(self) -> set[str]:
-        return {"budget_control", "completion_jobs", "delete", "hash_chain", "profile_revise_stream_v1", "outbox", "merge"}
+        return {"budget_control", "completion_jobs", "delete", "hash_chain", "profile_revise_stream_v1", "outbox", "merge", "source_exclusion"}
 
     def start(self, setup: dict[str, Any]) -> Any:
         self.clock = _Clock()
@@ -343,6 +346,24 @@ class MemoryImplementation:
         rec = self._entities(op).merge(alias, into, reason=op.get("reason", "conformance fixture"))
         self._merge_ids[op["merge_id"]] = rec.id
         return self._merge_result(rec)
+
+    def op_exclude_source(self, op: dict[str, Any]) -> Any:
+        """A host-level admission decision (ruling 2 of 2026-10-05): the source is not heard from ``from_lsn`` on."""
+        return self._exclusion(op, restore=False)
+
+    def op_restore_source(self, op: dict[str, Any]) -> Any:
+        return self._exclusion(op, restore=True)
+
+    def _exclusion(self, op: dict[str, Any], *, restore: bool) -> Any:
+        from palimem.admission import exclude_source, restore_source
+
+        assert self.mem is not None
+        if op.get("at"):
+            self.clock.set(op["at"])
+        fn = restore_source if restore else exclude_source
+        res = fn(self.mem, op["source"], int(op["from_lsn"]), op["reason"], actor=op.get("actor", "system:admission"))
+        entry = res.entry  # type: ignore[attr-defined]
+        return {"report_id": entry.report.id, "lsn": entry.lsn, "admission": {"outcome": res.admissions[0].outcome.value}}  # type: ignore[attr-defined]
 
     def op_unmerge(self, op: dict[str, Any]) -> Any:
         rec = self._entities(op).unmerge(self._merge_ids[op["merge_id"]], reason=op.get("reason", "conformance fixture"))

@@ -2,19 +2,18 @@
   "version": 1,
   "kind": "scenario",
   "id": "ind-12-overlapping-intervals-one-closed",
-  "title": "Conflicting candidates in overlapping intervals; one later closed: segments split at the boundaries",
+  "title": "Conflicting candidates in overlapping intervals; one later closed: per-key admissibility, segments cut afterwards",
   "gate": "G1",
   "area": "segments",
-  "status": "active",
+  "status": "shell",
   "covers": [
     "design-row-12",
-    "S-04"
+    "S-04",
+    "ruling-5"
   ],
   "requires": [],
-  "spec_dependencies": [
-    "Segment-local status assumes admissibility (A-ERR) is evaluated per segment, as design v0.3 'each segment reports its own status' implies. The paper's per-key kernel lets any report be ERR when disputed anywhere, which would make the non-overlap segments unresolved too. Needs a decision before G1."
-  ],
-  "why": "employer has no inertia. R1 (registry): Acme from 1 Jan, open-ended. R2 (press): Globex from 1 Mar, open-ended. They overlap from 1 Mar. Before R3: segment [1 Jan,1 Mar) = Acme established, segment [1 Mar,end) = unresolved with both candidates. On 10 Apr the registry corrects R1 to close it at 1 Apr (R3: same value, valid 1 Jan to 1 Apr; a same-source correction withdraws R1). After R3 the segments are [1 Jan,1 Mar) Acme, [1 Mar,1 Apr) unresolved {Acme,Globex}, [1 Apr,end) Globex established, each with its own status.",
+  "spec_dependencies": [],
+  "why": "employer has no inertia. R1 (registry): Acme from 1 Jan, open-ended. R2 (press): Globex from 1 Mar, open-ended. They overlap from 1 Mar. On 10 Apr the registry corrects R1 to close it at 1 Apr (R3: same value, valid 1 Jan to 1 Apr; a same-source correction withdraws R1). RECONCILED with AUTHOR RULING 5 of 2026-10-05 (docs/decisions/RULINGS-2026-10-05.md item 12): A-ERR is evaluated PER KEY in both profiles, because an interpretation labels a report and a report is one object; the segments are cut afterwards. The first draft's segment-local expectation (the segment before R2 established Acme, the segment after R3 established Globex) is therefore withdrawn: R2 may make R1 (or R3) ERR whatever the segment, and R1/R3 may make R2 ERR, so every segment of every query below is unresolved; none is established. The per-key labelling is demonstrated with evidence the kernel supports today in r05-a-err-is-per-key-segments-are-cut-afterwards. This fixture stays a SHELL: it needs valid_to / interval cues and inertia=false, which have no oracle yet (S-09; ruling 14 specifies inertia=false but it is refused until implemented), and its expectations are derived by hand and must be re-derived when they do.",
   "source": "design-v0.3 §Independent acceptance tests, row 12",
   "setup": {
     "profile": "open-world",
@@ -102,13 +101,7 @@
         "valid_at": "2026-02-01T00:00:00Z"
       },
       "expect": {
-        "kernel_status": "established",
-        "assertion": {
-          "form": {
-            "form": "value",
-            "v": "acme"
-          }
-        }
+        "kernel_status": "unresolved"
       }
     },
     {
@@ -122,26 +115,7 @@
         "valid_at": "2026-03-15T00:00:00Z"
       },
       "expect": {
-        "kernel_status": "unresolved",
-        "_candidates": {
-          "$unordered": [
-            {
-              "form": {
-                "form": "value",
-                "v": "acme"
-              }
-            },
-            {
-              "form": {
-                "form": "value",
-                "v": "globex"
-              }
-            }
-          ]
-        },
-        "segment": {
-          "valid_from": "2026-03-01T00:00:00Z"
-        }
+        "kernel_status": "unresolved"
       }
     },
     {
@@ -182,17 +156,7 @@
         "valid_at": "2026-02-01T00:00:00Z"
       },
       "expect": {
-        "kernel_status": "established",
-        "assertion": {
-          "form": {
-            "form": "value",
-            "v": "acme"
-          }
-        },
-        "segment": {
-          "valid_from": "2026-01-01T00:00:00Z",
-          "valid_to": "2026-03-01T00:00:00Z"
-        }
+        "kernel_status": "unresolved"
       }
     },
     {
@@ -206,27 +170,7 @@
         "valid_at": "2026-03-15T00:00:00Z"
       },
       "expect": {
-        "kernel_status": "unresolved",
-        "_candidates": {
-          "$unordered": [
-            {
-              "form": {
-                "form": "value",
-                "v": "acme"
-              }
-            },
-            {
-              "form": {
-                "form": "value",
-                "v": "globex"
-              }
-            }
-          ]
-        },
-        "segment": {
-          "valid_from": "2026-03-01T00:00:00Z",
-          "valid_to": "2026-04-01T00:00:00Z"
-        }
+        "kernel_status": "unresolved"
       }
     },
     {
@@ -240,16 +184,7 @@
         "valid_at": "2026-05-01T00:00:00Z"
       },
       "expect": {
-        "kernel_status": "established",
-        "assertion": {
-          "form": {
-            "form": "value",
-            "v": "globex"
-          }
-        },
-        "segment": {
-          "valid_from": "2026-04-01T00:00:00Z"
-        }
+        "kernel_status": "unresolved"
       }
     },
     {
@@ -264,11 +199,9 @@
         "belief_as_of": "$r2.lsn"
       },
       "expect": {
-        "kernel_status": "unresolved",
-        "segment": {
-          "valid_from": "2026-03-01T00:00:00Z"
-        }
+        "kernel_status": "unresolved"
       }
     }
-  ]
+  ],
+  "status_reason": "valid_to / interval cues and inertia=false have no oracle yet (S-09, ruling 14); expectations reconciled with ruling 5 by hand."
 }

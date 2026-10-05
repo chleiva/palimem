@@ -2,7 +2,7 @@
   "version": 1,
   "kind": "scenario",
   "id": "ind-20-traversal-budget-store-dirty",
-  "title": "Traversal budget exhausted mid-cascade: store-wide dirty marker, every read ResourceLimited(store_dirty)",
+  "title": "Traversal budget exhausted mid-cascade: the dirty marker is scoped to the component, every read in it is ResourceLimited(store_dirty)",
   "gate": "G1",
   "area": "resource_limits",
   "status": "active",
@@ -15,10 +15,8 @@
     "budget_control",
     "completion_jobs"
   ],
-  "spec_dependencies": [
-    "H4: component-scoped dirty marker (SEC-22) vs the store-wide marker of design row 20 is undecided."
-  ],
-  "why": "The per-append traversal (marking) budget is 1 key, but the dependency closure of employer(alice) has two derived keys (work_city, local_tax_city). The commit cannot mark the closure, so it sets the store-wide dirty marker instead of a partial marking: EVERY read, including a key in an unrelated component (site(bob)), returns ResourceLimited(store_dirty) until the completion job clears it. This is the design as written; the threat model's proposal to scope the marker to a component (SEC-22, H4) contradicts it and is tracked as a pending decision.",
+  "spec_dependencies": [],
+  "why": "The per-append traversal (marking) budget is 1 key, but the dependency closure of employer(alice) has two derived keys (work_city, local_tax_city). The commit cannot mark the closure, so it sets a dirty marker instead of a partial marking. RECONCILED with the author's decision H4 and ruling 15 of 2026-10-05: the marker is scoped to the CONNECTED COMPONENT of the attribute dependency graph (known statically from the schema rules), with a store-wide marker only as a last resort. So every read in alice's component (employer, work_city, local_tax_city) returns ResourceLimited(store_dirty) until the completion job clears it, while a key in an unrelated component (site(bob)) is unaffected and keeps answering. (Design row 20 as first written said the marker is store-wide; that wording is superseded. A store-wide marker remains the fallback when the component cannot be determined.)",
   "source": "design-v0.3 §Independent acceptance tests, row 20",
   "setup": {
     "profile": "open-world",
@@ -229,11 +227,13 @@
         }
       },
       "expect": {
-        "decision": "resource_limited",
-        "reason": "store_dirty",
-        "kernel_status": "$absent",
-        "segment": "$absent",
-        "assertion": "$absent"
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "north"
+          }
+        }
       }
     },
     {

@@ -28,12 +28,13 @@ CAPABILITIES = [
     "quotas",               # per-source quotas
     "raw_ref_resolver",     # resolve_raw_ref
     "profile_revise_stream_v1",
+    "source_exclusion",     # exclude_source / restore_source (admission operations, ruling 2 of 2026-10-05)
 ]
 OPS = [
     "configure", "append", "observe_text", "delete", "merge", "unmerge", "subscribe", "deliver",
     "ack", "crash", "recover", "checkpoint", "restore_backup", "tamper", "complete_jobs", "query",
     "explain", "reports", "verify_log", "export_head", "find", "subscriber_effects",
-    "resolve_raw_ref", "verify_beliefs",
+    "resolve_raw_ref", "verify_beliefs", "exclude_source", "restore_source",
 ]
 OP_REQUIRED: dict[str, list[str]] = {
     "configure": [],
@@ -60,6 +61,8 @@ OP_REQUIRED: dict[str, list[str]] = {
     "subscriber_effects": ["name"],
     "resolve_raw_ref": ["name", "raw_ref"],
     "verify_beliefs": ["name"],
+    "exclude_source": ["source", "from_lsn", "reason"],
+    "restore_source": ["source", "from_lsn", "reason"],
 }
 
 TS = {"type": "string", "pattern": r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$"}
@@ -124,7 +127,7 @@ def fixture_schema() -> dict[str, Any]:
         "tamper": {"type": "object"}, "checkpoint_name": {"type": "string"},
         "from_lsn": {"anyOf": [REFSTR, {"type": "integer"}]},
         "to_lsn": {"anyOf": [REFSTR, {"type": "integer"}]},
-        "raw_ref": {"type": "string"}, "expected_head": {"type": "string"},
+        "raw_ref": {"type": "string"}, "expected_head": {"type": "string"}, "source": {"type": "string"},
     }
     ops = {
         "type": "array",

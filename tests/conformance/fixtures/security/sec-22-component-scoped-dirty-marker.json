@@ -5,7 +5,7 @@
   "title": "Traversal-budget exhaustion marks only the affected dependency component",
   "gate": "G1",
   "area": "resource_limits",
-  "status": "pending-decision",
+  "status": "active",
   "covers": [
     "SEC-22",
     "T-20",
@@ -15,7 +15,7 @@
     "budget_control"
   ],
   "spec_dependencies": [],
-  "why": "Same set-up as ind-20 but expecting the PROPOSED behaviour: only the component whose closure could not be marked answers ResourceLimited; an unrelated key (site(bob)) keeps serving. This contradicts design row 20 (store-wide marker) and waits for decision H4.",
+  "why": "Same set-up as ind-20, now the DECIDED behaviour (H4, reaffirmed by author ruling 15 of 2026-10-05): only the component whose closure could not be marked answers ResourceLimited; an unrelated key (site(bob)) keeps serving. A store-wide marker remains the last resort. Design row 20 as first written (store-wide) is superseded; ind-20 is reconciled with this.",
   "source": "docs/THREAT_MODEL.md §7 (SEC-22)",
   "setup": {
     "profile": "open-world",
@@ -218,6 +218,5 @@
         }
       }
     }
-  ],
-  "status_reason": "H4 (component-scoped dirty marker) is not decided; design row 20 says store-wide."
+  ]
 }

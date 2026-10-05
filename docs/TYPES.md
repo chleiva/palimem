@@ -97,3 +97,8 @@ The types are the contract; these packages produce and consume them and are desc
 | `palimem.kernel` | admitted reports in, `Belief` segments and `Support` environments out | [`KERNEL.md`](KERNEL.md) |
 | `palimem.store` | persists `LogEntry`, `AdmissionRecord` and `Belief` versions behind the `Backend` protocol | [`STORAGE.md`](STORAGE.md) |
 | `palimem.policy` | `Belief` view in, `decision` and `Resolved` fields out | [`PIPELINE.md`](PIPELINE.md) |
+
+
+## Segment `unknown` and negative constraints (ruling 4 of 2026-10-05)
+
+A `Segment` of status `unknown` names no established candidate but may list `alternatives` consisting only of negative candidates (`not_value` / `not_member`): denials that narrow the value without determining it (two compatible denials). `unresolved` still needs at least two alternatives and `established_*` still forbids alternatives. See `docs/decisions/S-04.md`.

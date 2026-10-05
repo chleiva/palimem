@@ -116,6 +116,15 @@ jobs:
             echo "::error::replay_s23 did not detect injected bug 'mutate-answer'"; exit 1
           fi
       - run: pytest -q tests/test_replay_s23.py
+      - name: exclude_source vs gold (the product's admission operation closes the late-assert gap), bounded on push/PR
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then STRIDE=5; else STRIDE=25; fi
+          python -m harness.exclusion_diff --stride $STRIDE --backend both
+      - name: exclude_source self-test, the gate must fail when the exclusion forgets the earlier reports
+        run: |
+          if python -m harness.exclusion_diff --stride 25 --backend memory --inject-bug forward-only; then
+            echo "::error::exclusion_diff did not detect injected bug 'forward-only'"; exit 1
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:

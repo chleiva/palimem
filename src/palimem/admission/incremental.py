@@ -49,7 +49,9 @@ from .admitter import (
     Attribution,
     Withdrawal,
     attributions_from_groups,
+    kernel_view,
 )
+from .disputes import apply_disputes
 from .equivalence import proposition_signature
 
 
@@ -137,6 +139,9 @@ class IncrementalAdmission:
         self.inactive: set[str] = set()
         """Actors that no longer act (``acting_reports_must_be_live``): withdrawn by an acting actor of a higher LSN."""
         self.quar_keys: dict[Key, int] = {}
+        self.dispute_cnt: dict[Key, int] = {}
+        """Keys that hold at least one ``dispute``-cue report (count): the keys whose direct evidence depends on disputes
+        (ruling 3), so a new report on them re-derives the key's evidence instead of appending to it."""
         self.withdrawn_base: dict[str, Withdrawal] = {}
         """The base withdrawal map (the whole-log ``_withdrawals``), maintained in place per append."""
         self.withdrawn: Mapping[str, Withdrawal] = self.withdrawn_base
@@ -272,6 +277,25 @@ class IncrementalAdmission:
             s = self._sig[rid] = proposition_signature(prop)
             self._record(lambda: self._sig.pop(rid, None))
         return s
+
+    def _view(self, e: LogEntry) -> LogEntry:
+        """The entry as the kernel reads it (a correction without authority is read as the assert it carries)."""
+        return kernel_view(e, self.decision(_rid(e)))
+
+    def _direct_list(self, k: Key) -> tuple[LogEntry, ...]:
+        """The kernel's evidence for one key: its direct reports (kernel views) plus, in the product profile, the denials
+        of its active authorised disputes (ruling 3; the same rule as the whole-log ``direct_entries``)."""
+        base = tuple(self._view(x) for x in self.by_key.get(k, ()) if self._is_direct(x))
+        if not (self.admitter.config.dispute_denial and self.dispute_cnt.get(k)):
+            return base
+        active = [
+            x for x in self.by_key.get(k, ())
+            if x.report.cue is Cue.DISPUTE
+            and self.decision(_rid(x)).effective_cue is Cue.DISPUTE
+            and self.decision(_rid(x)).record.outcome is AdmissionOutcome.ADMISSIBLE
+            and _rid(x) not in self.withdrawn
+        ]
+        return tuple(apply_disputes(base, active))
 
     def _is_direct(self, e: LogEntry) -> bool:
         rid = _rid(e)
@@ -470,6 +494,8 @@ class IncrementalAdmission:
         is_actor = bool(d0.withdraws or d0.withdraws_source)
         if is_actor:
             self._put(self.actors, rid, e)
+        if r.cue is Cue.DISPUTE:
+            self._put(self.dispute_cnt, r.key, self.dispute_cnt.get(r.key, 0) + 1)
         is_quarantined_evidence = (
             d0.record.outcome is AdmissionOutcome.QUARANTINED and r.proposition is not None and r.cue in EVIDENCE_CUES
         )
@@ -500,8 +526,10 @@ class IncrementalAdmission:
 
         # ---- direct evidence per key
         changed_keys: set[Key] = set()
+        if self.admitter.config.dispute_denial and (r.cue is Cue.DISPUTE or self.dispute_cnt.get(r.key)):
+            dirty.add(r.key)  # a dispute, or a report on a disputed key (it may confirm the target): re-derive the key
         for k in dirty:
-            new = tuple(x for x in self.by_key.get(k, ()) if self._is_direct(x))
+            new = self._direct_list(k)
             old = self.direct.get(k, ())
             if tuple(_rid(x) for x in new) != tuple(_rid(x) for x in old):
                 changed_keys.add(k)
@@ -510,7 +538,7 @@ class IncrementalAdmission:
             elif k in self.direct:
                 self._del(self.direct, k)
         if r.key not in dirty and self._is_direct(e):
-            self._put(self.direct, r.key, self.direct.get(r.key, ()) + (e,))
+            self._put(self.direct, r.key, self.direct.get(r.key, ()) + (self._view(e),))
             changed_keys.add(r.key)
 
         records: list[AdmissionRecord] = [self.decision(rid).record]

@@ -11,10 +11,8 @@
     "T-17"
   ],
   "requires": [],
-  "spec_dependencies": [
-    "S-02: the kernel semantics of an authorised dispute is not defined in design v0.3; assumes the dispute plays the A-ERR competitor role."
-  ],
-  "why": "A user granted the dispute power on employer disputes r1 and states the competing value. The key can no longer be established on r1 alone: it is unresolved with both candidates; the single-origin belief does not survive the dispute.",
+  "spec_dependencies": [],
+  "why": "A user granted the dispute power on employer disputes r1 (the dispute also states a competing value). Author ruling 3 of 2026-10-05 fixes the kernel meaning: the target's candidate becomes unresolved against 'disputed' (here value(acme) against not_value(acme)), with NO value asserted (the competing value the dispute states is not asserted by it), until confirmation from another origin group or withdrawal. The single-origin belief does not survive the dispute. (The earlier version of this fixture assumed the dispute was an A-ERR competitor with candidates {Acme, Globex}; the ruling supersedes it.)",
   "source": "docs/THREAT_MODEL.md §7 (SEC-41)",
   "setup": {
     "profile": "open-world",
@@ -76,7 +74,7 @@
         "origin": "external_observation",
         "origin_group": "g_registry",
         "actor": "connector:registry",
-        "valid_from": "2026-01-01T00:00:00Z",
+        "valid_from": null,
         "valid_to": null,
         "precision": "day"
       }
@@ -103,7 +101,7 @@
         "origin": "external_observation",
         "origin_group": "g_chat",
         "actor": "user:alice",
-        "valid_from": "2026-01-01T00:00:00Z",
+        "valid_from": null,
         "valid_to": null,
         "precision": "day"
       },
@@ -122,6 +120,8 @@
       },
       "expect": {
         "kernel_status": "unresolved",
+        "decision": "ask",
+        "assertion": "$absent",
         "_candidates": {
           "$unordered": [
             {
@@ -132,8 +132,8 @@
             },
             {
               "form": {
-                "form": "value",
-                "v": "globex"
+                "form": "not_value",
+                "v": "acme"
               }
             }
           ]

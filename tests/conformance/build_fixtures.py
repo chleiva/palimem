@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from . import fx_independent, fx_other
+from . import fx_independent, fx_other, fx_rulings
 from .schema import fixture_schema, index_schema
 
 ROOT = Path(__file__).parent
@@ -30,7 +30,7 @@ def group_of(fid: str) -> str:
 
 
 def all_fixtures() -> list[dict[str, Any]]:
-    out = [*fx_independent.build(), *fx_other.s06(), *fx_other.s10(), *fx_other.compat(), *fx_other.compat_harness(), *fx_other.security()]
+    out = [*fx_independent.build(), *fx_other.s06(), *fx_other.s10(), *fx_other.compat(), *fx_other.compat_harness(), *fx_other.security(), *fx_rulings.build()]
     ids = [f["id"] for f in out]
     dup = {i for i in ids if ids.count(i) > 1}
     if dup:
