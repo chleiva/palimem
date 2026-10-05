@@ -85,7 +85,8 @@ def enable_entity_merges(schema: object) -> object:
 
     if any(a.name == ENTITY_MERGE_ATTR for a in schema.attrs):  # type: ignore[attr-defined]
         return schema
-    attr = Attr(name=ENTITY_MERGE_ATTR, attr_class=AttrClass.MULTI_SET, value_type=ValueType.STRING)
+    # inertia=True: the kernel refuses inertia=False (S-08 left it unspecified); harmless for a set of marker texts
+    attr = Attr(name=ENTITY_MERGE_ATTR, attr_class=AttrClass.MULTI_SET, value_type=ValueType.STRING, inertia=True)
     return replace(schema, version=schema.version + 1, attrs=(*schema.attrs, attr))  # type: ignore[type-var,attr-defined]
 
 

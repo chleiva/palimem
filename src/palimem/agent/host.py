@@ -421,6 +421,9 @@ class Host:
         admitted: list[bool] = []
         skipped: list[str] = []
         for i, rep in enumerate(result.reports):
+            if rep.key.attr.startswith("__"):  # reserved attributes are host-only: an extractor must not reach them
+                skipped.append(f"scope_denied: attribute {rep.key.attr!r} is reserved")
+                continue
             if allowed_attrs is not None and rep.key.attr not in allowed_attrs:
                 skipped.append(f"scope_denied: attribute {rep.key.attr!r} is outside the session's scope")
                 continue

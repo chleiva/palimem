@@ -251,6 +251,9 @@ class AgentTools:
         ids: list[str] = []
         admitted = False
         for i, rep in enumerate(reports):
+            if rep.key.attr.startswith("__"):  # reserved attributes are host-only (an extractor must not reach them)
+                notices.append(Notice("scope_denied", "attr", rep.key.attr))
+                continue
             if not ctx.in_scope(rep.key.attr):
                 notices.append(Notice("scope_denied", "attr", rep.key.attr))
                 continue
@@ -265,6 +268,8 @@ class AgentTools:
 
     def _typed(self, entity: str, attr: str, value: Any, origin: Origin, source: Source) -> Report:
         host = self.host
+        if attr.startswith("__"):  # reserved attributes (entity merges, compat markers) are host-only, never an agent's
+            raise ToolError(f"attribute {attr!r} is reserved", code="reserved_attr")
         host.ensure_declared(attr)
         try:
             a = host.mem.schema.attr(attr)

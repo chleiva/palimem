@@ -57,6 +57,7 @@
 {"a": "Priya Nairr", "b": "Priya Nair", "category": "typo", "id": "pe706338197", "kind": "person", "label": "same"}
 {"a": "Ms. Priya Nair", "b": "Priya Nair", "category": "honorific", "id": "pe784921fd5", "kind": "person", "label": "same"}
 {"a": "Hanna Weiss", "b": "Hans Weiss", "category": "near_name", "id": "pec33000f8a", "kind": "person", "label": "different"}
+{"a": "Maria Lopez", "b": "Maria Lopez Garcia", "category": "extra_name", "id": "ped5c43b0d5", "kind": "person", "label": "same"}
 {"a": "Globex Corporation", "b": "Globex", "category": "corporate", "id": "pf561d0dc60", "kind": "org", "label": "same"}
 {"a": "Lyon, France", "b": "Lyon, Texas", "category": "place", "id": "pf73ddaa6c7", "kind": "other", "label": "different"}
 {"a": "Björk Guðmundsdóttir", "b": "Bjork Gudmundsdottir", "category": "accent", "id": "pf8a04e9966", "kind": "person", "label": "same"}

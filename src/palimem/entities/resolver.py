@@ -191,6 +191,10 @@ def similarity(a: str, b: str, *, kind: str = "auto", aliases: AliasTable | None
     if _acronym(ta, tb):
         return Similarity(0.75, "acronym", feats)
 
+    # a given-name conflict next to a shared family name is two people
+    if len(ta) >= 2 and len(tb) >= 2 and ta[-1] == tb[-1] and ta[0] != tb[0] and _token_score(ta[0], tb[0])[0] == 0.0:
+        return Similarity(0.3, "blocked:given_name_conflict", feats)
+
     # extra tokens are only harmless when they carry no identity: single-letter initials, or (for people) a further
     # name part next to at least two shared parts ("Christian Leiva" / "Christian Leiva Beltran")
     real_a = [t for t in left_a if len(t) > 1]
@@ -202,11 +206,6 @@ def similarity(a: str, b: str, *, kind: str = "auto", aliases: AliasTable | None
         strong = [m for m in matches if m[3] in ("equal", "nickname", "typo")]
         if not (kind == "person" and len(strong) >= 2 and len(extra) == 1):
             return Similarity(min(0.5, 0.5 * align + 0.2 * ng), "blocked:extra_qualifier", feats)
-    # a given-name conflict next to a shared family name is two people
-    if len(ta) >= 2 and len(tb) >= 2 and ta[-1] == tb[-1] and ta[0] != tb[0]:
-        g, why = _token_score(ta[0], tb[0])
-        if g == 0.0:
-            return Similarity(0.3, "blocked:given_name_conflict", feats)
     score = 0.65 * align + 0.35 * ng
     if any(m[3] == "prefix" for m in matches):
         score = min(score, 0.85)

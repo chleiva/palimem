@@ -8,8 +8,8 @@ are reported separately and resolved only with a declared alias.
 Honest limits: one author wrote the labels (with LLM assistance), names are mostly Western and English, and a name
 is not an identity: two different people called `John Smith` look identical to every resolver in this repository.
 
-The dev/test split is deterministic (parity of a SHA-256 of the pair id). Rules were tuned on dev; the test split is
-frozen by checksum (`checksums.json`) and reported once.
+The dev/test split is deterministic and stratified (within each category, pairs sorted by id alternate dev, test).
+Rules were tuned on dev; the test split is frozen by checksum (`checksums.json`) and reported once.
 """
 
 from __future__ import annotations
@@ -72,6 +72,7 @@ SAME: list[tuple[str, str, str, str]] = [
     ("John R. Doe", "John Doe", "initial", "person"),
     ("M. Dubois", "Marie Dubois", "initial", "person"),
     ("Christian Leiva", "Christian Leiva Beltran", "extra_name", "person"),
+    ("Maria Lopez", "Maria Lopez Garcia", "extra_name", "person"),
     # --- typos
     ("Veltrann Inc", "Veltran Inc", "typo", "org"),
     ("Alice Jonhson", "Alice Johnson", "typo", "person"),
