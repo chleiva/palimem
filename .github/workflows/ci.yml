@@ -13,7 +13,7 @@ jobs:
         python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with: { python-version: "${{ matrix.python-version }}" }
       - run: pip install -e ".[dev]"
       - run: ruff check .
@@ -34,7 +34,7 @@ jobs:
       PALIMPSEST_STUDY_DIR: ${{ github.workspace }}/study
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with: { python-version: "3.12" }
       - id: pin
         run: echo "commit=$(python3 -c "import json;print(json.load(open('harness/study_pin.json'))['commit'])")" >> "$GITHUB_OUTPUT"
