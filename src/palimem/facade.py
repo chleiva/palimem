@@ -301,9 +301,12 @@ class Memory:
         """Register the beliefs a plan rests on, as ``(attr, entity)`` pairs; changes arrive through the outbox."""
         self.host.subscribe(plan_id, [Key(entity=e, attr=a) for a, e in keys])
 
-    def delete(self, report_id: str, reason: ErasureReason = ErasureReason.ERASURE_REQUEST) -> Tombstone:
-        """Erase a report (needs ``store_secret``): content and derived values go, a tombstone keeps the chain."""
-        return self.host.mem.delete(report_id, reason)
+    def delete(
+        self, report_id: str, reason: ErasureReason = ErasureReason.ERASURE_REQUEST, *, requester: str | None = None
+    ) -> Tombstone:
+        """Erase a report (needs ``store_secret``): content and derived values go, a tombstone keeps the chain.
+        ``requester`` (a principal id) is stored on the tombstone as a pseudonym only."""
+        return self.host.mem.delete(report_id, reason, requester=requester)
 
     def verify(self) -> VerifyResult:
         """Check the log's hash chain."""

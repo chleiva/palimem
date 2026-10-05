@@ -304,29 +304,32 @@ class MemoryImplementation:
 
     def op_complete_jobs(self, op: dict[str, Any]) -> Any:
         assert self.mem is not None
-        keys = [Key(entity=e, attr=a.name) for e in sorted(self._seen_entities) for a in self._schema.attrs]
-
-        def versions() -> dict[Key, int]:
-            out: dict[Key, int] = {}
-            for k in keys:
-                b = self.backend.current_belief(k)
-                if b is not None:
-                    out[k] = b.version
-            return out
-
-        before = versions()
         rep = self.backend.complete_pending(self.mem.reviser)
-        after = versions()
-        completed = [k.to_dict() for k in keys if after.get(k) != before.get(k)]
-        return {"completed": completed, "skipped": [], "jobs_done": rep.jobs_done, "keys_stamped": rep.keys_stamped,
-                "skipped_newer": rep.skipped_newer}
+        return {
+            "completed": [k.to_dict() for k in rep.stamped],  # keys this run wrote a version for
+            "skipped": [k.to_dict() for k in rep.skipped],  # keys left alone: a newer generation had completed them
+            "jobs_done": rep.jobs_done, "keys_stamped": rep.keys_stamped, "skipped_newer": rep.skipped_newer,
+        }
 
     def op_delete(self, op: dict[str, Any]) -> Any:
         assert self.mem is not None
         target = op["target"]
-        tomb = self.mem.delete(target, ErasureReason.ERASURE_REQUEST)
-        return {"tombstone": {"id": tomb.report_id, "reason": tomb.reason_class.value, "entry_hash": tomb.entry_hash},
-                "erasure_report": None}
+        requester = op.get("actor")
+        try:
+            reason = ErasureReason(op.get("reason", ErasureReason.ERASURE_REQUEST.value))
+        except ValueError:
+            reason = ErasureReason.OTHER
+        tomb = self.mem.delete(target, reason, requester=requester)
+        # the requester is stored only as a pseudonym: it is echoed here only when the stored pseudonym really is that
+        # principal's (a check under the store secret), never read back from plain text
+        actor = requester if requester is not None and self.mem.tombstone_requested_by(tomb, requester) else None
+        return {
+            "tombstone": {"id": tomb.report_id, "actor": actor, "reason": tomb.reason_class.value, "entry_hash": tomb.entry_hash},
+            "erasure_report": {
+                "report_id": tomb.report_id,
+                "no_longer_reconstructable": [{"key_ref": k, "version": v} for k, v in tomb.affected_versions],
+            },
+        }
 
     def op_verify_log(self, op: dict[str, Any]) -> Any:
         res = self.backend.verify_log(op.get("from_lsn") or 1, op.get("to_lsn"))

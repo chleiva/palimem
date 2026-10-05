@@ -319,16 +319,24 @@ class Memory:
         )
         return self.append(rep, idempotency_key=idempotency_key)
 
-    def delete(self, report_id: str, reason: ErasureReason = ErasureReason.ERASURE_REQUEST) -> Tombstone:
+    def delete(
+        self, report_id: str, reason: ErasureReason = ErasureReason.ERASURE_REQUEST, *, requester: str | None = None
+    ) -> Tombstone:
         """Erase a report (GDPR-style): content, raw reference and values derived only from it, with dependency
-        repair; a tombstone keeps the hash chain verifiable (S-13)."""
+        repair; a tombstone keeps the hash chain verifiable (S-13). ``requester`` (a principal id) is recorded on the
+        tombstone as a pseudonym only; read it back with :meth:`tombstone_requested_by`."""
         self.pipeline.invalidate()
         self._audit_base.clear()
         try:
-            return self.backend.erase(report_id, reason, reviser=self.reviser)
+            return self.backend.erase(report_id, reason, reviser=self.reviser, requester=requester)
         finally:
             self.pipeline.invalidate()
             self._audit_base.clear()
+
+    def tombstone_requested_by(self, tombstone: Tombstone, principal: str) -> bool:
+        """Was this erasure requested by ``principal``? Compares pseudonyms under the store secret, so the plain
+        requester id is never stored or revealed: only someone who already knows the candidate can test it."""
+        return tombstone.requester_ref is not None and tombstone.requester_ref == self.backend.pseudonym_of(principal)
 
     def complete(self) -> None:
         """Run pending completion jobs (cheap when there are none)."""

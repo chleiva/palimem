@@ -15,7 +15,7 @@ import pytest
 from chain_fakes import ChainReviser, chain_schema
 from fakes import FakeAdmitter, make_report
 
-from palimem.store import ErasureReason, StoreError
+from palimem.store import ErasureReason, StoreError, Tombstone
 from palimem.store.backend import LimitedRead, NotReconstructable
 from palimem.store.views import belief_ref
 from palimem.types import (
@@ -205,3 +205,38 @@ def test_the_idempotency_key_is_not_kept_in_the_clear_after_an_erasure(h) -> Non
         (idem,) = con.execute("SELECT idem_key FROM log WHERE lsn = 1").fetchone()
         con.close()
         assert idem.startswith("erased:")
+
+
+REQUESTER = "user:dpo-4711"
+
+
+def test_the_requester_is_recorded_as_a_pseudonym_only(h) -> None:  # type: ignore[no-untyped-def]
+    """Conformance row 10 asks who requested the erasure. The tombstone keeps that as an HMAC under the store secret
+    (never the plain principal id); the host can still test a candidate with ``pseudonym_of``."""
+    b = h.backend
+    b.put_schema(chain_schema())
+    res = add(b, secret_report(), "idem-secretcorp-onboarding")
+    tomb = b.erase(res.entry.report.id, ErasureReason.ERASURE_REQUEST, reviser=ChainReviser(), requester=REQUESTER)
+    assert tomb.requester_ref == b.pseudonym_of(REQUESTER)
+    assert tomb.requester_ref != b.pseudonym_of("user:someone-else") and REQUESTER not in tomb.requester_ref
+    for name, text in tables(h).items():
+        assert REQUESTER not in text, f"the plain requester survives in table {name}"
+    assert REQUESTER not in "".join(b.export_jsonl())
+    assert_no_secret_values(h)
+
+
+def test_the_requester_pseudonym_round_trips_and_older_tombstones_still_load(h) -> None:  # type: ignore[no-untyped-def]
+    b = h.backend
+    res = add(b, secret_report(), "idem-secretcorp-onboarding")
+    tomb = b.erase(res.entry.report.id, ErasureReason.OTHER, reviser=ChainReviser(), requester=REQUESTER)
+    assert Tombstone.from_dict(tomb.to_dict()) == tomb
+    old = tomb.to_dict()
+    del old["requester_ref"]  # a tombstone written before the requester was recorded
+    assert Tombstone.from_dict(old).requester_ref is None
+
+
+def test_no_requester_means_no_requester_ref(h) -> None:  # type: ignore[no-untyped-def]
+    b = h.backend
+    res = add(b, secret_report(), "idem-secretcorp-onboarding")
+    tomb = b.erase(res.entry.report.id, ErasureReason.OTHER, reviser=ChainReviser())
+    assert tomb.requester_ref is None and "requester_ref" not in tomb.to_dict()
