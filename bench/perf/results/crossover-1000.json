@@ -1,0 +1,33 @@
+{
+ "report_version": 1,
+ "kind": "crossover",
+ "env": {
+  "python": "3.13.7",
+  "implementation": "CPython",
+  "sqlite": "3.50.4",
+  "os": "Darwin 25.3.0",
+  "machine": "arm64",
+  "cpu": "Apple M3",
+  "cpu_count": 8,
+  "git_commit": "9a8d0bb"
+ },
+ "params": {
+  "n_reports": 1000,
+  "r_store": 3.0,
+  "seed": 1,
+  "persons": null,
+  "sample_keys": 40
+ },
+ "reached_reports": 1000,
+ "costs_ms": {
+  "store_append_mean": 110.7399,
+  "store_query_mean": 0.2617,
+  "replay_append_log_only_mean": 0.22050363699999997,
+  "replay_query_cold_mean": 30.9619,
+  "replay_query_warm_mean": 0.667
+ },
+ "log_only_error": null,
+ "r_star_cold": 3.6,
+ "r_star_warm": 272.692,
+ "note": "r* = (a_store - a_replay) / (q_replay - q_store); None = replay never costs more per query, or the log-only append was not measurable"
+}

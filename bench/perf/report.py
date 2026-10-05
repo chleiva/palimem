@@ -34,7 +34,7 @@ def _table(header: list[str], rows: list[list[Any]]) -> str:
 def runs_table(runs: list[dict[str, Any]]) -> str:
     rows = []
     for r in sorted(runs, key=lambda x: (x["workload"], x["reached"]["reports"])):
-        a, q, m = r["appends"], r["queries"], r["memory"]
+        a, q, m = targets.append_stats(r), r["queries"], r["memory"]
         rows.append([
             r["workload"].upper(), r["params"].get("persons") or "n/4", r["reached"]["reports"], "yes" if r["reached"]["stopped_early"] else "no",
             f"{r['reached']['elapsed_s']:.0f}", f"{a['p50_ms']:.1f} / {a['p95_ms']:.1f} / {a['p99_ms']:.1f}", f"{a['sustained_per_s']:.1f}",

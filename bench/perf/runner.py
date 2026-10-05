@@ -1,7 +1,7 @@
 """Workload runner (T-E5): drives ``palimem.memory.Memory`` on SQLite and records latencies, memory and disk.
 
 Everything goes through the public API (``Memory.append(complete=True)`` and ``Memory.query``), as docs/PIPELINE.md
-describes it. Per-operation times are ``time.perf_counter_ns`` around the call. The first 5% of appends of a run is warm-up:
+describes it. Per-operation times are ``time.perf_counter_ns`` around the call. The first 5% of the appends that were actually reached is warm-up:
 reported separately, excluded from the percentiles. A run stops early when its wall-clock budget (``max_seconds``) is spent;
 the report then states the size actually reached, and a target is never judged "met" at a size that was not reached.
 """
@@ -172,10 +172,8 @@ def _run(
     if trace_memory:
         tracemalloc.start()
     id_of: dict[int, str] = {}
-    warm_n = max(1, int(WARMUP_FRACTION * n_reports))
     cp_every = max(1, min(n_reports // CHECKPOINTS, 250))  # at most 250 appends apart, so an early-stopped run still has a curve
-    appends: list[int] = []
-    warm: list[int] = []
+    all_appends: list[int] = []  # every append in order; warm-up is split off at the end (5% of what was actually reached)
     queries: list[int] = []
     q_kind: dict[str, list[int]] = {"current": [], "historical": [], "derived": []}
     window = _Window()
@@ -196,7 +194,7 @@ def _run(
             assert res.entry is not None and res.entry.report.id is not None
             id_of[op.index] = res.entry.report.id
             n_appended += 1
-            (warm if n_appended <= warm_n else appends).append(dt)
+            all_appends.append(dt)
             by_attr.setdefault(f"{op.attr}:{op.cue.value}", []).append(dt)
             window.appends.append(dt)
             if n_appended % VISIBILITY_CHECK_EVERY == 0:
@@ -234,7 +232,9 @@ def _run(
         heap = {"current_bytes": cur, "peak_bytes": peak}
     gc.collect()
     rss_end = rss_bytes()
-    total_append_s = (sum(appends) + sum(warm)) * 1e-9
+    warm_n = max(1, int(WARMUP_FRACTION * len(all_appends))) if all_appends else 0
+    warm, appends = all_appends[:warm_n], all_appends[warm_n:]
+    total_append_s = sum(all_appends) * 1e-9
     report_out: dict[str, Any] = {
         "report_version": REPORT_VERSION,
         "kind": "workload",

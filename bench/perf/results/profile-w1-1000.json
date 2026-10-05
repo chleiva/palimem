@@ -1,0 +1,370 @@
+{
+ "report_version": 1,
+ "kind": "profile",
+ "env": {
+  "python": "3.13.7",
+  "implementation": "CPython",
+  "sqlite": "3.50.4",
+  "os": "Darwin 25.3.0",
+  "machine": "arm64",
+  "cpu": "Apple M3",
+  "cpu_count": 8,
+  "git_commit": "9a8d0bb"
+ },
+ "params": {
+  "workload": "w1",
+  "n_reports": 1000,
+  "window": 100,
+  "r": 3.0,
+  "seed": 1,
+  "persons": null
+ },
+ "appends": {
+  "top_by_own_time": [
+   {
+    "function": "src/palimem/kernel/derive.py:167(base_attrs_closure)",
+    "calls": 10502832,
+    "own_s": 4.3249,
+    "cumulative_s": 6.954
+   },
+   {
+    "function": "src/palimem/kernel/derive.py:259(justify_derived)",
+    "calls": 13362,
+    "own_s": 3.8085,
+    "cumulative_s": 27.539
+   },
+   {
+    "function": "src/palimem/types/_codec.py:200(check_nonempty)",
+    "calls": 14441994,
+    "own_s": 3.065,
+    "cumulative_s": 4.7309
+   },
+   {
+    "function": "<string>:23(__hash__)",
+    "calls": 14738151,
+    "own_s": 1.8039,
+    "cumulative_s": 2.619
+   },
+   {
+    "function": "~:0(<method 'get' of 'dict' objects>)",
+    "calls": 7740319,
+    "own_s": 1.7189,
+    "cumulative_s": 3.6019
+   },
+   {
+    "function": "src/palimem/types/values.py:43(__post_init__)",
+    "calls": 7219747,
+    "own_s": 1.6686,
+    "cumulative_s": 6.3985
+   },
+   {
+    "function": "src/palimem/kernel/spec.py:128(rules_for)",
+    "calls": 3527668,
+    "own_s": 1.5135,
+    "cumulative_s": 1.9796
+   },
+   {
+    "function": "~:0(<built-in method builtins.isinstance>)",
+    "calls": 19539149,
+    "own_s": 0.9803,
+    "cumulative_s": 0.9803
+   },
+   {
+    "function": "~:0(<method 'strip' of 'str' objects>)",
+    "calls": 14441994,
+    "own_s": 0.9735,
+    "cumulative_s": 0.9735
+   },
+   {
+    "function": "src/palimem/engine/pipeline.py:160(breakpoints)",
+    "calls": 7001688,
+    "own_s": 0.9284,
+    "cumulative_s": 6.0604
+   },
+   {
+    "function": "src/palimem/engine/pipeline.py:192(breakpoints)",
+    "calls": 7001688,
+    "own_s": 0.9272,
+    "cumulative_s": 6.9876
+   },
+   {
+    "function": "~:0(<built-in method builtins.hash>)",
+    "calls": 14741466,
+    "own_s": 0.8153,
+    "cumulative_s": 0.8153
+   },
+   {
+    "function": "src/palimem/kernel/spec.py:122(spec)",
+    "calls": 10595877,
+    "own_s": 0.6753,
+    "cumulative_s": 0.6753
+   },
+   {
+    "function": "src/palimem/kernel/spec.py:129(<genexpr>)",
+    "calls": 7055336,
+    "own_s": 0.4662,
+    "cumulative_s": 0.4662
+   }
+  ],
+  "top_by_cumulative_time": [
+   {
+    "function": "src/palimem/memory.py:243(append)",
+    "calls": 100,
+    "own_s": 0.0002,
+    "cumulative_s": 34.879
+   },
+   {
+    "function": "src/palimem/store/engine.py:362(append)",
+    "calls": 100,
+    "own_s": 0.0006,
+    "cumulative_s": 34.8776
+   },
+   {
+    "function": "src/palimem/store/engine.py:398(_append_in_txn)",
+    "calls": 100,
+    "own_s": 0.0019,
+    "cumulative_s": 34.8732
+   },
+   {
+    "function": "src/palimem/store/engine.py:488(_revise_stage)",
+    "calls": 100,
+    "own_s": 0.0066,
+    "cumulative_s": 33.1008
+   },
+   {
+    "function": "src/palimem/engine/pipeline.py:439(revise)",
+    "calls": 100,
+    "own_s": 0.0922,
+    "cumulative_s": 33.0123
+   },
+   {
+    "function": "src/palimem/engine/pipeline.py:368(derived_belief)",
+    "calls": 13362,
+    "own_s": 0.2106,
+    "cumulative_s": 29.6491
+   },
+   {
+    "function": "src/palimem/kernel/derive.py:259(justify_derived)",
+    "calls": 13362,
+    "own_s": 3.8085,
+    "cumulative_s": 27.539
+   },
+   {
+    "function": "src/palimem/engine/pipeline.py:192(breakpoints)",
+    "calls": 7001688,
+    "own_s": 0.9272,
+    "cumulative_s": 6.9876
+   },
+   {
+    "function": "src/palimem/kernel/derive.py:167(base_attrs_closure)",
+    "calls": 10502832,
+    "own_s": 4.3249,
+    "cumulative_s": 6.954
+   },
+   {
+    "function": "src/palimem/types/values.py:43(__post_init__)",
+    "calls": 7219747,
+    "own_s": 1.6686,
+    "cumulative_s": 6.3985
+   },
+   {
+    "function": "src/palimem/engine/pipeline.py:160(breakpoints)",
+    "calls": 7001688,
+    "own_s": 0.9284,
+    "cumulative_s": 6.0604
+   },
+   {
+    "function": "src/palimem/types/_codec.py:200(check_nonempty)",
+    "calls": 14441994,
+    "own_s": 3.065,
+    "cumulative_s": 4.7309
+   },
+   {
+    "function": "src/palimem/store/engine.py:246(current_belief)",
+    "calls": 40135,
+    "own_s": 0.0307,
+    "cumulative_s": 4.3683
+   },
+   {
+    "function": "src/palimem/store/engine.py:200(_decode)",
+    "calls": 23423,
+    "own_s": 0.0097,
+    "cumulative_s": 3.743
+   }
+  ]
+ },
+ "queries": {
+  "top_by_own_time": [
+   {
+    "function": "src/palimem/policy/policy.py:130(from_entries)",
+    "calls": 120,
+    "own_s": 0.0216,
+    "cumulative_s": 0.0217
+   },
+   {
+    "function": "src/palimem/admission/ids.py:15(derive_ulid)",
+    "calls": 3783,
+    "own_s": 0.018,
+    "cumulative_s": 0.0284
+   },
+   {
+    "function": "~:0(<method 'execute' of 'sqlite3.Connection' objects>)",
+    "calls": 6181,
+    "own_s": 0.0129,
+    "cumulative_s": 0.0129
+   },
+   {
+    "function": "~:0(<method 'fetchall' of 'sqlite3.Cursor' objects>)",
+    "calls": 6181,
+    "own_s": 0.0095,
+    "cumulative_s": 0.0095
+   },
+   {
+    "function": "~:0(<method 'append' of 'list' objects>)",
+    "calls": 98434,
+    "own_s": 0.0064,
+    "cumulative_s": 0.0064
+   },
+   {
+    "function": "src/palimem/types/admission.py:54(__post_init__)",
+    "calls": 3783,
+    "own_s": 0.0052,
+    "cumulative_s": 0.012
+   },
+   {
+    "function": "~:0(<built-in method builtins.isinstance>)",
+    "calls": 91832,
+    "own_s": 0.005,
+    "cumulative_s": 0.005
+   },
+   {
+    "function": "src/palimem/types/_codec.py:129(as_obj)",
+    "calls": 6517,
+    "own_s": 0.0049,
+    "cumulative_s": 0.0052
+   },
+   {
+    "function": "src/palimem/store/sqlite.py:417(_belief)",
+    "calls": 1784,
+    "own_s": 0.0048,
+    "cumulative_s": 0.0284
+   },
+   {
+    "function": "src/palimem/admission/admitter.py:227(_record)",
+    "calls": 3783,
+    "own_s": 0.0042,
+    "cumulative_s": 0.0497
+   },
+   {
+    "function": "src/palimem/store/sqlite.py:283(_q)",
+    "calls": 6181,
+    "own_s": 0.0037,
+    "cumulative_s": 0.0267
+   },
+   {
+    "function": "src/palimem/types/_codec.py:200(check_nonempty)",
+    "calls": 14427,
+    "own_s": 0.0034,
+    "cumulative_s": 0.0052
+   },
+   {
+    "function": "~:0(<method 'match' of 're.Pattern' objects>)",
+    "calls": 12465,
+    "own_s": 0.0031,
+    "cumulative_s": 0.0031
+   },
+   {
+    "function": "src/palimem/admission/admitter.py:334(_evaluate)",
+    "calls": 18,
+    "own_s": 0.0031,
+    "cumulative_s": 0.0651
+   }
+  ],
+  "top_by_cumulative_time": [
+   {
+    "function": "src/palimem/memory.py:356(query)",
+    "calls": 303,
+    "own_s": 0.0012,
+    "cumulative_s": 0.2309
+   },
+   {
+    "function": "src/palimem/memory.py:316(_view_for)",
+    "calls": 303,
+    "own_s": 0.001,
+    "cumulative_s": 0.1751
+   },
+   {
+    "function": "src/palimem/store/engine.py:597(read_belief)",
+    "calls": 303,
+    "own_s": 0.0011,
+    "cumulative_s": 0.0977
+   },
+   {
+    "function": "src/palimem/memory.py:298(_virtual_view)",
+    "calls": 19,
+    "own_s": 0.0001,
+    "cumulative_s": 0.0723
+   },
+   {
+    "function": "src/palimem/engine/pipeline.py:291(evaluate)",
+    "calls": 19,
+    "own_s": 0.0001,
+    "cumulative_s": 0.0705
+   },
+   {
+    "function": "src/palimem/admission/admitter.py:166(evaluate)",
+    "calls": 18,
+    "own_s": 0.0001,
+    "cumulative_s": 0.0675
+   },
+   {
+    "function": "src/palimem/admission/admitter.py:334(_evaluate)",
+    "calls": 18,
+    "own_s": 0.0031,
+    "cumulative_s": 0.0651
+   },
+   {
+    "function": "src/palimem/admission/admitter.py:268(_decide)",
+    "calls": 3783,
+    "own_s": 0.0019,
+    "cumulative_s": 0.0586
+   },
+   {
+    "function": "src/palimem/admission/admitter.py:260(_evidence_decision)",
+    "calls": 3772,
+    "own_s": 0.0011,
+    "cumulative_s": 0.0546
+   },
+   {
+    "function": "src/palimem/types/_codec.py:63(from_json)",
+    "calls": 284,
+    "own_s": 0.0006,
+    "cumulative_s": 0.0543
+   },
+   {
+    "function": "src/palimem/admission/admitter.py:241(_decision)",
+    "calls": 3783,
+    "own_s": 0.002,
+    "cumulative_s": 0.0537
+   },
+   {
+    "function": "src/palimem/types/belief.py:407(from_dict)",
+    "calls": 284,
+    "own_s": 0.0016,
+    "cumulative_s": 0.05
+   },
+   {
+    "function": "src/palimem/admission/admitter.py:227(_record)",
+    "calls": 3783,
+    "own_s": 0.0042,
+    "cumulative_s": 0.0497
+   },
+   {
+    "function": "src/palimem/types/_codec.py:184(tuple_of)",
+    "calls": 2277,
+    "own_s": 0.0018,
+    "cumulative_s": 0.0394
+   }
+  ]
+ }
+}

@@ -35,13 +35,23 @@ def _primary(runs: list[dict[str, Any]], workload: str) -> list[dict[str, Any]]:
     return [r for r in runs if r.get("kind") == "workload" and r["workload"] == workload and r.get("params", {}).get("persons") is None]
 
 
+MIN_REPORTS_FOR_PERCENTILES = 100  # a smaller run has too few appends for a p99 and never serves as a scale endpoint
+
+
+def append_stats(run: dict[str, Any]) -> dict[str, Any]:
+    """Append latency stats of a run. Older result files measured warm-up against the *target* size, so an early-stopped run
+    can have every append in the warm-up block: fall back to that block rather than reporting zeros."""
+    a = run["appends"]
+    return a if a["count"] > 0 else {**a["warmup"], "sustained_per_s": a.get("sustained_per_s", 0.0)}
+
+
 def _largest(runs: list[dict[str, Any]], workload: str) -> dict[str, Any] | None:
     cands = _primary(runs, workload)
     return max(cands, key=lambda r: r["reached"]["reports"]) if cands else None
 
 
 def _smallest(runs: list[dict[str, Any]], workload: str) -> dict[str, Any] | None:
-    cands = _primary(runs, workload)
+    cands = [r for r in _primary(runs, workload) if r["reached"]["reports"] >= MIN_REPORTS_FOR_PERCENTILES]
     return min(cands, key=lambda r: r["reached"]["reports"]) if cands else None
 
 
@@ -65,7 +75,7 @@ def evaluate(runs: list[dict[str, Any]], recovery: list[dict[str, Any]], crossov
                 m = run["queries"]
                 p50_t, p99_t = T1_QUERY_P50_MS, T1_QUERY_P99_MS
             else:
-                m = run["appends"]
+                m = append_stats(run)
                 p50_t, p99_t = T2_APPEND_P50_MS, T2_APPEND_P99_MS
             holds = m["p50_ms"] <= p50_t and m["p99_ms"] <= p99_t
             rows.append({
@@ -129,13 +139,13 @@ def evaluate(runs: list[dict[str, Any]], recovery: list[dict[str, Any]], crossov
         if small is None or large is None or small is large:
             rows.append({"id": "T6", "workload": w, "verdict": "not measured"})
             continue
-        ratio = large["appends"]["p99_ms"] / small["appends"]["p99_ms"] if small["appends"]["p99_ms"] else float("inf")
+        ratio = append_stats(large)["p99_ms"] / append_stats(small)["p99_ms"] if append_stats(small)["p99_ms"] else float("inf")
         reached = large["reached"]["reports"]
         holds = ratio <= T6_FLATNESS_RATIO
         rows.append({
             "id": "T6", "workload": w, "declared": f"p99 append (largest scale) / p99 append (smallest scale) <= {T6_FLATNESS_RATIO}",
             "measured_at_reports": [small["reached"]["reports"], reached],
-            "measured": {"p99_small_ms": small["appends"]["p99_ms"], "p99_large_ms": large["appends"]["p99_ms"], "ratio": round(ratio, 2)},
+            "measured": {"p99_small_ms": append_stats(small)["p99_ms"], "p99_large_ms": append_stats(large)["p99_ms"], "ratio": round(ratio, 2)},
             "holds_at_reached_size": holds, "verdict": "met" if holds else "missed",
         })
     return rows
