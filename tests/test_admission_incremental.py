@@ -56,6 +56,7 @@ def check_stream(entries: list[LogEntry], cfg: AdmissionConfig, *, rollbacks: ra
         ev = oracle.evaluate(log)
         problems = incremental_mismatches(inc, ev)
         assert problems == [], (e.lsn, problems)
+        assert inc.audit() == [], (e.lsn, inc.audit())
         assert list(delta.records) == whole_log_records(prev, ev, e.report.id or ""), (e.lsn, "records")
         prev = ev
         stats["appends"] += 1
@@ -195,24 +196,34 @@ def test_mutation_never_undoing_a_rolled_back_append_is_caught(monkeypatch: pyte
     assert _first_failure(("product-grants",), rollbacks=True)
 
 
-def test_mutation_actors_in_the_wrong_order_is_caught(monkeypatch: pytest.MonkeyPatch) -> None:
-    original = IncrementalAdmission._compute_withdrawn
+def test_mutation_withdrawn_actors_keep_acting_is_caught(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Under acting_reports_must_be_live a withdrawn actor no longer acts: never switching actors off must be caught."""
+    monkeypatch.setattr(IncrementalAdmission, "_should_act", lambda self, actor_id: True)
+    assert _first_failure(("product", "product-grants"), seeds=80)
 
-    def ascending(self: IncrementalAdmission):  # type: ignore[no-untyped-def]
-        # the live-mode rule processed oldest-first without the "withdrawn actors no longer act" skip
-        out = {}
+
+def test_mutation_oldest_actor_owns_in_live_mode_is_caught(monkeypatch: pytest.MonkeyPatch) -> None:
+    """In live mode the newest acting claimant owns a withdrawal; picking the oldest must be caught."""
+    original = IncrementalAdmission._owner
+
+    def oldest(self: IncrementalAdmission, target_id: str):  # type: ignore[no-untyped-def]
+        c = self.claims.get(target_id)
+        if not c:
+            return None
         from palimem.admission import Withdrawal
 
-        for a in self.actors.values():
-            d = self._base(a)
-            kind = "self_correction" if a.report.cue is Cue.CORRECT else "withdraw"
-            for t in d.withdraws:
-                out.setdefault(t, Withdrawal(by=a.report.id or "", kind=kind))
-        return out
+        aid = min(c, key=lambda a: self.by_id[a].lsn)
+        return Withdrawal(by=aid, kind=c[aid])
 
-    monkeypatch.setattr(IncrementalAdmission, "_compute_withdrawn", ascending)
-    assert _first_failure(("product", "product-grants"))
-    monkeypatch.setattr(IncrementalAdmission, "_compute_withdrawn", original)
+    monkeypatch.setattr(IncrementalAdmission, "_owner", oldest)
+    assert _first_failure(("product", "product-grants"), seeds=80)
+    monkeypatch.setattr(IncrementalAdmission, "_owner", original)
+
+
+def test_mutation_cascade_without_the_status_pass_is_caught(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The cascade (an actor switched off restores its targets) is the delicate part: skip the status pass."""
+    monkeypatch.setattr(IncrementalAdmission, "_set_inactive", lambda self, actor_id, inactive: None)
+    assert _first_failure(("product", "product-grants"), seeds=80)
 
 
 def test_mutation_ignoring_withdrawn_in_direct_evidence_is_caught(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -235,20 +246,21 @@ def test_mutation_dropping_attributions_is_caught(monkeypatch: pytest.MonkeyPatc
     assert _first_failure(("product",))
 
 
-def test_mutation_skipping_the_source_level_recompute_is_caught(monkeypatch: pytest.MonkeyPatch) -> None:
-    """A report from a source a standing source-level withdrawal covers must itself be withdrawn."""
-    original = IncrementalAdmission._apply
+def test_mutation_later_reports_of_a_covered_source_escape_is_caught(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A report from a source a standing source-level withdrawal covers must itself be withdrawn (the paper's
+    retraction also removes what the source says later): never claiming it must be caught."""
+    original = IncrementalAdmission._update_withdrawals
 
-    def no_cover(self: IncrementalAdmission, e: LogEntry):  # type: ignore[no-untyped-def]
-        saved = self.src_cover
-        self.src_cover = {}
+    def no_cover(self: IncrementalAdmission, e: LogEntry, is_actor: bool):  # type: ignore[no-untyped-def]
+        saved = self.cover_actors
+        self.cover_actors = {}
         try:
-            return original(self, e)
+            return original(self, e, is_actor)
         finally:
-            merged = dict(saved)
-            for k, v in self.src_cover.items():
-                merged[k] = merged.get(k, 0) + v
-            self.src_cover = merged
+            fresh = self.cover_actors
+            self.cover_actors = saved
+            for k, v in fresh.items():
+                saved.setdefault(k, []).extend(v)
 
-    monkeypatch.setattr(IncrementalAdmission, "_apply", no_cover)
+    monkeypatch.setattr(IncrementalAdmission, "_update_withdrawals", no_cover)
     assert _first_failure(("product-grants", "product-not-live"), seeds=80)

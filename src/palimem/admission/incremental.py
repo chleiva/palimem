@@ -25,6 +25,7 @@ decision in the equivalence tests and, in ``crosscheck`` mode, after every appen
 
 from __future__ import annotations
 
+import heapq
 from collections import Counter
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
@@ -127,10 +128,19 @@ class IncrementalAdmission:
         self.by_source: dict[str, list[LogEntry]] = {}
         self.by_attr: dict[str, list[LogEntry]] = {}
         self.actors: dict[str, LogEntry] = {}
-        self.src_cover: dict[str, int] = {}
+        self.cover_actors: dict[str, list[str]] = {}
+        """Standing source-level withdrawals: source id -> the actors (ascending LSN) whose extent is that source."""
+        self.claims: dict[str, dict[str, str]] = {}
+        """Withdrawal claims: target report id -> {claiming actor id: kind}. An explicit claim keeps its kind when the
+        same actor also covers the target through a source-level extent."""
+        self.inactive: set[str] = set()
+        """Actors that no longer act (``acting_reports_must_be_live``): withdrawn by an acting actor of a higher LSN."""
         self.quar_keys: dict[Key, int] = {}
-        self.withdrawn_base: Mapping[str, Withdrawal] = {}
-        self.withdrawn: Mapping[str, Withdrawal] = {}
+        self.withdrawn_base: dict[str, Withdrawal] = {}
+        """The base withdrawal map (the whole-log ``_withdrawals``), maintained in place per append."""
+        self.withdrawn: Mapping[str, Withdrawal] = self.withdrawn_base
+        """What the kernel sees: the base map, or (an admitter with an overlay, the compat source retraction) the
+        overlay applied to it."""
         self.confirmed: dict[str, AdmissionDecision] = {}
         self.direct: dict[Key, tuple[LogEntry, ...]] = {}
         self.belief_of_count = 0
@@ -171,7 +181,7 @@ class IncrementalAdmission:
         old = d.pop(k)
         self._record(lambda: d.__setitem__(k, old))
 
-    def _append(self, d: dict, k: object, e: LogEntry) -> None:  # type: ignore[type-arg]
+    def _append(self, d: dict, k: object, e: object) -> None:  # type: ignore[type-arg]
         lst = d.get(k)
         if lst is None:
             lst = d[k] = []
@@ -274,11 +284,11 @@ class IncrementalAdmission:
             and self.decision(rid).record.outcome is AdmissionOutcome.ADMISSIBLE
         )
 
-    def _compute_withdrawn(self) -> dict[str, Withdrawal]:
-        """The whole-log ``_withdrawals`` over the actors only: identical order, identical ``setdefault`` ownership."""
+    def full_withdrawals(self) -> dict[str, Withdrawal]:
+        """The whole-log ``_withdrawals`` over the actors, from scratch (the audit path: ``audit()`` compares the maintained map
+        with it). Not used on the append path."""
         cfg = self.admitter.config
         actors = list(self.actors.values())  # ascending LSN (insertion order)
-        self.work["actors"] += len(actors)
         if cfg.must_be_live:
             actors.reverse()  # newest first; a withdrawn actor no longer acts
         out: dict[str, Withdrawal] = {}
@@ -292,9 +302,151 @@ class IncrementalAdmission:
                 out.setdefault(t, Withdrawal(by=rid, kind=kind))
             if d.withdraws_source is not None:
                 covered = self.by_source.get(d.withdraws_source, ())
-                self.work["covered"] += len(covered)
                 for x in covered:
                     out.setdefault(_rid(x), Withdrawal(by=rid, kind="source_withdraw"))
+        return out
+
+    # -- withdrawal effects, maintained per append
+    #
+    # The whole-log rule (``Admitter._withdrawals``): actors are processed newest first when ``acting_reports_must_be_live``
+    # (oldest first otherwise); an actor already in the map is skipped in live mode (a withdrawn actor no longer acts); each
+    # acting actor ``setdefault``s its explicit targets, then every report of its source-level extent. Equivalently:
+    #
+    # * ``acting(a)`` (live mode) = no acting claimant ``b != a`` of ``a`` has a higher LSN; claimants of a lower LSN, and
+    #   a source-level claim by an older actor on a later report, never decide it. It depends only on higher LSNs.
+    # * ``owner(t)`` = the highest-LSN acting claimant of ``t`` (live), the lowest-LSN claimant (otherwise), with the kind of
+    #   that actor's claim (an explicit claim beats the same actor's source cover).
+    #
+    # A new report has the highest LSN, so it can only (a) become claimed by standing source-level actors, and (b) if it is
+    # an actor, claim targets, which can switch lower actors off and, through them, restore targets further down. That
+    # cascade is recomputed in descending LSN order over the affected actors only.
+
+    def _claim(self, target_id: str, actor_id: str, kind: str) -> None:
+        c = self.claims.get(target_id)
+        if c is None:
+            c = self.claims[target_id] = {}
+            self._record(lambda: self.claims.pop(target_id, None))
+        if actor_id in c:
+            return  # explicit first: it keeps its kind when the same actor also covers the target
+        c[actor_id] = kind
+        self._record(lambda: c.pop(actor_id, None))
+        self.work["claims"] += 1
+
+    def _owner(self, target_id: str) -> Withdrawal | None:
+        c = self.claims.get(target_id)
+        if not c:
+            return None
+        live = self.admitter.config.must_be_live
+        best: str | None = None
+        best_lsn = 0
+        kind = ""
+        for aid, k in c.items():
+            if live and aid in self.inactive:
+                continue
+            lsn = self.by_id[aid].lsn
+            if best is None or (lsn > best_lsn if live else lsn < best_lsn):
+                best, best_lsn, kind = aid, lsn, k
+        return None if best is None else Withdrawal(by=best, kind=kind)
+
+    def _should_act(self, actor_id: str) -> bool:
+        lsn = self.by_id[actor_id].lsn
+        for b in self.claims.get(actor_id, ()):
+            if b != actor_id and b not in self.inactive and self.by_id[b].lsn > lsn:
+                return False
+        return True
+
+    def _targets(self, actor: LogEntry) -> list[str]:
+        d = self._base(actor)
+        out = list(d.withdraws)
+        if d.withdraws_source is not None:
+            out.extend(_rid(x) for x in self.by_source.get(d.withdraws_source, ()))
+        return out
+
+    def _set_inactive(self, actor_id: str, inactive: bool) -> None:
+        if inactive:
+            self.inactive.add(actor_id)
+            self._record(lambda: self.inactive.discard(actor_id))
+        else:
+            self.inactive.discard(actor_id)
+            self._record(lambda: self.inactive.add(actor_id))
+
+    def _update_withdrawals(self, e: LogEntry, is_actor: bool) -> set[Key]:
+        """Apply the appended report to the withdrawal map; the keys whose map entries changed."""
+        rid = _rid(e)
+        r = e.report
+        live = self.admitter.config.must_be_live
+        d0 = self._base(e)
+        touched: dict[str, None] = {}
+        # (a) the new report is claimed by the standing source-level withdrawals of its source
+        for cover_id in self.cover_actors.get(r.source.id, ()):
+            self._claim(rid, cover_id, "source_withdraw")
+            touched[rid] = None
+        # (b) the new actor claims its targets
+        if is_actor:
+            kind = "self_correction" if r.cue is Cue.CORRECT else "withdraw"
+            for t in d0.withdraws:
+                self._claim(t, rid, kind)
+                touched[t] = None
+            if d0.withdraws_source is not None:
+                src = d0.withdraws_source
+                for x in self.by_source.get(src, ()):  # the extent: every report of the source, this one included
+                    self._claim(_rid(x), rid, "source_withdraw")
+                    touched[_rid(x)] = None
+                self._append(self.cover_actors, src, rid)
+        # (c) statuses of the actors the new claims reach, descending LSN (live mode only)
+        if live and is_actor:
+            heap: list[tuple[int, str]] = []
+            queued: set[str] = set()
+
+            def push(aid: str) -> None:
+                if aid in self.actors and aid not in queued:
+                    queued.add(aid)
+                    heapq.heappush(heap, (-self.by_id[aid].lsn, aid))
+
+            for t in list(touched):
+                if t != rid:
+                    push(t)
+            while heap:
+                _neg, aid = heapq.heappop(heap)
+                self.work["status"] += 1
+                acting = self._should_act(aid)
+                if acting == (aid not in self.inactive):
+                    continue
+                self._set_inactive(aid, not acting)
+                self.work["flips"] += 1
+                a_lsn = self.by_id[aid].lsn
+                for t in self._targets(self.actors[aid]):
+                    touched[t] = None
+                    if self.by_id[t].lsn < a_lsn:
+                        push(t)
+        # (d) owners
+        dirty: set[Key] = set()
+        for t in touched:
+            self.work["owners"] += 1
+            new = self._owner(t)
+            old = self.withdrawn_base.get(t)
+            if new != old:
+                if new is None:
+                    self._del(self.withdrawn_base, t)
+                else:
+                    self._put(self.withdrawn_base, t, new)
+                dirty.add(self.by_id[t].report.key)
+        return dirty
+
+    def audit(self) -> list[str]:
+        """Differences between the maintained withdrawal state and a from-scratch recomputation (empty when sound)."""
+        out: list[str] = []
+        full = self.full_withdrawals()
+        if full != self.withdrawn_base:
+            out.append("withdrawal map differs from the from-scratch recomputation")
+        if self.admitter.config.must_be_live:
+            expect: set[str] = set()
+            for aid in sorted(self.actors, key=lambda x: -self.by_id[x].lsn):  # higher LSNs are decided first
+                lsn = self.by_id[aid].lsn
+                if any(b != aid and b not in expect and self.by_id[b].lsn > lsn for b in self.claims.get(aid, ())):
+                    expect.add(aid)
+            if expect != self.inactive:
+                out.append("inactive actors differ from the from-scratch status")
         return out
 
     def _apply(self, e: LogEntry) -> AdmissionDelta:
@@ -318,25 +470,20 @@ class IncrementalAdmission:
         is_actor = bool(d0.withdraws or d0.withdraws_source)
         if is_actor:
             self._put(self.actors, rid, e)
-            if d0.withdraws_source is not None:
-                self._put(self.src_cover, d0.withdraws_source, self.src_cover.get(d0.withdraws_source, 0) + 1)
         is_quarantined_evidence = (
             d0.record.outcome is AdmissionOutcome.QUARANTINED and r.proposition is not None and r.cue in EVIDENCE_CUES
         )
         if is_quarantined_evidence:
             self._put(self.quar_keys, r.key, self.quar_keys.get(r.key, 0) + 1)
 
-        # ---- withdrawal effects (slow path only for an actor, or a report a standing source withdrawal covers)
+        # ---- withdrawal effects: update the map (cost: the claims this report adds and the cascade they cause)
         dirty: set[Key] = set()
-        recompute = is_actor or self.src_cover.get(r.source.id, 0) > 0
         trigger = getattr(self.admitter, "incremental_overlay_trigger", None)
         overlay = getattr(self.admitter, "incremental_overlay", None)
-        if recompute:
-            new_base = self._compute_withdrawn()
-            if new_base != self.withdrawn_base:
-                self._set("withdrawn_base", new_base)
-        if recompute or (trigger is not None and trigger(self, e)):
-            new_w = overlay(self, self.withdrawn_base) if overlay is not None else self.withdrawn_base
+        changed = self._update_withdrawals(e, is_actor)
+        dirty |= changed
+        if overlay is not None and (changed or (trigger is not None and trigger(self, e))):
+            new_w = overlay(self, self.withdrawn_base)
             old_w = self.withdrawn
             if new_w != old_w:
                 for item in old_w.keys() | new_w.keys():
