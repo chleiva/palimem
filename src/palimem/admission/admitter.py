@@ -138,6 +138,25 @@ class EvidenceSet:
     withdrawn: Mapping[str, Withdrawal]  # reports of this key removed from consideration
 
 
+def attributions_from_groups(groups: Mapping[str, Sequence[LogEntry]]) -> tuple[Attribution, ...]:
+    """The attributed claims of one key from its admissible ``belief_of`` reports grouped by signature (shared by the
+    whole-log and the incremental admission, so both build identical values)."""
+    out: list[Attribution] = []
+    for sig in sorted(groups):
+        es = tuple(groups[sig])
+        prop = es[0].report.proposition
+        assert isinstance(prop, BeliefOfProp)
+        out.append(
+            Attribution(
+                signature=sig,
+                proposition=prop,
+                entries=es,
+                origin_groups=tuple(sorted({e.report.origin_group for e in es})),
+            )
+        )
+    return tuple(out)
+
+
 def origin_group_count(entries: Sequence[LogEntry]) -> int:
     """Distinct origin groups among ``entries`` (reports of one group count once)."""
     return len({e.report.origin_group for e in entries})
@@ -205,26 +224,14 @@ class Admitter:
                         disputes.append(e)
                     elif d.effective_cue is Cue.ALLEGE:
                         allegations.append(e)
-        attributions: list[Attribution] = []
-        for sig in sorted(groups):
-            es = tuple(groups[sig])
-            prop = es[0].report.proposition
-            assert isinstance(prop, BeliefOfProp)
-            attributions.append(
-                Attribution(
-                    signature=sig,
-                    proposition=prop,
-                    entries=es,
-                    origin_groups=tuple(sorted({e.report.origin_group for e in es})),
-                )
-            )
+        attributions = attributions_from_groups(groups)
         withdrawn = {rid: w for rid, w in ev.withdrawn.items() if by_id[rid].report.key == key}
         return EvidenceSet(
             key=key,
             admission_version=ev.admission_version,
             as_of_lsn=ev.as_of_lsn,
             direct=tuple(direct),
-            attributions=tuple(attributions),
+            attributions=attributions,
             disputes=tuple(disputes),
             allegations=tuple(allegations),
             quarantined=tuple(quarantined),

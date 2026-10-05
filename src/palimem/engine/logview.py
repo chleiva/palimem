@@ -59,6 +59,10 @@ class ViewLog:
         self._fill(self._view.head().lsn)
         return self._by_id.get(report_id)
 
+    def head_lsn(self) -> int:
+        """The committed head of the log (what a rolled-back append never reached)."""
+        return self._view.head().lsn
+
     def entries(self, *, upto_lsn: int | None = None) -> Sequence[LogEntry]:
         head = self._view.head().lsn
         upto = head if upto_lsn is None else min(upto_lsn, head)

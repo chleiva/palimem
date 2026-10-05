@@ -43,6 +43,9 @@ class ListLog:
     def get(self, report_id: str) -> LogEntry | None:
         return self._by_id.get(report_id)
 
+    def head_lsn(self) -> int:
+        return self._entries[-1].lsn if self._entries else 0
+
     def entries(self, *, upto_lsn: int | None = None) -> Sequence[LogEntry]:
         if upto_lsn is None:
             return tuple(self._entries)
