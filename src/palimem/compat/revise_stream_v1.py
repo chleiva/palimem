@@ -33,6 +33,15 @@ evidence log itself**, so the log stays replayable, exportable and verifiable:
 
 Yes/no slots (``holds``, ``changed``, ``erroneous``) have no v2 query form: :func:`yesno_v1` projects the kernel's truth
 sets (from ``Memory.justification``) onto ``possible`` / ``established``.
+
+Provenance (S-12, T-B4). The v2 answer carries **per-candidate subset-minimal environments** over base reports
+(``Resolved.provenance``). The v1 contract has a **flat set** of report ids, which is what the study's oracle emits
+(``eval.scorer.supporting_ids``) and what is *not* a flattening of the environments (they agree on 71% of segment
+queries; see ``docs/KERNEL.md``). Under this profile the flat set is therefore reproduced from the kernel's own
+structures by the functions below, never derived from ``Resolved.provenance``: :func:`flat_provenance_v1` for the
+value slots (base and derived keys) and the yes/no ``holds`` slot, :func:`key_provenance_v1` for ``reported`` and
+``changed`` (the key's admitted ids) and :func:`erroneous_provenance_v1`. All of them recompute from the admitted
+evidence at the snapshot (the audit path of ``Memory``); they are profile projections, not the serving path.
 """
 
 from __future__ import annotations
@@ -40,7 +49,7 @@ from __future__ import annotations
 import json
 from collections.abc import Callable, Sequence
 from types import MappingProxyType
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from palimem.admission import AdmissionConfig, Admitter, Evaluation, Withdrawal
 from palimem.kernel import AttrSpec, KernelSchema
@@ -70,6 +79,9 @@ from palimem.types import (
 )
 from palimem.types import Segment as PSegment
 from palimem.types._codec import Value
+
+if TYPE_CHECKING:
+    from palimem.memory import Memory
 
 PROFILE = Profile.REVISE_STREAM_V1
 SOURCE_STATUS_ATTR = "__source_status__"
@@ -258,3 +270,31 @@ def reported_v1(entries: Sequence[LogEntry], study_id_of: Callable[[str], str]) 
         assert e.report.id is not None
         rep.setdefault(str(p.value), []).append(study_id_of(e.report.id))
     return {"status": "established", "assertion": {k: sorted(v) for k, v in sorted(rep.items())}, "alternatives": []}
+
+
+# --------------------------------------------------------------------------- v1 provenance (profile projection)
+
+
+def flat_provenance_v1(mem: Memory, key: Key, day: int, lsn: int) -> frozenset[str]:
+    """The oracle's flat provenance of a value (or ``holds``) slot at valid day ``day`` and log position ``lsn``:
+    for an observed key the admitted assertions whose value is a candidate value, for a derived key the admitted
+    assertions of every binding used on any derivation path yielding a candidate (``Justification.oracle_flat_ids``).
+    Report ids are the store's; the caller maps them to its own ids."""
+    from palimem.kernel import ResourceLimitedResult
+
+    j = mem.justification(key, lsn)
+    if isinstance(j, ResourceLimitedResult):
+        raise CompatError(f"{key.entity}/{key.attr} is over the environment budget at lsn {lsn}: no v1 provenance")
+    return j.oracle_flat_ids(day)
+
+
+def key_provenance_v1(mem: Memory, key: Key, lsn: int) -> frozenset[str]:
+    """``reported`` and ``changed`` slots: the admitted, non-retracted assertions on the key."""
+    return frozenset(e.report.id for e in mem.evidence(key, lsn).direct if e.report.id)
+
+
+def erroneous_provenance_v1(mem: Memory, report_id: str, lsn: int) -> frozenset[str]:
+    """``erroneous(o)`` slot: the admitted assertions on the key of ``o``; empty if ``o`` is not admitted at ``lsn``."""
+    admitted = mem.admitted(lsn)
+    entry = admitted.get(report_id)
+    return frozenset() if entry is None else key_provenance_v1(mem, entry.report.key, lsn)

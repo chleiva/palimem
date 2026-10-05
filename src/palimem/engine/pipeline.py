@@ -40,6 +40,7 @@ from palimem.kernel import (
 )
 from palimem.kernel.derive import MAX_DEPTH as MAX_RULE_DEPTH
 from palimem.kernel.justify import Family, segment_at
+from palimem.kernel.provenance import Dist, EnvBudget, Envs, World, minimize
 from palimem.store import AdmissionContext, InputKind, RevisionContext, StoreView
 from palimem.types import (
     AdmissionOutcome,
@@ -49,7 +50,6 @@ from palimem.types import (
     BeliefOfProp,
     Candidate,
     Dependency,
-    EmptyForm,
     Inference,
     KernelStatus,
     Key,
@@ -60,6 +60,7 @@ from palimem.types import (
     Schema,
     SemanticConfig,
     SetForm,
+    Support,
     ValueForm,
     Versions,
 )
@@ -93,41 +94,85 @@ def direct_entries(ev: Evaluation) -> dict[Key, list[LogEntry]]:
     return out
 
 
+def attribution_support(a: Attribution) -> tuple[Support, ...]:
+    """The support of an attributed claim: one environment per **origin group** (its earliest report). Independent
+    groups each suffice to establish ``belief_of(holder, P)``, and a second report of the same group is only a copy
+    (S-11, design: "corroborated by any number of origin groups"). The kernel has no semantics for attributions (they
+    never enter the interpretation enumeration), so this is the pipeline's own rule: per-group alternatives, not the
+    joint environment the kernel gives agreeing base reports (flagged for the author, see docs/PIPELINE.md)."""
+    first: dict[str, str] = {}
+    for e in a.entries:
+        rid = e.report.id
+        if rid is not None:
+            first.setdefault(e.report.origin_group, rid)
+    return tuple(Support(environment=(rid,)) for _g, rid in sorted(first.items(), key=lambda kv: kv[1]))
+
+
 def attribution_segments(key: Key, attributions: Sequence[Attribution]) -> tuple[PSegment, ...]:
     """The segment of a key that has attributed claims and no direct evidence: ``belief_of(holder, P)`` is established
     (several different claims: unresolved), and the inner proposition ``P`` is **never** a candidate (T-D5, S-11)."""
-    cands = [
-        Candidate(key=key, form=BeliefOfForm(holder=a.proposition.holder, proposition=a.proposition.proposition))
+    pairs = [
+        (Candidate(key=key, form=BeliefOfForm(holder=a.proposition.holder, proposition=a.proposition.proposition)), a)
         for a in attributions
     ]
-    if len(cands) == 1:
-        return (PSegment(valid_from=None, valid_to=None, kernel_status=KernelStatus.ESTABLISHED, established=cands[0]),)
-    cands.sort(key=lambda c: c.id)
-    return (PSegment(valid_from=None, valid_to=None, kernel_status=KernelStatus.UNRESOLVED, alternatives=tuple(cands)),)
+    pairs.sort(key=lambda p: p[0].id)
+    support = {c.id: sup for c, a in pairs if (sup := attribution_support(a))}
+    if len(pairs) == 1:
+        return (PSegment(
+            valid_from=None, valid_to=None, kernel_status=KernelStatus.ESTABLISHED, established=pairs[0][0],
+            support=support,
+        ),)
+    return (PSegment(
+        valid_from=None, valid_to=None, kernel_status=KernelStatus.UNRESOLVED, alternatives=tuple(c for c, _ in pairs),
+        support=support,
+    ),)
 
 
 def _ids(entries: Sequence[LogEntry] | None) -> tuple[str, ...]:
     return tuple(e.report.id or "" for e in (entries or ()))
 
 
+def world_of(form: object) -> World:
+    """The candidate world (a set of values) a stored candidate form stands for."""
+    if isinstance(form, ValueForm):
+        return frozenset([form.value])
+    if isinstance(form, SetForm):
+        return frozenset(form.values)
+    return frozenset()
+
+
 def family_of_segment(seg: PSegment) -> Family:
     """The candidate family a stored segment stands for (the inverse of ``classify``): what a derived key needs
     from a stored base belief."""
     st = seg.kernel_status
-
-    def one(f: ValueForm | SetForm | EmptyForm | object) -> frozenset[Value]:
-        if isinstance(f, ValueForm):
-            return frozenset([f.value])
-        if isinstance(f, SetForm):
-            return frozenset(f.values)
-        return frozenset()
-
     if st is KernelStatus.ESTABLISHED:
         assert seg.established is not None
-        return frozenset({one(seg.established.form)})
+        return frozenset({world_of(seg.established.form)})
     if st is KernelStatus.UNRESOLVED:
-        return frozenset(one(c.form) for c in seg.alternatives)
+        return frozenset(world_of(c.form) for c in seg.alternatives)
     return frozenset({frozenset()})  # unknown / established_empty: the empty world
+
+
+def worlds_with_envs(seg: PSegment, budget: EnvBudget) -> Dist:
+    """Candidate world -> its subset-minimal environments, read from the **stored** per-candidate supports of a
+    segment (S-12). A candidate with no support entry has the empty environment: the empty world (no positive
+    evidence) is the only candidate stored that way, because a ``Support`` needs at least one report. The keys equal
+    :func:`family_of_segment`, which is what a derived key's rule engine consumes."""
+    out: dict[World, Envs] = {}
+    st = seg.kernel_status
+    if st is KernelStatus.ESTABLISHED:
+        assert seg.established is not None
+        cands: tuple[Candidate, ...] = (seg.established,)
+    elif st is KernelStatus.UNRESOLVED:
+        cands = tuple(seg.alternatives)
+    else:
+        return {frozenset(): frozenset({frozenset()})}
+    for c in cands:
+        sups = seg.support.get(c.id, ())
+        envs = minimize((frozenset(s.environment) for s in sups), budget) if sups else frozenset({frozenset()})
+        w = world_of(c.form)
+        out[w] = out[w] | envs if w in out else envs
+    return out
 
 
 class _Incomplete(Exception):
@@ -174,23 +219,44 @@ class Resolver:
 
 class _BeliefProvider:
     """Kernel ``Provider`` over stored base beliefs. Records the keys whose candidates were actually read: those
-    (and only those) become the derived belief's ``depends_on``."""
+    (and only those) become the derived belief's ``depends_on``.
+
+    It is also a ``SupportProvider`` (``world_envs``): the environments of a derived world are joins of the stored
+    supports of the base worlds it consumed, so a derived belief carries per-candidate supports over **base**
+    reports without replaying the log. ``reports`` (the admitted ``(id, value)`` pairs the oracle's flat rule needs)
+    is deliberately unavailable here: a stored belief does not carry per-report values, and the profile projection is
+    computed on the audit path (:meth:`palimem.memory.Memory.justification`)."""
 
     def __init__(self, resolver: Resolver) -> None:
         self._r = resolver
         self.consulted: dict[Key, Belief | None] = {}
 
-    def candidates(self, key: Key, t: int) -> Family:
+    def _stored(self, key: Key) -> Belief | None:
         b = self._r.belief(key)
         self.consulted[key] = b
+        if b is not None and not b.inference.complete:
+            raise _Incomplete(key)
+        return b
+
+    def candidates(self, key: Key, t: int) -> Family:
+        b = self._stored(key)
         if b is None:
             return frozenset({frozenset()})
-        if not b.inference.complete:
-            raise _Incomplete(key)
         return family_of_segment(segment_at(b.segments, t))
 
     def breakpoints(self, key: Key) -> frozenset[int]:
         return self._r.breakpoints(key)
+
+    def world_envs(self, key: Key, t: int, budget: EnvBudget) -> Dist:
+        b = self._stored(key)
+        if b is None:
+            return {frozenset(): frozenset({frozenset()})}
+        return worlds_with_envs(segment_at(b.segments, t), budget)
+
+    def reports(self, key: Key) -> Sequence[tuple[str, Value]]:
+        raise NotImplementedError(
+            "stored beliefs carry no per-report values; the profile's flat provenance is computed on the audit path"
+        )
 
 
 def derivation_depths(ks: KernelSchema) -> dict[str, int]:

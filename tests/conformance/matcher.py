@@ -182,7 +182,12 @@ def _short(x: Any, n: int = 160) -> str:
 def add_virtuals(result: Any) -> Any:
     """``_candidates`` (union by id of every candidate an Answer carries), ``_environments`` (sorted
     environments of ``provenance``) and ``_support_max_len`` (longest support list in the justified view)."""
-    if not isinstance(result, dict) or "justified" not in result:
+    if isinstance(result, dict) and "justified" not in result:
+        envs = result.get("environments")
+        if "mode" in result and isinstance(envs, list):  # an Explanation: same virtual field as an Answer's provenance
+            return {**result, "_environments": sorted(sorted(s.get("environment", [])) for s in envs if isinstance(s, dict))}
+        return result
+    if not isinstance(result, dict):
         return result
     seg = (result.get("justified") or {}).get("segment") or {}
     cands: list[dict[str, Any]] = []

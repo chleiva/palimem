@@ -375,16 +375,32 @@ STATUS_FILE = Path(__file__).parent / "memory_status.json"
 
 
 def current_status() -> dict[str, Any]:
-    """Run the suite against this adapter and summarise: ids that pass, ids that fail with their first failure line,
-    ids skipped with the reason. ``memory_status.json`` is the recorded baseline (a ratchet: see test_impl_memory)."""
+    """Run the suite against this adapter and summarise. ``memory_status.json`` is the recorded baseline (a ratchet:
+    see test_impl_memory).
+
+    * ``pass``: scenario fixtures that pass (they need nothing outside the repo);
+    * ``pass_needs_data``: harness checks that pass **because the frozen study data is present**;
+    * ``needs_data``: harness checks skipped because that data (or the study checkout) is absent here;
+    * ``fail``: failing fixtures with their first failure line; ``skip``: skipped for any other reason.
+
+    The two ``*_needs_data`` states are one fact seen from two machines, so the baseline is stable with and without the
+    data: regenerate it *with* the data (it then records ``pass_needs_data``); a machine without the data reports
+    ``needs_data`` for the same ids and the ratchet accepts that, while a machine with the data demands they pass."""
+    from . import checks
     from .runner import FAIL, PASS, SKIP, run_all
 
     out = run_all(MemoryImplementation())
+
+    def needs_data(o: Any) -> bool:
+        return o.status == SKIP and o.reason.startswith(checks.UNAVAILABLE_PREFIX)
+
     return {
         "implementation": MemoryImplementation.name,
-        "pass": sorted(o.id for o in out if o.status == PASS),
+        "pass": sorted(o.id for o in out if o.status == PASS and o.kind != "harness_check"),
+        "pass_needs_data": sorted(o.id for o in out if o.status == PASS and o.kind == "harness_check"),
+        "needs_data": sorted(o.id for o in out if needs_data(o)),
         "fail": {o.id: (o.failures[0] if o.failures else o.reason) for o in out if o.status == FAIL},
-        "skip": {o.id: o.reason for o in out if o.status == SKIP},
+        "skip": {o.id: o.reason for o in out if o.status == SKIP and not needs_data(o)},
     }
 
 

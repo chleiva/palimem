@@ -14,6 +14,11 @@ from typing import Any
 
 REPO = Path(__file__).resolve().parents[2]
 
+UNAVAILABLE_PREFIX = "inputs unavailable: "
+"""Every ``(None, reason)`` a check returns because the frozen data or the study checkout is absent starts with this.
+The ratchet (``impl_memory.current_status``) classifies such a skip as ``needs_data``, a state distinct from a
+fixture that was skipped for any other reason, so the recorded baseline is the same with and without the data."""
+
 
 def _frozen_dir() -> Path | None:
     cache = REPO / ".cache" / "frozen" / "setting1"
@@ -23,7 +28,10 @@ def _frozen_dir() -> Path | None:
         sys.path.insert(0, str(REPO))
         from harness import frozen
 
-        return Path(frozen.locate_frozen())
+        try:
+            return Path(frozen.locate_frozen())
+        except frozen.FrozenError:  # no frozen data on this machine (CI's plain test job): the check cannot run
+            return None
     except (ImportError, OSError, FileNotFoundError):
         return None
 
@@ -33,16 +41,16 @@ def compat_authority_coincide() -> tuple[bool | None, str]:
     target's origin, so origin-based and source-based authority give identical A-SELF results (S-02)."""
     d = _frozen_dir()
     if d is None:
-        return None, "frozen Setting 1 data not available (python -m harness.frozen verify --fetch)"
+        return None, UNAVAILABLE_PREFIX + "frozen Setting 1 data not available (python -m harness.frozen verify --fetch)"
     try:
         from harness import study
 
         ns = study.load()
     except FileNotFoundError as e:
-        return None, str(e)
+        return None, UNAVAILABLE_PREFIX + str(e)
     files = sorted(glob.glob(str(d / "s1_[0-9][0-9][0-9][0-9].json")))
     if not files:
-        return None, f"no s1_NNNN.json under {d}"
+        return None, UNAVAILABLE_PREFIX + f"no s1_NNNN.json under {d}"
     corrections = crossings = streams_with_shared_origin = 0
     first: str | None = None
     for f in files:

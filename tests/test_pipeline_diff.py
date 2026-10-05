@@ -63,3 +63,31 @@ def test_interim_provenance_is_reported_but_never_gates(env):
     b = report["backends"]["memory"]
     assert b["provenance_compared"] > 20
     assert report["passed"]  # provenance may differ without failing the run (strict once T-B4 lands)
+
+
+def test_strict_provenance_the_profile_matches_the_oracle_and_stored_supports_match_the_replay(env):
+    """T-B4 through the full pipeline, both backends: the profile's flat provenance equals the study oracle's on every
+    query, and the supports a ``Resolved`` answer carries (stored in the belief version; for derived keys, joins of the
+    stored base supports) equal the supports recomputed by replaying the admitted evidence at that snapshot."""
+    st, root = env
+    report = pipeline_diff.run(root, st, limit=8, provenance=True)
+    assert report["passed"] and report["provenance_strict"]
+    for kind in ("memory", "sqlite"):
+        b = report["backends"][kind]
+        pv = b["provenance"]
+        assert pv["enabled"] and pv["queries"] == b["queries"] > 400
+        assert pv["disagreements"] == 0, pv["examples"]
+        assert pv["stored_checked"] > 300 and pv["stored_support_mismatch"] == 0, pv["examples"]
+
+
+def test_dropped_provenance_is_detected_by_the_strict_gate(env):
+    st, root = env
+    report = pipeline_diff.run(root, st, limit=10, inject="drop-provenance", provenance=True, backends=("memory",))
+    pv = report["backends"]["memory"]["provenance"]
+    assert not report["passed"] and pv["disagreements"] >= 1
+
+
+def test_drop_provenance_without_the_strict_flag_is_refused(env):
+    st, root = env
+    with pytest.raises(ValueError, match="provenance strict"):
+        pipeline_diff.run(root, st, limit=2, inject="drop-provenance")
