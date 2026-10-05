@@ -70,6 +70,9 @@ def _probe(db: str, n: int, seed: int, persons: int | None, probe_lsn: int, veri
         "in_process_total_s": round(time.perf_counter() - t0, 4), "head_lsn": head, "recover_ok": rec.ok,
         "recover_problems": list(rec.problems), "answer_ok": isinstance(ans, Resolved) and got is not None and not isinstance(got, LimitedRead),
     }
+    # The first correct answer exists NOW: tell the parent before any verification runs (T4 is time to this line,
+    # measured from process start; verify_log / verify_beliefs are reported separately and are not part of it).
+    print("FIRST_QUERY " + json.dumps(out), flush=True)
     if verify:
         t3 = time.perf_counter()
         v = backend.verify_log()
@@ -137,18 +140,25 @@ def run_recovery(
     if persons is not None:
         probe_cmd += ["--persons", str(persons)]
     t0 = time.perf_counter()
-    p = subprocess.run(probe_cmd, capture_output=True, text=True, env=env, check=False)
-    wall = time.perf_counter() - t0
-    if p.returncode != 0:
-        raise RuntimeError(f"probe failed: {p.stderr[-800:]}")
-    pr = json.loads(p.stdout.strip().splitlines()[-1])
+    p = subprocess.Popen(probe_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
+    assert p.stdout is not None
+    first_query_wall: float | None = None
+    for line in p.stdout:
+        if line.startswith("FIRST_QUERY") and first_query_wall is None:
+            first_query_wall = time.perf_counter() - t0  # process start to the first correct answer, imports included
+    wall_total = time.perf_counter() - t0
+    err = p.stderr.read() if p.stderr is not None else ""
+    if p.wait() != 0 or first_query_wall is None:
+        raise RuntimeError(f"probe failed: {err[-800:]}")
+    pr = json.loads(line)  # the last line is the final record, with the verification timings
     lost = max(0, acked - pr["head_lsn"])
     return {
         "report_version": REPORT_VERSION, "kind": "recovery", "env": env_info(),
         "params": {"preload": preload, "extra": extra, "seed": seed, "persons": persons, "verify_beliefs": verify_beliefs},
         "killed": not finished_early, "kill_delay_s": round(delay, 3), "last_acked_lsn": acked, "head_lsn_after": pr["head_lsn"],
         "acknowledged_appends_lost": lost, "committed_but_unacknowledged": max(0, pr["head_lsn"] - acked),
-        "start_to_first_correct_query_s": round(wall, 3), "probe": pr, "db_bytes": db_bytes(db),
+        "start_to_first_correct_query_s": round(first_query_wall, 3), "probe_total_wall_s_incl_verification": round(wall_total, 3),
+        "probe": pr, "db_bytes": db_bytes(db),
         "integrity_ok": bool(lost == 0 and pr["recover_ok"] and pr.get("verify_log_ok", True) and pr.get("verify_beliefs_ok", True) and pr["answer_ok"]),
     }
 
