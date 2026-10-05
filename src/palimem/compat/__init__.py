@@ -1,0 +1,43 @@
+"""Compatibility profiles. ``revise-stream_v1`` reproduces the PALIMPSEST study's contract (T-E3)."""
+
+from palimem.compat.revise_stream_v1 import (
+    CHANGE_FROM_PREFIX,
+    HOST_SOURCE,
+    PROFILE,
+    RETRACTED,
+    SOURCE_STATUS_ATTR,
+    CompatAdmitter,
+    CompatError,
+    answer_v1,
+    change_from_of,
+    compat_admission_config,
+    compat_semantic,
+    kernel_schema_with_marker,
+    reported_v1,
+    schema_from_kernel,
+    segment_v1,
+    source_retraction_report,
+    with_change_from,
+    yesno_v1,
+)
+
+__all__ = [
+    "CHANGE_FROM_PREFIX",
+    "HOST_SOURCE",
+    "PROFILE",
+    "RETRACTED",
+    "SOURCE_STATUS_ATTR",
+    "CompatAdmitter",
+    "CompatError",
+    "answer_v1",
+    "change_from_of",
+    "compat_admission_config",
+    "compat_semantic",
+    "kernel_schema_with_marker",
+    "reported_v1",
+    "schema_from_kernel",
+    "segment_v1",
+    "source_retraction_report",
+    "with_change_from",
+    "yesno_v1",
+]
