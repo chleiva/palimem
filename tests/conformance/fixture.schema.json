@@ -102,7 +102,8 @@
               "principal_scopes",
               "quotas",
               "raw_ref_resolver",
-              "profile_revise_stream_v1"
+              "profile_revise_stream_v1",
+              "source_exclusion"
             ]
           },
           "uniqueItems": true
@@ -209,7 +210,9 @@
                   "find",
                   "subscriber_effects",
                   "resolve_raw_ref",
-                  "verify_beliefs"
+                  "verify_beliefs",
+                  "exclude_source",
+                  "restore_source"
                 ]
               },
               "name": {
@@ -723,6 +726,9 @@
               },
               "expected_head": {
                 "type": "string"
+              },
+              "source": {
+                "type": "string"
               }
             },
             "additionalProperties": false,
@@ -1097,6 +1103,44 @@
                     "name"
                   ]
                 }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "exclude_source"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "source",
+                    "from_lsn",
+                    "reason"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "op": {
+                      "const": "restore_source"
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "source",
+                    "from_lsn",
+                    "reason"
+                  ]
+                }
               }
             ]
           }
@@ -1284,7 +1328,8 @@
               "principal_scopes",
               "quotas",
               "raw_ref_resolver",
-              "profile_revise_stream_v1"
+              "profile_revise_stream_v1",
+              "source_exclusion"
             ]
           },
           "uniqueItems": true

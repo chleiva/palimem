@@ -96,7 +96,7 @@ def kernel_view(entry: LogEntry, decision: AdmissionDecision) -> LogEntry:
 @dataclass(frozen=True)
 class Withdrawal:
     by: str  # id of the acting report
-    kind: str  # "withdraw" | "self_correction" | "source_withdraw"
+    kind: str  # "withdraw" | "self_correction" | "source_withdraw" (compat) | "source_exclusion" (admission operation)
 
 
 @dataclass(frozen=True)

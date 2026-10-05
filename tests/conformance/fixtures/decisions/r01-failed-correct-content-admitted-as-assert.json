@@ -1,0 +1,159 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "r01-failed-correct-content-admitted-as-assert",
+  "title": "A correction that fails authority is an allege for the target, but its content is an assert from its own source",
+  "gate": "G1",
+  "area": "authority",
+  "status": "active",
+  "covers": [
+    "ruling-1",
+    "S-02",
+    "RA-006"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "RA-006 in miniature. The registry asserts alice's employer is Acme (r1). The forum (a different source, a different origin group) 'corrects' r1 to Globex (r2). The default authority is the target's own source (S-02), so the correction fails the check: its effect on the TARGET is an allege (recorded_cue allege, r1 is not withdrawn, r1 stays effective). Ruling 1: its proposition is still a claim by its own, admissible source, so it is admitted as an ordinary assert (admission outcome admissible, reason admitted). Two admissible reports disagree and nothing cues either: the key is unresolved with both candidates, one environment each, and the policy asks. A correction is never worth less than the same statement as an assert, otherwise an attacker would simply use assert.",
+  "source": "docs/decisions/RULINGS-2026-10-05.md item 1",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "forum": {
+        "class": "low",
+        "origin_group": "g_forum"
+      },
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-05T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "globex"
+        },
+        "cue": "correct",
+        "target": "$r1",
+        "source": {
+          "id": "forum",
+          "class": "low"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_forum",
+        "actor": "connector:forum",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      },
+      "expect": {
+        "recorded_cue": "allege",
+        "admission": {
+          "outcome": "admissible",
+          "reason": "admitted"
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "unresolved",
+        "decision": "ask",
+        "_candidates": {
+          "$unordered": [
+            {
+              "form": {
+                "form": "value",
+                "v": "acme"
+              }
+            },
+            {
+              "form": {
+                "form": "value",
+                "v": "globex"
+              }
+            }
+          ]
+        },
+        "_environments": {
+          "$unordered": [
+            {
+              "$unordered": [
+                "$r1"
+              ]
+            },
+            {
+              "$unordered": [
+                "$r2"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "op": "reports",
+      "name": "rep_r1",
+      "filter": {
+        "id": "$r1"
+      },
+      "expect": {
+        "rows": [
+          {
+            "withdrawn": false
+          }
+        ]
+      }
+    }
+  ]
+}

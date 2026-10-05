@@ -23,7 +23,13 @@ from dataclasses import dataclass, replace
 from datetime import datetime
 from typing import Any
 
-from palimem.admission import AdmissionConfig, Admitter, Evaluation, EvidenceSet
+from palimem.admission import (
+    AdmissionConfig,
+    Admitter,
+    Evaluation,
+    EvidenceSet,
+    ExclusionAdmitter,
+)
 from palimem.engine import (
     KernelReviser,
     Pipeline,
@@ -214,7 +220,7 @@ class Memory:
         budget: int = DEFAULT_ENVIRONMENT_BUDGET,
         change_from_of: ChangeFrom | None = None,
         revision_budget: int | None = None,
-        admitter_class: type[Admitter] = Admitter,
+        admitter_class: type[Admitter] = ExclusionAdmitter,
     ) -> None:
         if admission.profile is not semantic.profile:
             raise ValueError("admission profile and semantic profile must agree")

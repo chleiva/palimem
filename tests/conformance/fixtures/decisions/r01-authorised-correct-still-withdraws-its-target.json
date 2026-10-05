@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "r01-authorised-correct-still-withdraws-its-target",
+  "title": "A correction by the target's own source is unchanged: it withdraws its target and asserts the new value",
+  "gate": "G1",
+  "area": "authority",
+  "status": "active",
+  "covers": [
+    "ruling-1",
+    "S-02"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "The ruling changes only the corrections that FAIL authority. The registry corrects its own r1 (Acme to Globex): the authority check passes (own source), r1 is withdrawn, and employer is established Globex with environment {r2}.",
+  "source": "docs/decisions/RULINGS-2026-10-05.md item 1",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "employer": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "registry": {
+        "class": "trusted",
+        "origin_group": "g_registry"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-02-01T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "acme"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-02-05T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "globex"
+        },
+        "cue": "correct",
+        "target": "$r1",
+        "source": {
+          "id": "registry",
+          "class": "trusted"
+        },
+        "origin": "external_observation",
+        "origin_group": "g_registry",
+        "actor": "connector:registry",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      },
+      "expect": {
+        "recorded_cue": "correct",
+        "admission": {
+          "outcome": "admissible"
+        }
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "alice",
+          "attr": "employer"
+        }
+      },
+      "expect": {
+        "kernel_status": "established",
+        "assertion": {
+          "form": {
+            "form": "value",
+            "v": "globex"
+          }
+        },
+        "_environments": {
+          "$unordered": [
+            {
+              "$unordered": [
+                "$r2"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "op": "reports",
+      "name": "rep_r1",
+      "filter": {
+        "id": "$r1"
+      },
+      "expect": {
+        "rows": [
+          {
+            "withdrawn": true
+          }
+        ]
+      }
+    }
+  ]
+}

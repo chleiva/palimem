@@ -104,6 +104,15 @@ jobs:
           if python -m harness.pipeline_diff --limit 10 --backend memory --provenance strict --inject-bug drop-provenance; then
             echo "::error::pipeline_diff --provenance strict did not detect injected bug 'drop-provenance'"; exit 1
           fi
+      - name: exclude_source vs gold (the product's admission operation closes the late-assert gap), bounded on push/PR
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then STRIDE=5; else STRIDE=25; fi
+          python -m harness.exclusion_diff --stride $STRIDE --backend both
+      - name: exclude_source self-test, the gate must fail when the exclusion forgets the earlier reports
+        run: |
+          if python -m harness.exclusion_diff --stride 25 --backend memory --inject-bug forward-only; then
+            echo "::error::exclusion_diff did not detect injected bug 'forward-only'"; exit 1
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:

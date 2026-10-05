@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "kind": "scenario",
+  "id": "r01-sibling-source-same-origin-group-is-not-authority",
+  "title": "A sibling source of the same origin group does not hold authority over the target (RA-007), its content is admitted",
+  "gate": "G1",
+  "area": "authority",
+  "status": "active",
+  "covers": [
+    "ruling-1",
+    "S-02",
+    "RA-007"
+  ],
+  "requires": [],
+  "spec_dependencies": [],
+  "why": "RA-007 in miniature: two desks of one newspaper group. desk_b corrects desk_a's report. Product authority is the target's own SOURCE; origin_group is for corroboration only, never authority (a shared origin is what an attacker can imitate). So the correction fails the check (recorded_cue allege, r1 not withdrawn) and its content is admitted as an assert from an admissible source. Under P0c (self-update off, the semantic configuration these fixtures run under) two values from one origin group still compete, so the key is unresolved {Leeds, Manchester} and the policy asks. (Under P0cSU the same origin group's later value supersedes: that is the A-SU semantic variant, unchanged by this ruling.)",
+  "source": "docs/decisions/RULINGS-2026-10-05.md item 1; RETRACT-ACT RA-007",
+  "setup": {
+    "profile": "open-world",
+    "schema": {
+      "office_city": {
+        "class": "single_changeable",
+        "value_type": "entity",
+        "inertia": true
+      }
+    },
+    "sources": {
+      "desk_a": {
+        "class": "standard",
+        "origin_group": "newsco"
+      },
+      "desk_b": {
+        "class": "standard",
+        "origin_group": "newsco"
+      }
+    }
+  },
+  "ops": [
+    {
+      "op": "append",
+      "ref": "r1",
+      "at": "2026-01-02T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "acme",
+          "attr": "office_city"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "leeds"
+        },
+        "cue": "assert",
+        "target": null,
+        "source": {
+          "id": "desk_a",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "newsco",
+        "actor": "connector:desk_a",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      }
+    },
+    {
+      "op": "append",
+      "ref": "r2",
+      "at": "2026-01-06T10:00:00Z",
+      "report": {
+        "key": {
+          "entity": "acme",
+          "attr": "office_city"
+        },
+        "proposition": {
+          "form": "value",
+          "v": "manchester"
+        },
+        "cue": "correct",
+        "target": "$r1",
+        "source": {
+          "id": "desk_b",
+          "class": "standard"
+        },
+        "origin": "external_observation",
+        "origin_group": "newsco",
+        "actor": "connector:desk_b",
+        "valid_from": null,
+        "valid_to": null,
+        "precision": "day"
+      },
+      "expect": {
+        "recorded_cue": "allege"
+      }
+    },
+    {
+      "op": "query",
+      "name": "q1",
+      "query": {
+        "key": {
+          "entity": "acme",
+          "attr": "office_city"
+        }
+      },
+      "expect": {
+        "kernel_status": "unresolved",
+        "decision": "ask",
+        "_candidates": {
+          "$unordered": [
+            {
+              "form": {
+                "form": "value",
+                "v": "leeds"
+              }
+            },
+            {
+              "form": {
+                "form": "value",
+                "v": "manchester"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "op": "reports",
+      "name": "rep_r1",
+      "filter": {
+        "id": "$r1"
+      },
+      "expect": {
+        "rows": [
+          {
+            "withdrawn": false
+          }
+        ]
+      }
+    }
+  ]
+}
